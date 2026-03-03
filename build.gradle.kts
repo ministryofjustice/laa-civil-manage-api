@@ -31,6 +31,14 @@ dependencies {
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    testImplementation("io.rest-assured:spring-mock-mvc:5.3.0") 
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+
+	implementation("org.springframework.boot:spring-boot-starter-web")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind")
 }
 
 tasks.withType<Test> {

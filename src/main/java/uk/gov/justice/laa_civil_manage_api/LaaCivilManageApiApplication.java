@@ -10,4 +10,7 @@ public class LaaCivilManageApiApplication {
 		SpringApplication.run(LaaCivilManageApiApplication.class, args);
 	}
 
+	
+
 }
+

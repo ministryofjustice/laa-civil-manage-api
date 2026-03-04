@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "laa-civil-manage-api.fullname" . }}
+  labels:
+    {{- include "laa-civil-manage-api.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "laa-civil-manage-api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "laa-civil-manage-api.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "laa-civil-manage-api.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: AUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.AWS_SECRETS_AUTH_CLIENT_ID }}
+                  key: AUTH_CLIENT_ID
+            - name: AUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.AWS_SECRETS_AUTH_CLIENT_SECRET }}
+                  key: AUTH_CLIENT_SECRET
+            - name: AUTH_DIRECTORY_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.env.AWS_SECRETS_AUTH_DIR }}
+                  key: AUTH_DIRECTORY_URL
+            - name: AUTH_REDIRECT_URL
+              value: "{{ .Values.env.AUTH_REDIRECT_URL }}"
+            # - name: BASE_URL_MAP
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: {{ .Values.env.AWS_SECRETS_BASE_URL_MAP }}
+            #       key: BASE_URL_MAP
+            - name: NODE_ENV
+              value: "{{ .Values.env.NODE_ENV }}"
+            - name: RATE_LIMIT_MAX
+              value: "{{ .Values.env.RATE_LIMIT_MAX }}"
+            - name: RATE_WINDOW_MS
+              value: "{{ .Values.env.RATE_WINDOW_MS }}"
+            - name: SERVICE_NAME
+              value: "{{ .Values.env.SERVICE_NAME }}"
+            - name: SESSION_SECRET
+              value: "{{ .Values.env.SESSION_SECRET }}"
+            - name: SESSION_NAME
+              value: "{{ .Values.env.SESSION_NAME }}"
+            - name: SESSION_REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.env.REDIS_SECRET_NAME }}"
+                  key: url
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

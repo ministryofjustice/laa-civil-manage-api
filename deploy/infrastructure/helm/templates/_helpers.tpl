@@ -46,7 +46,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 Selector labels
 */}}
 {{- define "laa-civil-manage-api.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "laa-civil-manage.name" . }}
+app.kubernetes.io/name: {{ include "laa-civil-manage-api.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 

@@ -74,7 +74,6 @@ runs:
         GITHUB_REF_NAME: ${{ github.ref_name }}
         GITHUB_HEAD_REF: ${{ github.head_ref }}
         K8S_NAMESPACE: ${{ inputs.kube-namespace }}
-        NODE_ENV: production
         AUTH_CLIENT_ID: ${{ inputs.auth_client_id }}
         AUTH_CLIENT_SECRET: ${{ inputs.auth_client_secret }}
         AUTH_DIRECTORY_URL: ${{ inputs.auth_directory_url }}

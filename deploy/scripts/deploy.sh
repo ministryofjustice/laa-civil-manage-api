@@ -25,7 +25,6 @@ deploy_branch() {
                 --set env.AWS_SECRETS_AUTH_CLIENT_ID="auth-client-id-$ENVIRONMENT" \
                 --set env.AWS_SECRETS_AUTH_CLIENT_SECRET="auth-client-secret-$ENVIRONMENT" \
                 --set env.AWS_SECRETS_AUTH_DIR="auth-directory-url-$ENVIRONMENT" \
-                --set env.NODE_ENV="$NODE_ENV" \
                 --set env.SERVICE_NAME="$SERVICE_NAME" \
                 --set env.RATE_LIMIT_MAX="$RATE_LIMIT_MAX" \
                 --set env.RATE_WINDOW_MS="$RATE_WINDOW_MS" \
@@ -46,7 +45,6 @@ deploy_main() {
                 --set env.AWS_SECRETS_AUTH_CLIENT_ID="auth-client-id-$ENVIRONMENT" \
                 --set env.AWS_SECRETS_AUTH_CLIENT_SECRET="auth-client-secret-$ENVIRONMENT" \
                 --set env.AWS_SECRETS_AUTH_DIR="auth-directory-url-$ENVIRONMENT" \
-                --set env.NODE_ENV="$NODE_ENV" \
                 --set env.RATE_LIMIT_MAX="$RATE_LIMIT_MAX" \
                 --set env.RATE_WINDOW_MS="$RATE_WINDOW_MS" \
                 --set env.SERVICE_NAME="$SERVICE_NAME" \

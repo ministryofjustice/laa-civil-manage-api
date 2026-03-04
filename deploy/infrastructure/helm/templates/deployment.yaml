@@ -73,8 +73,6 @@ spec:
             #     secretKeyRef:
             #       name: {{ .Values.env.AWS_SECRETS_BASE_URL_MAP }}
             #       key: BASE_URL_MAP
-            - name: NODE_ENV
-              value: "{{ .Values.env.NODE_ENV }}"
             - name: RATE_LIMIT_MAX
               value: "{{ .Values.env.RATE_LIMIT_MAX }}"
             - name: RATE_WINDOW_MS
@@ -85,11 +83,6 @@ spec:
               value: "{{ .Values.env.SESSION_SECRET }}"
             - name: SESSION_NAME
               value: "{{ .Values.env.SESSION_NAME }}"
-            - name: SESSION_REDIS_URL
-              valueFrom:
-                secretKeyRef:
-                  name: "{{ .Values.env.REDIS_SECRET_NAME }}"
-                  key: url
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}

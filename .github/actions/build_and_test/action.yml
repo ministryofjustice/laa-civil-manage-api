@@ -27,8 +27,8 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 
-    - name: Publish package
-      shell: bash
-      run: ./gradlew publish
-      env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}
+    # - name: Publish package
+    #   shell: bash
+    #   run: ./gradlew publish
+    #   env:
+    #     GITHUB_TOKEN: ${{ inputs.github_token }}

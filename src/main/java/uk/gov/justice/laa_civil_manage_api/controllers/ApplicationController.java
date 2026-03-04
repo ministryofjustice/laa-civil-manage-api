@@ -1,4 +1,4 @@
-package uk.gov.justice.controllers;
+package uk.gov.justice.laa_civil_manage_api.controllers;
 
 import java.util.List;
 import java.util.UUID;
@@ -6,20 +6,20 @@ import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import uk.gov.justice.laa_civil_manage_api.models.Application;
+import uk.gov.justice.laa_civil_manage_api.models.ApplicationModel;
 
 @RestController
 public class ApplicationController {
     @GetMapping("/applications")
-    public List<Application> getApplications() {
-        Application app1 = Application.builder()
+    public List<ApplicationModel> getApplications() {
+        ApplicationModel app1 = ApplicationModel.builder()
                 .applicationId(UUID.randomUUID())
                 .clientFirstName("Jane")
                 .clientLastName("Smith")
                 .status("PENDING")
                 .build();
 
-        Application app2 = Application.builder()
+        ApplicationModel app2 = ApplicationModel.builder()
                 .applicationId(UUID.randomUUID())
                 .clientFirstName("Jane")
                 .clientLastName("Smith")

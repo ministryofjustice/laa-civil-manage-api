@@ -13,8 +13,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.config.ObjectMapperConfig;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import io.restassured.module.mockmvc.config.RestAssuredMockMvcConfig;
-import uk.gov.justice.controllers.ApplicationController;
-import uk.gov.justice.laa_civil_manage_api.models.Application;
+import uk.gov.justice.laa_civil_manage_api.controllers.ApplicationController;
+import uk.gov.justice.laa_civil_manage_api.models.ApplicationModel;
 
 @WebMvcTest(ApplicationController.class)
 public class ApplicationControllerTest {
@@ -36,15 +36,15 @@ public class ApplicationControllerTest {
 
     @Test
     void shouldReturnApplicationsArray() {
-        Application[] applications = given()
+        ApplicationModel[] applications = given()
                 .when()
                 .get("/applications")
                 .then()
                 .statusCode(200)
                 .extract()
-                .as(Application[].class);
+                .as(ApplicationModel[].class);
 
-        Application firstApp = applications[0];
-        assertEquals("Jane", firstApp.getClientFirstName());
+        ApplicationModel firstApplication = applications[0];
+        assertEquals("Jane", firstApplication.getClientFirstName());
     }
 }

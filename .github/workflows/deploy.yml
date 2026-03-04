@@ -46,10 +46,19 @@ jobs:
   #       env:
   #         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-  build-image:
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Build and Publish Action
+        uses: ./.github/actions/build_and_test
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-docker-image:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    # environment: dev
+    environment: dev
     permissions:
       id-token: write
       contents: read
@@ -80,7 +89,7 @@ jobs:
             ${{ runner.os }}-buildx-
 
       - name: Build and push image with local action
-        uses: ./.github/actions/build_and_push
+        uses: ./.github/actions/docker_build_and_push
         with:
           image_registry: ${{ secrets.ECR_REGISTRY_URL }}
           image_repo: ${{ vars.ECR_REPOSITORY }}
@@ -126,7 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       # - snyk
-      - build-image
+      - build-docker-image
       # - unit-tests
       # - playwright
       # - zap-scan

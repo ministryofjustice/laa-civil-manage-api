@@ -23,7 +23,8 @@ on:
         options:
           - dev
 
-permissions: {}          
+permissions:
+  contents: read    
 jobs:
   # snyk:
   #   name: Snyk Security Scan

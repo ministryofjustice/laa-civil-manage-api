@@ -6,7 +6,7 @@ RUN mkdir -p /opt/laa-civil-manage-api/
 WORKDIR /opt/laa-civil-manage-api/
 
 # Copy the JAR file into the container
-COPY build/libs/build/libs/laa-civil-manage-api-0.0.1-SNAPSHOT.jar app.jar
+COPY build/libs/laa-civil-manage-api-0.0.1-SNAPSHOT.jar app.jar
 
 # Create a group and non-root user
 RUN addgroup -S appgroup && adduser -u 1001 -S appuser -G appgroup
@@ -18,4 +18,4 @@ USER 1001
 EXPOSE 8080
 
 # Run the JAR file
-CMD java -jar app.jar
+CMD ["java", "-jar", "app.jar"]

@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.config.ObjectMapperConfig;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 import io.restassured.module.mockmvc.config.RestAssuredMockMvcConfig;
-
+import uk.gov.justice.controllers.ApplicationController;
 import uk.gov.justice.laa_civil_manage_api.models.Application;
 
 @WebMvcTest(ApplicationController.class)

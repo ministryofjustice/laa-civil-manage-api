@@ -1,4 +1,4 @@
-package uk.gov.justice.laa_civil_manage_api;
+package uk.gov.justice.controllers;
 
 import java.util.List;
 import java.util.UUID;

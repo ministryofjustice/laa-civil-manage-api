@@ -17,8 +17,8 @@ import io.restassured.module.mockmvc.config.RestAssuredMockMvcConfig;
 
 import uk.gov.justice.laa_civil_manage_api.models.Application;
 
-@WebMvcTest(HelloController.class)
-public class HelloControllerTest {
+@WebMvcTest(ApplicationController.class)
+public class ApplicationControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

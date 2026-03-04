@@ -9,13 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.justice.laa_civil_manage_api.models.Application;
 
 @RestController
-public class HelloController {
-
-    @GetMapping("/hello")
-    public String sayHello() {
-        return "Hello, World! Your Spring Boot app is working.";
-    }
-
+public class ApplicationController {
     @GetMapping("/applications")
     public List<Application> getApplications() {
         Application app1 = Application.builder()

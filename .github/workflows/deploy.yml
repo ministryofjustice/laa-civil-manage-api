@@ -23,6 +23,7 @@ on:
         options:
           - dev
 
+permissions: {}          
 jobs:
   # snyk:
   #   name: Snyk Security Scan

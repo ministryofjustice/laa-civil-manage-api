@@ -88,13 +88,6 @@ readinessProbe:
   initialDelaySeconds: 30
   periodSeconds: 60
 
-env:
-  # AWS_SECRETS_AUTH_CLIENT_ID: ""
-  # AWS_SECRETS_AUTH_CLIENT_SECRET: ""
-  # AWS_SECRETS_AUTH_DIR: ""
-  # AWS_SECRETS_BASE_URL_MAP: "base-url-map-dev"
-  # REDIS_SECRET_NAME: elasticache-laa-civil-manage-dev
-
 autoscaling:
   enabled: false
   minReplicas: 1

@@ -1,7 +1,6 @@
 package uk.gov.justice.laa_civil_manage_api;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -33,16 +32,6 @@ public class ApplicationControllerTest {
         RestAssuredMockMvc.config = RestAssuredMockMvcConfig.config()
                 .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
                         (cls, charset) -> mapper));
-    }
-
-    @Test
-    void shouldReturnHelloMessage() {
-        given()
-                .when()
-                .get("/hello")
-                .then()
-                .statusCode(200)
-                .body(equalTo("Hello, World! Your Spring Boot app is working."));
     }
 
     @Test

@@ -28,5 +28,4 @@ public class ApplicationController {
 
         return List.of(app1, app2);
     }
-
 }

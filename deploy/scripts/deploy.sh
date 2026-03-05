@@ -23,7 +23,7 @@ deploy_branch() {
 }
 
 deploy_main() {
-  RELEASE_HOST="laa-civil-manage-api$ENVIRONMENT.cloud-platform.service.justice.gov.uk"
+  RELEASE_HOST="laa-civil-manage-api-$ENVIRONMENT.cloud-platform.service.justice.gov.uk"
   helm upgrade laa-civil-manage ./deploy/infrastructure/helm/. \
                 --install --wait --timeout 10m \
                 --namespace="${K8S_NAMESPACE}" \

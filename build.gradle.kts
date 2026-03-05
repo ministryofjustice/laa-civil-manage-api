@@ -33,7 +33,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    testImplementation("io.rest-assured:spring-mock-mvc:5.5.7") 
+    testImplementation("io.rest-assured:spring-mock-mvc:6.0.0") 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
 

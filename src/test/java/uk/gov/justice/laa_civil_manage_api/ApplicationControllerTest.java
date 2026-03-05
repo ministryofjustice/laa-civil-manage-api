@@ -3,6 +3,7 @@ package uk.gov.justice.laa_civil_manage_api;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import tools.jackson.core.type.TypeReference;
@@ -11,6 +12,7 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import uk.gov.justice.laa_civil_manage_api.controllers.ApplicationController;
 import uk.gov.justice.laa_civil_manage_api.models.Application;
+import uk.gov.justice.laa_civil_manage_api.services.ApplicationService;
 
 import java.util.List;
 
@@ -24,6 +26,9 @@ public class ApplicationControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockitoBean
+    private ApplicationService applicationService;
+
     private static final ObjectMapper mapper = JsonMapper.builder()
             .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
             .build();
@@ -36,8 +41,8 @@ public class ApplicationControllerTest {
 
         List<Application> applications = mapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
 
-        assertEquals(2, applications.size());
-        assertEquals("Jane", applications.getFirst().getClientFirstName());
+        assertEquals(5, applications.size());
+        assertEquals("Ali", applications.getFirst().getClientFirstName());
     }
 
 }

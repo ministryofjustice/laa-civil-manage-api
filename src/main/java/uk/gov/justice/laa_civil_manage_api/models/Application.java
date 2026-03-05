@@ -15,7 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Application {
 
-    private UUID applicationId;
+    private String applicationId;
     private String status;
     private OffsetDateTime submittedAt;
     private OffsetDateTime lastUpdated;

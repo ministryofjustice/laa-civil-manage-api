@@ -6,20 +6,21 @@ import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import uk.gov.justice.laa_civil_manage_api.models.ApplicationModel;
+import uk.gov.justice.laa_civil_manage_api.models.Application;
 
 @RestController
 public class ApplicationController {
+
     @GetMapping("/applications")
-    public List<ApplicationModel> getApplications() {
-        ApplicationModel app1 = ApplicationModel.builder()
+    public List<Application> getApplications() {
+        Application app1 = Application.builder()
                 .applicationId(UUID.randomUUID())
                 .clientFirstName("Jane")
                 .clientLastName("Smith")
                 .status("PENDING")
                 .build();
 
-        ApplicationModel app2 = ApplicationModel.builder()
+        Application app2 = Application.builder()
                 .applicationId(UUID.randomUUID())
                 .clientFirstName("Jane")
                 .clientLastName("Smith")

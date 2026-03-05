@@ -1,20 +1,22 @@
 package uk.gov.justice.laa_civil_manage_api;
 
-import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.config.ObjectMapperConfig;
-import io.restassured.module.mockmvc.RestAssuredMockMvc;
-import io.restassured.module.mockmvc.config.RestAssuredMockMvcConfig;
+import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.justice.laa_civil_manage_api.controllers.ApplicationController;
-import uk.gov.justice.laa_civil_manage_api.models.ApplicationModel;
+import uk.gov.justice.laa_civil_manage_api.models.Application;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ApplicationController.class)
 public class ApplicationControllerTest {
@@ -22,29 +24,20 @@ public class ApplicationControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @BeforeEach
-    void setUp() {
-        RestAssuredMockMvc.mockMvc(mockMvc);
-
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.findAndRegisterModules();
-
-        RestAssuredMockMvc.config = RestAssuredMockMvcConfig.config()
-                .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
-                        (cls, charset) -> mapper));
-    }
+    private static final ObjectMapper mapper = JsonMapper.builder()
+            .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+            .build();
 
     @Test
-    void shouldReturnApplicationsArray() {
-        ApplicationModel[] applications = given()
-                .when()
-                .get("/applications")
-                .then()
-                .statusCode(200)
-                .extract()
-                .as(ApplicationModel[].class);
+    void shouldReturnApplications() throws Exception {
+        MvcResult result = mockMvc.perform(get("/applications"))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        ApplicationModel firstApplication = applications[0];
-        assertEquals("Jane", firstApplication.getClientFirstName());
+        List<Application> applications = mapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
+
+        assertEquals(2, applications.size());
+        assertEquals("Jane", applications.getFirst().getClientFirstName());
     }
+
 }

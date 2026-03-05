@@ -13,7 +13,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApplicationModel {
+public class Application {
 
     private UUID applicationId;
     private String status;

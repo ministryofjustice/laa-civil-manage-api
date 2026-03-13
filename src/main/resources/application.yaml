@@ -8,5 +8,6 @@ management:
       base-path: "/"
       path-mapping:
         prometheus: "metrics"
+        health: "actuator/health"
       exposure:
         include: "health,info,prometheus"

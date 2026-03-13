@@ -9,4 +9,4 @@ management:
       path-mapping:
         prometheus: "metrics"
       exposure:
-        include: "health,info,prometheus"
+        include: "info,prometheus"

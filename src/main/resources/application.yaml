@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: laa-civil-manage-api
+
+management:
+  endpoints:
+    web:
+      base-path: "/"
+      path-mapping:
+        prometheus: "metrics"
+      exposure:
+        include: "health,info,prometheus"

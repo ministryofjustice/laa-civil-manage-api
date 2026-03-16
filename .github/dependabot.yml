@@ -18,17 +18,18 @@ updates:
         update-types:
           - "minor"
           - "patch"
-  - package-ecosystem: "npm"
+  - package-ecosystem: "gradle"
     directory: "/"
     schedule:
       interval: "weekly"
+    registries: "*"
     groups:
-      combined-dependencies:
+      gradle-updates:
+        exclude-patterns:
+          - "uk.gov.justice.*"
+      internal-packages:
         patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
+          - "uk.gov.justice.*"
   - package-ecosystem: "docker"
     directory: "/"
     schedule:

@@ -72,6 +72,7 @@ jobs:
     environment: dev
     needs:
       - build-and-test
+    if: github.actor != 'dependabot[bot]'
     permissions:
       id-token: write
       contents: read

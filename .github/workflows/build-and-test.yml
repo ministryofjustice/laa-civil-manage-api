@@ -61,7 +61,7 @@ jobs:
 #         run: ./gradlew build
 
 #       - name: Build a Docker image
-#         run: docker build -t spring-boot-microservice:scan .
+#         run: docker buildx build -t spring-boot-microservice:scan .
 
 #       - name: Run Snyk to check Docker image for vulnerabilities
 #         uses: snyk/actions/docker@master

@@ -47,7 +47,7 @@ dependencies {
 	
 	constraints {
         implementation("com.fasterxml.jackson.core:jackson-core:2.21.1") {
-            because "version 2.20.2 has a DoS vulnerability (CVE-2025-52999)"
+			because("version 2.20.2 has a DoS vulnerability (CVE-2025-52999)")
         }
     }
 }

@@ -45,10 +45,14 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
 	
-	constraints {
-        implementation("com.fasterxml.jackson.core:jackson-core:2.21.1") {
-			because("version 2.20.2 has a DoS vulnerability (CVE-2025-52999)")
-        }
+	constraints {{
+        implementation("com.fasterxml.jackson.core:jackson-core") {
+            version {
+                // Reject anything older than 2.21.1
+                strictly("2.21.1")
+            }
+            because "versions below 2.21.1 have a DoS vulnerability (CVE-2025-52999)"
+        }
     }
 }
 

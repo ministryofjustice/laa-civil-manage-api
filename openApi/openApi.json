@@ -1,13 +1,21 @@
 {
   "openapi": "3.1.0",
-  "info": { "title": "OpenAPI definition", "version": "v0" },
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
   "servers": [
-    { "url": "http://localhost:8080", "description": "Generated server url" }
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
   ],
   "paths": {
     "/applications": {
       "get": {
-        "tags": ["application-controller"],
+        "tags": [
+          "application-controller"
+        ],
         "operationId": "getApplications",
         "responses": {
           "200": {
@@ -16,7 +24,9 @@
               "*/*": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Application" }
+                  "items": {
+                    "$ref": "#/components/schemas/Application"
+                  }
                 }
               }
             }
@@ -26,14 +36,18 @@
     },
     "/applications/{id}": {
       "get": {
-        "tags": ["application-controller"],
+        "tags": [
+          "application-controller"
+        ],
         "operationId": "getApplicationById",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -41,7 +55,9 @@
             "description": "OK",
             "content": {
               "*/*": {
-                "schema": { "$ref": "#/components/schemas/Application" }
+                "schema": {
+                  "$ref": "#/components/schemas/Application"
+                }
               }
             }
           }
@@ -54,22 +70,58 @@
       "Application": {
         "type": "object",
         "properties": {
-          "applicationId": { "type": "string" },
-          "status": { "type": "string" },
-          "submittedAt": { "type": "string", "format": "date-time" },
-          "lastUpdated": { "type": "string", "format": "date-time" },
-          "usedDelegatedFunctions": { "type": "boolean" },
-          "categoryOfLaw": { "type": "string" },
-          "matterType": { "type": "string" },
-          "assignedTo": { "type": "string", "format": "uuid" },
-          "autoGrant": { "type": "boolean" },
-          "clientFirstName": { "type": "string" },
-          "clientLastName": { "type": "string" },
-          "clientDateOfBirth": { "type": "string", "format": "date" },
-          "laaReference": { "type": "string" },
-          "officeCode": { "type": "string" },
-          "applicationType": { "type": "string" },
-          "lead": { "type": "boolean" }
+          "applicationId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "usedDelegatedFunctions": {
+            "type": "boolean"
+          },
+          "categoryOfLaw": {
+            "type": "string"
+          },
+          "matterType": {
+            "type": "string"
+          },
+          "assignedTo": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "autoGrant": {
+            "type": "boolean"
+          },
+          "clientFirstName": {
+            "type": "string"
+          },
+          "clientLastName": {
+            "type": "string"
+          },
+          "clientDateOfBirth": {
+            "type": "string",
+            "format": "date"
+          },
+          "laaReference": {
+            "type": "string"
+          },
+          "officeCode": {
+            "type": "string"
+          },
+          "applicationType": {
+            "type": "string"
+          },
+          "lead": {
+            "type": "boolean"
+          }
         }
       }
     }

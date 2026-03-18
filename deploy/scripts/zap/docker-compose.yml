@@ -3,13 +3,7 @@ services:
     build: ../../../.
     ports:
       - "3000:3000"
-    environment:
-      NODE_ENV: test
-      SESSION_SECRET: "zap-test-secret"
-      SESSION_NAME: "sessionId"
-      AUTH_REDIRECT_URL: "http://localhost:3000"
-      AUTH_CLIENT_SECRET: "zap-test-secret"
-      AUTH_CLIENT_ID: "zap-test-secret"
+
   zap-scan:
     image: zaproxy/zap-stable
     command: zap.sh -cmd -port 9090 -autorun /zap/wrk/zap.yaml

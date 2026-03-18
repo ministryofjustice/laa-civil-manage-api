@@ -3,7 +3,7 @@ description: 'Checks out the code, sets up JDK 25 and Gradle, then builds and pu
 
 inputs:
   github_token:
-    description: 'GitHub Token required for Gradle build and publish steps'
+    description: GitHub Token required for Gradle build and publish steps'
     required: true
 
 runs:
@@ -27,9 +27,9 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
     
-    - name: Verfiy that OpenAPI schema is up to date
+    - name: Verify that OpenAPI schema is up to date
       shell: bash
-      run: ./gradlew generateOpenApiDocs
+      run: ./gradlew verifyOpenApiSync
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
 

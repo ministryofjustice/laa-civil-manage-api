@@ -45,7 +45,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
 	
-	constraints {{
+	constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
             version {
                 // Reject anything older than 2.21.1

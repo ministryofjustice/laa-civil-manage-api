@@ -1,0 +1,43 @@
+name: ZAP Security Scanning
+on:
+  workflow_dispatch: # Allow manual triggering only
+  workflow_call: # Allow this workflow to be called by other workflows
+
+jobs:
+  zap-scan:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
+
+      - name: Build JAR
+        run: ./gradlew build -x test --no-daemon  # Skip tests to ensure JAR is built
+        
+      - name: Verify JAR exists
+        run: |
+          echo "Checking for JAR files..."
+          find . -name "*.jar" -type f
+          if [ ! -f "build/libs/laa-civil-manage-api-0.0.1-SNAPSHOT.jar" ]; then
+            echo "JAR not found! Build may have failed."
+            exit 1
+          fi
+
+      - name: Create tmp directory for ZAP reports
+        run: |
+          mkdir -p tmp
+          chmod 777 tmp
+
+      - name: Run Zap Security Scan against Civil Manage
+        run: |
+          ../../deploy/scripts/zap/zap-run-cicd.sh 
+          
+      - name: Upload ZAP HTML Report
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: zap-scan-report-html
+          path: tmp/zap-baseline-report.html

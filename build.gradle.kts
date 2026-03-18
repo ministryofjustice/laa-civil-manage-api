@@ -25,6 +25,9 @@ repositories {
 }
 
 dependencies {
+
+	implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4")
+
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
@@ -41,6 +44,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
+	
 }
 
 tasks.withType<Test> {

@@ -54,6 +54,7 @@ dependencies {
             because "versions below 2.21.1 have a DoS vulnerability (CVE-2025-52999)"
         }
     }
+	
 }
 
 

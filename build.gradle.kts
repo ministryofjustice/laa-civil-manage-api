@@ -51,7 +51,7 @@ dependencies {
                 // Reject anything older than 2.21.1
                 strictly("2.21.1")
             }
-            because "versions below 2.21.1 have a DoS vulnerability (CVE-2025-52999)"
+          	because("version 2.20.2 has a DoS vulnerability (CVE-2025-52999)")
         }
     }
 	

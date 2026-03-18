@@ -3,7 +3,7 @@ description: 'Checks out the code, sets up JDK 25 and Gradle, then builds and pu
 
 inputs:
   github_token:
-    description: GitHub Token required for Gradle build and publish steps'
+    description: 'GitHub Token required for Gradle build and publish steps'
     required: true
 
 runs:

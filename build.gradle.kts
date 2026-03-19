@@ -46,6 +46,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
 	
+    // This addresses a vulnerability with transient dependency in Jackson serializer. 
 	constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
             version {

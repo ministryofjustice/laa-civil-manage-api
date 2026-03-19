@@ -140,7 +140,7 @@ jobs:
     name: ZAP Security Scanning
     uses: ./.github/workflows/zap-scanning.yml
     needs:
-      - build-image
+      - build-docker-image
     # Only run tests when deploying to dev
     if: success() && (github.event_name != 'workflow_dispatch' ||
       (github.event_name == 'workflow_dispatch' &&

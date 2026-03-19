@@ -1,7 +1,6 @@
 name: ZAP Security Scanning
 on:
-  workflow_dispatch: # Allow manual triggering only
-  workflow_call: # Allow this workflow to be called by other workflows
+  workflow_call:
 
 jobs:
   zap-scan:
@@ -15,7 +14,7 @@ jobs:
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
 
       - name: Build JAR
-        run: ./gradlew build -x test --no-daemon  # Skip tests to ensure JAR is built
+        run: ./gradlew build -x test --no-daemon
         
       - name: Verify JAR exists
         run: |

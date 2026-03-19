@@ -3,7 +3,7 @@
 echo "--- Updating Zap.Yaml for CI --"
 sed -i 's|zap-results|tmp|g' zap.yaml
 
-cd ../../
+cd ../../../
 
 docker compose \
     -f $(pwd)/deploy/scripts/zap/docker-compose.yml \

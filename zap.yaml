@@ -37,15 +37,15 @@ jobs:
     type: outputSummary
   - parameters:
       reportDescription: "HTML Report"
-      reportDir: /zap/wrk/
-      reportFile: zap-results/zap-baseline-report.html
+      reportDir: /zap/wrk/zap-results
+      reportFile: zap-baseline-report.html
       reportTitle: ZAP Scanning Report
       template: traditional-html
     type: report
   - parameters:
       reportDescription: "JSON Report"
-      reportDir: /zap/wrk/
-      reportFile: zap-results/zap-baseline-report.json
+      reportDir: /zap/wrk/zap-results
+      reportFile: zap-baseline-report.json
       reportTitle: ZAP Scanning Report
       template: traditional-json
     type: report

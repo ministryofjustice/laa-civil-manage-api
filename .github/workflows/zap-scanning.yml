@@ -32,7 +32,7 @@ jobs:
 
       - name: Run Zap Security Scan against Civil Manage
         run: |
-          ../../../deploy/scripts/zap/zap-run-cicd.sh 
+          ../../deploy/scripts/zap/zap-run-cicd.sh 
           
       - name: Upload ZAP HTML Report
         if: always()

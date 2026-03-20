@@ -1,0 +1,18 @@
+## 📝 Description
+
+Ticket [AP-XXXX](https://dsdmoj.atlassian.net/browse/AP-XXXX)
+
+Give a brief description of the work covered here. What challenges did you encounter and how did you solve them? Is there anything else that future maintainers should know?
+
+## 🚀 PR Readiness
+
+Before raising a PR, consider whether the following points apply and whether you have completed them.
+
+- **Tests updated?** - Unit/Integration/E2E
+- **Manual testing performed?**
+- **E2E/Integration testing updated?**
+- **Secrets/CI pipelines updated?** - Environment variables, GitHub Actions, etc.
+- **Sufficient logging added?**
+- **Code has been self-reviewed**
+- **Code delivers against defined Acceptance Criteria** or notes about further PRs which will be raised against this ticket have been added to Description section
+- **README file and other documentation udpated**

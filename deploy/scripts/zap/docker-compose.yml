@@ -1,0 +1,13 @@
+services:
+  civil-manage:
+    build: ../../../.
+    ports:
+      - "3000:3000"
+
+  zap-scan:
+    image: zaproxy/zap-stable
+    command: zap.sh -cmd -port 9090 -autorun /zap/wrk/zap.yaml
+    volumes:
+      - ../../../.:/zap/wrk:rw
+    links:
+      - civil-manage

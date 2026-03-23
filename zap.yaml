@@ -1,0 +1,51 @@
+env:
+  contexts:
+    - excludePaths:
+        - .*/robots\.txt$
+        - .*/sitemap\.xml$
+      name: baseline
+      urls:
+        - http://civil-manage:8080
+  parameters:
+    failOnError: true
+    progressToStdout: false
+jobs:
+  - type: openapi
+    parameters:
+      apiFile: "./openApi/openApi.json"
+      targetUrl: "http://civil-manage:8080"
+  - parameters:
+      enableTags: false
+      maxAlertsPerRule: 10
+    type: passiveScan-config
+  - parameters:
+      maxDuration: 0
+    type: passiveScan-wait
+  - type: alertFilter
+    parameters:
+      deleteGlobalAlerts:
+        - ruleId: 10109
+    alertFilters:
+      - ruleId: 10109
+        newRisk: Info
+        url: ".*"
+        urlRegex: true
+  - parameters:
+      format: Long
+      summaryFile: /home/zap/zap_out.json
+    rules: []
+    type: outputSummary
+  - parameters:
+      reportDescription: "HTML Report"
+      reportDir: /zap/wrk/zap-results
+      reportFile: zap-baseline-report.html
+      reportTitle: ZAP Scanning Report
+      template: traditional-html
+    type: report
+  - parameters:
+      reportDescription: "JSON Report"
+      reportDir: /zap/wrk/zap-results
+      reportFile: zap-baseline-report.json
+      reportTitle: ZAP Scanning Report
+      template: traditional-json
+    type: report

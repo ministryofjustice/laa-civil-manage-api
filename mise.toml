@@ -1,3 +1,23 @@
 [tools]
 gradle = "9.3.1"
 java = "25"
+
+[tasks.build]
+description = "Full project build"
+run = "./gradlew build"
+
+[tasks.dev]
+description = "Run app in dev mode"
+run = "./gradlew bootRun"
+
+[tasks.test]
+description = "Run unit tests"
+run = "./gradlew test"
+
+[tasks.generateOpenApiDocs]
+description = "Generate OpenAPI Schema from controllers"
+run = "./gradlew generateOpenApiDocs"
+
+[tasks.zap]
+description = "Run Zap security scanning"
+run = "./deploy/scripts/zap/zap-run-local.sh"

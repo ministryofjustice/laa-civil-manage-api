@@ -57,7 +57,8 @@ ingress:
   annotations:
     external-dns.alpha.kubernetes.io/set-identifier: "ingress-name-your-repo-name-your-repo-name-staging-green"
     external-dns.alpha.kubernetes.io/aws-weight: "100"
-
+    allow-duplicate-host: "true"
+    allowed-duplicate-ns: "laa-civil-manage-api-dev,laa-civil-manage-api-staging"
 resources:
   limits:
     cpu: 500m

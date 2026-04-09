@@ -197,7 +197,7 @@ jobs:
 #           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 #           pipeline_status: "${{ job.status }} ${{ join(needs.*.result, ' ') }}"
 
-deploy-staging:
+  deploy-staging:
     if: ${{ github.actor != 'dependabot[bot]' }}
     environment: staging 
     runs-on: ubuntu-latest

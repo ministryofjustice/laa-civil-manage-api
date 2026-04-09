@@ -1,4 +1,4 @@
-name: Deploy to DEV
+name: Deploy to DEV and staging
 
 on:
   push:
@@ -149,7 +149,7 @@ jobs:
 
   deploy-dev:
     if: ${{ github.actor != 'dependabot[bot]' }}
-    environment: dev
+    environment: dev 
     runs-on: ubuntu-latest
     needs:
       # - snyk
@@ -196,3 +196,35 @@ jobs:
 #           app-environment: dev
 #           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
 #           pipeline_status: "${{ job.status }} ${{ join(needs.*.result, ' ') }}"
+
+  deploy-staging:
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    environment: staging 
+    runs-on: ubuntu-latest
+    needs:
+      # - snyk
+      - build-docker-image
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
+
+      - name: Deploy to staging
+        uses: ./.github/actions/deploy
+        with:
+          app-environment: staging
+          # auth_client_id: ${{ secrets.AUTH_CLIENT_ID }}
+          # auth_client_secret: ${{ secrets.AUTH_CLIENT_SECRET }}
+          # auth_directory_url: ${{ secrets.AUTH_DIRECTORY_URL }}
+          # auth_redirect_url: ${{ secrets.AUTH_REDIRECT_URL }}
+          ecr-repository: ${{ vars.ECR_REPOSITORY }}
+          ecr-registry_url: ${{ secrets.ECR_REGISTRY_URL }}
+          kube-cert: ${{ secrets.KUBE_CERT }}
+          kube-token: ${{ secrets.KUBE_TOKEN }}
+          kube-cluster: ${{ secrets.KUBE_CLUSTER }}
+          kube-namespace: ${{ secrets.KUBE_NAMESPACE }}
+          # ratelimit_max: ${{ vars.RATE_LIMIT_MAX }}
+          # ratewindow_ms: ${{ vars.RATE_WINDOW_MS }}
+          # service_name: ${{ vars.SERVICE_NAME }}
+          # session_name: ${{ vars.SESSION_NAME }}
+          # session_secret: ${{ secrets.SESSION_SECRET }}

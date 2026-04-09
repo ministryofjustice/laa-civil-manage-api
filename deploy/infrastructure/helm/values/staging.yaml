@@ -67,10 +67,7 @@ ingress:
       SecRule REMOTE_ADDR "!@ipMatch 35.176.93.186/32" "id:1001,deny,status:403,tag:github_team=laa-civil-manage-an-application"
     # # VPN IP ranges. Taken from: https://github.com/ministryofjustice/moj-ip-addresses/blob/main/moj-cidr-addresses.yml#L267
     # # Note this is just the GlobalProtect VPN range. We may need to support other VPNs in future.
-    allow-duplicate-host: "true"
-    allowed-duplicate-ns: "laa-civil-manage-api-dev,laa-civil-manage-api-staging"
-
-    
+ 
 resources:
   limits:
     cpu: 500m

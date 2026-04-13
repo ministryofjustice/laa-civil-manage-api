@@ -213,10 +213,10 @@ jobs:
         uses: ./.github/actions/deploy
         with:
           app-environment: staging
-          # auth_client_id: ${{ secrets.AUTH_CLIENT_ID }}
-          # auth_client_secret: ${{ secrets.AUTH_CLIENT_SECRET }}
-          # auth_directory_url: ${{ secrets.AUTH_DIRECTORY_URL }}
-          # auth_redirect_url: ${{ secrets.AUTH_REDIRECT_URL }}
+          auth_client_id: ${{ secrets.AUTH_CLIENT_ID }}
+          auth_client_secret: ${{ secrets.AUTH_CLIENT_SECRET }}
+          auth_directory_url: ${{ secrets.AUTH_DIRECTORY_URL }}
+          auth_redirect_url: ${{ secrets.AUTH_REDIRECT_URL }}
           ecr-repository: ${{ vars.ECR_REPOSITORY }}
           ecr-registry_url: ${{ secrets.ECR_REGISTRY_URL }}
           kube-cert: ${{ secrets.KUBE_CERT }}

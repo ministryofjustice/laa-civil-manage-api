@@ -22,6 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
 
-      - uses: ministryofjustice/devsecops-actions/cruft@f965eb1771ec66cfc41d7d57dc607fa6dfbc10ed # v1.4.0
+      - uses: ministryofjustice/devsecops-actions/cruft@8c77d3a65a46d1d4b5416eafae5b84371ecd797d # v1.5.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

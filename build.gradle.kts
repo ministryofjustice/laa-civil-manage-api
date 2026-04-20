@@ -1,6 +1,6 @@
 plugins {
 	java
-	id("org.springframework.boot") version "4.0.4"
+	id("org.springframework.boot") version "4.0.5"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
 }
@@ -27,7 +27,7 @@ repositories {
 
 dependencies {
 
-	implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
+	implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")

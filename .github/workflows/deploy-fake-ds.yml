@@ -15,9 +15,6 @@ on:
       - "yarn.lock"
       - "fakeDataStore/**"
 
-env:
-  ECR_REPOSITORY: fake-json-server
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest

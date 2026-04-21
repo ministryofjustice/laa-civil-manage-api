@@ -5,14 +5,10 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copy package files and install dependencies
-COPY package*.json db.json ./
+COPY package*.json ./
 RUN npm install
 
-# Copy the db and give the 'node' user (UID 1000) ownership
-COPY --chown=node:node db.json ./
-
-# Switch to the non-root user before running the app
-USER node
+COPY db.json ./
 
 EXPOSE 3000
 CMD ["npx", "json-server", "--watch", "db.json", "--host", "0.0.0.0", "--port", "3000"]

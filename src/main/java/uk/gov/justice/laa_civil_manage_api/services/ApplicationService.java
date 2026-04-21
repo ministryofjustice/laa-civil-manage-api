@@ -4,52 +4,21 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
 import uk.gov.justice.laa_civil_manage_api.models.Application;
 
 @Service
+@RequiredArgsConstructor
 public class ApplicationService {
+
+    private final DataStoreClient dataStoreClient;
 
     public Application getApplicationById(String id) {
 
-        return getAllApplications().stream()
-                .filter(app -> app.getApplicationId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException());
+        return dataStoreClient.fetchApplicationById(id);
     }
 
-    private List<Application> getAllApplications() {
-        return List.of(
-                Application.builder()
-                        .applicationId("1")
-                        .clientFirstName("Ali")
-                        .clientLastName("Fletcher")
-                        .status("PENDING")
-                        .build(),
-                Application.builder()
-                        .applicationId("2")
-                        .clientFirstName("Lucas")
-                        .clientLastName("Morrison")
-                        .status("PENDING")
-                        .build(),
-                Application.builder()
-                        .applicationId("3")
-                        .clientFirstName("Denise")
-                        .clientLastName("Bennett")
-                        .status("PENDING")
-                        .build(),
-                Application.builder()
-                        .applicationId("4")
-                        .clientFirstName("Alan")
-                        .clientLastName("Harrington")
-                        .status("PENDING")
-                        .build(),
-                Application.builder()
-                        .applicationId("5")
-                        .clientFirstName("Tom")
-                        .clientLastName("Caldwell")
-                        .status("PENDING")
-                        .build()
-
-        );
+    public List<Application> sgetAllApplications() {
+        return dataStoreClient.fetchApplications();
     }
 }

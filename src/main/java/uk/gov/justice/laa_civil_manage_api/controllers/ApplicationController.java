@@ -22,6 +22,7 @@ import uk.gov.justice.laa_civil_manage_api.services.ApplicationService;
 @RequiredArgsConstructor
 @Slf4j
 public class ApplicationController {
+        
         private final ApplicationService applicationService;
         private final LaaCivilManageApiConfig laaCivilManageApiConfig;
         private final RestTemplate restTemplate;

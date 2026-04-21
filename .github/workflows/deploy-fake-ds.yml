@@ -4,8 +4,16 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    # From docs: if no activity types are specified, the workflow runs when a pull request is opened or reopened or when the head branch of the pull request is updated.
     paths:
-      - "fakeDataStore"
+      - "deploy/**"
+      - ".github/**"
+      - "src/**"
+      - "tests/**"
+      - "Dockerfile"
+      - "yarn.lock"
+      - "fakeDataStore/**"
 
 env:
   ECR_REPOSITORY: fake-json-server

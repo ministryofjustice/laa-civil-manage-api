@@ -15,11 +15,23 @@ spec:
       labels:
         app: {{ .Release.Name }}-json-server
     spec:
+      # 1. Pod-level security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000 # Uses the default 'node' user in the Node.js alpine image
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: json-server
           image: "{{ .Values.mockServer.image.repository }}:{{ .Values.mockServer.image.tag }}"
           ports:
             - containerPort: 3000
+          # 2. Container-level security context
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
 ---
 apiVersion: v1
 kind: Service

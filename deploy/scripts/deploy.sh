@@ -18,6 +18,8 @@ deploy_branch() {
                 --values ./deploy/infrastructure/helm/values/"$ENVIRONMENT".yaml \
                 --set image.repository="$REGISTRY/$REPOSITORY" \
                 --set image.tag="$IMAGE_TAG" \
+                --set mockServer.image.repository="$REGISTRY/$REPOSITORY" \
+                --set mockServer.image.tag="fake-data-store-$IMAGE_TAG" \
                 --set ingress.annotations."external-dns\.alpha\.kubernetes\.io/set-identifier"="$IDENTIFIER" \
                 --set ingress.hosts[0].host="$RELEASE_HOST"
 }
@@ -29,13 +31,18 @@ deploy_main() {
                 --namespace="${K8S_NAMESPACE}" \
                 --values ./deploy/infrastructure/helm/values/"$ENVIRONMENT".yaml \
                 --set image.repository="$REGISTRY/$REPOSITORY" \
-                --set image.tag="$IMAGE_TAG" 
+                --set image.tag="$IMAGE_TAG" \
+                --set mockServer.image.repository="$REGISTRY/$REPOSITORY" \
+                --set mockServer.image.tag="fake-data-store-$IMAGE_TAG"
 }
+
+
 
 branch_name="$GITHUB_HEAD_REF" # Branch name if this is a pull-request event
 if [ -z "$branch_name" ]; then
   branch_name="$GITHUB_REF_NAME" # Branch name if this is a push event
 fi
+
 
 if [[ ("$ENVIRONMENT" == 'dev' || "$ENVIRONMENT" == 'staging' || "$ENVIRONMENT" == 'production') && "$branch_name" == "main" ]]
 then

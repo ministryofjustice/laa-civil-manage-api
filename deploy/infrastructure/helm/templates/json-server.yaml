@@ -1,0 +1,35 @@
+{{- if .Values.mockServer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-json-server
+  labels:
+    app: {{ .Release.Name }}-json-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-json-server
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-json-server
+    spec:
+      containers:
+        - name: json-server
+          image: "{{ .Values.mockServer.image.repository }}:{{ .Values.mockServer.image.tag }}"
+          ports:
+            - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-json-server
+spec:
+  selector:
+    app: {{ .Release.Name }}-json-server
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+{{- end }}

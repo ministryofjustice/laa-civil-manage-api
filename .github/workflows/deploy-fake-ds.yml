@@ -1,0 +1,36 @@
+name: Build and Push JSON Server to ECR
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "fakeDataStore"
+
+env:
+  ECR_REPOSITORY: fake-json-server
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        with:
+          role-to-assume: ${{ secrets.ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.ECR_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@376925c9d111252e87ae59691e5a442dd100ef6a # v2.1.3
+        id: login-ecr
+
+      - name: Build and push image with local action
+        uses: ./.github/actions/docker_build_and_push
+        with:
+          image_registry: ${{ secrets.ECR_REGISTRY_URL }}
+          image_repo: ${{ vars.ECR_REPOSITORY }}
+          dockerfile_path: fakeDataStore/Dockerfile
+          image_tag: fake-data-store-${{ github.sha }}

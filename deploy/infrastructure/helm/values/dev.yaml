@@ -113,3 +113,13 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+mockServer:
+  enabled: true
+  image:
+    repository: "" 
+    tag: ""
+
+backend:
+  env:
+    MOCK_API_URL: "http://{{ .Release.Name }}-json-server:3000"

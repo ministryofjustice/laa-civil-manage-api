@@ -5,7 +5,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copy package files and install dependencies
-COPY package*.json ./
+COPY package*.json db.json ./
 RUN npm install
 
 # Copy the db and give the 'node' user (UID 1000) ownership

@@ -48,6 +48,7 @@ jobs:
       - name: Build and push image with local action
         uses: ./.github/actions/docker_build_and_push
         with:
+          context: ./mockdatastore
           image_registry: ${{ secrets.ECR_REGISTRY_URL }}
           image_repo: ${{ vars.ECR_REPOSITORY }}
           dockerfile_path: fakeDataStore/Dockerfile

@@ -14,7 +14,9 @@ on:
       - "Dockerfile"
       - "yarn.lock"
       - "fakeDataStore/**"
-
+permissions:
+  id-token: write # This is the exact permission the warning is asking for
+  contents: read
 jobs:
   build-and-push:
     runs-on: ubuntu-latest

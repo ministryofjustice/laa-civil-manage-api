@@ -1,10 +1,10 @@
 {
   "uuid": "7a35c5c0-1209-4e78-9e61-8a9d1c258f31",
-  "lastMigration": 32,
+  "lastMigration": 33,
   "name": "Application CRUD API",
   "endpointPrefix": "",
   "latency": 0,
-  "port": 8080,
+  "port": 3000,
   "hostname": "0.0.0.0",
   "folders": [],
   "routes": [
@@ -29,7 +29,7 @@
           ],
           "bodyType": "DATABUCKET",
           "filePath": "",
-          "databucketID": "9a8b7c6d-5e4f-3a2b-1c0d-e9f8a7b6c5d4",
+          "databucketID": "app-bucket",
           "sendFileAsBody": false,
           "rules": [],
           "rulesOperator": "OR",
@@ -40,8 +40,9 @@
           "callbacks": []
         }
       ],
-      "enabled": true,
-      "responseMode": null
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
     }
   ],
   "rootChildren": [

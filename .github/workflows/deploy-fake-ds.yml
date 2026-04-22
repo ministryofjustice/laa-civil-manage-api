@@ -52,3 +52,4 @@ jobs:
           image_repo: ${{ vars.ECR_REPOSITORY }}
           dockerfile_path: fakeDataStore/Dockerfile
           image_tag: fake-data-store-${{ github.sha }}
+          build_context: fakeDataStore

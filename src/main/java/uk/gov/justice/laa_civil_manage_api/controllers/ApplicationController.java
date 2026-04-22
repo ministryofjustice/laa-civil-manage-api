@@ -3,7 +3,11 @@ package uk.gov.justice.laa_civil_manage_api.controllers;
 import java.util.List;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,16 +20,35 @@ import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa_civil_manage_api.config.LaaCivilManageApiConfig;
 import uk.gov.justice.laa_civil_manage_api.models.Application;
 import uk.gov.justice.laa_civil_manage_api.services.ApplicationService;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @Slf4j
 public class ApplicationController {
-        
+
         private final ApplicationService applicationService;
         private final LaaCivilManageApiConfig laaCivilManageApiConfig;
         private final RestTemplate restTemplate;
+
+        @PostMapping("/applications")
+        public Application postApplication(@RequestBody Application postedApplication) {
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                ResponseEntity<Application> response = restTemplate.exchange(
+                                laaCivilManageApiConfig.getDataStoreUrl() + "/applications",
+                                HttpMethod.POST,
+                                new HttpEntity<>(postedApplication, headers),
+                                Application.class);
+
+                log.info(response.toString());
+
+                return response.getBody();
+        }
 
         @GetMapping("/applications")
         public List<Application> getApplications() {

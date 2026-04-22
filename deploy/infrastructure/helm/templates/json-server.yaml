@@ -1,0 +1,47 @@
+{{- if .Values.mockServer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-json-server
+  labels:
+    app: {{ .Release.Name }}-json-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-json-server
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-json-server
+    spec:
+      # 1. Pod-level security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000 # Uses the default 'node' user in the Node.js alpine image
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: json-server
+          image: "{{ .Values.mockServer.image.repository }}:{{ .Values.mockServer.image.tag }}"
+          ports:
+            - containerPort: 3000
+          # 2. Container-level security context
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-json-server
+spec:
+  selector:
+    app: {{ .Release.Name }}-json-server
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+{{- end }}

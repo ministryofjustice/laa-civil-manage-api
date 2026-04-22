@@ -39,3 +39,5 @@ deploy/scripts/zap/zap_backup.tar
 
 # Zap report 
 zap-results/
+
+fakeDataStore/node_modules

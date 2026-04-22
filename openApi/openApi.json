@@ -32,6 +32,34 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "application-controller"
+        ],
+        "operationId": "postApplication",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Application"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Application"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/applications/{id}": {
@@ -119,7 +147,7 @@
           "applicationType": {
             "type": "string"
           },
-          "lead": {
+          "isLead": {
             "type": "boolean"
           }
         }

@@ -19,16 +19,16 @@ public class Application {
     private String status;
     private OffsetDateTime submittedAt;
     private OffsetDateTime lastUpdated;
-    private boolean usedDelegatedFunctions;
+    private Boolean usedDelegatedFunctions;
     private String categoryOfLaw;
     private String matterType;
     private UUID assignedTo;
-    private boolean autoGrant;
+    private Boolean autoGrant;
     private String clientFirstName;
     private String clientLastName;
     private LocalDate clientDateOfBirth;
     private String laaReference;
     private String officeCode;
     private String applicationType;
-    private boolean isLead;
+    private Boolean isLead;
 }

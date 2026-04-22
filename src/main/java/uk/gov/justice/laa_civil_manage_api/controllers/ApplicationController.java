@@ -2,60 +2,71 @@ package uk.gov.justice.laa_civil_manage_api.controllers;
 
 import java.util.List;
 
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import uk.gov.justice.laa_civil_manage_api.config.LaaCivilManageApiConfig;
 import uk.gov.justice.laa_civil_manage_api.models.Application;
 import uk.gov.justice.laa_civil_manage_api.services.ApplicationService;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
+@Slf4j
 public class ApplicationController {
-    private final ApplicationService applicationService;
 
-    @GetMapping("/applications")
-    public List<Application> getApplications() {
-        Application app1 = Application.builder()
-                .applicationId("1")
-                .clientFirstName("Ali")
-                .clientLastName("Fletcher")
-                .status("PENDING")
-                .build();
-        Application app2 = Application.builder()
-                .applicationId("2")
-                .clientFirstName("Lucas")
-                .clientLastName("Morrison")
-                .status("PENDING")
-                .build();
-        Application app3 = Application.builder()
-                .applicationId("3")
-                .clientFirstName("Denise")
-                .clientLastName("Bennett")
-                .status("PENDING")
-                .build();
-        Application app4 = Application.builder()
-                .applicationId("4")
-                .clientFirstName("Alan")
-                .clientLastName("Harrington")
-                .status("PENDING")
-                .build();
-        Application app5 = Application.builder()
-                .applicationId("5")
-                .clientFirstName("Tom")
-                .clientLastName("Caldwell")
-                .status("PENDING")
-                .build();
+        private final ApplicationService applicationService;
+        private final LaaCivilManageApiConfig laaCivilManageApiConfig;
+        private final RestTemplate restTemplate;
 
-        return List.of(app1, app2, app3, app4, app5);
-    }
+        @PostMapping("/applications")
+        public Application postApplication(@RequestBody Application postedApplication) {
 
-    @GetMapping("/applications/{id}")
-    public Application getApplicationById(@PathVariable String id) {
-        return applicationService.getApplicationById(id);
-    }
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                ResponseEntity<Application> response = restTemplate.exchange(
+                                laaCivilManageApiConfig.getDataStoreUrl() + "/applications",
+                                HttpMethod.POST,
+                                new HttpEntity<>(postedApplication, headers),
+                                Application.class);
+
+                log.info(response.toString());
+
+                return response.getBody();
+        }
+
+        @GetMapping("/applications")
+        public List<Application> getApplications() {
+
+                ResponseEntity<List<Application>> response = restTemplate.exchange(
+                                laaCivilManageApiConfig.getDataStoreUrl() + "/applications",
+                                HttpMethod.GET,
+                                null,
+                                new ParameterizedTypeReference<List<Application>>() {
+                                });
+
+                return response.getBody();
+
+        }
+
+        @GetMapping("/applications/{id}")
+        public Application getApplicationById(@PathVariable String id) {
+                return applicationService.getApplicationById(id);
+        }
 
 }

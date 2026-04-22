@@ -105,3 +105,6 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+mockServer:
+  enabled: false

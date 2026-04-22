@@ -11,3 +11,6 @@ management:
         health: "actuator/health"
       exposure:
         include: "health,info,prometheus"
+
+laa-civil-manage-api:
+  data-store-url: ${MOCK_API_URL:http://127.0.0.1:3000}

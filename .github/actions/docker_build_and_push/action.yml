@@ -15,6 +15,10 @@ inputs:
     required: true
     description: "Image Tag"
     default: ${{ github.sha }}
+  build_context:
+    required: false
+    description: "Docker build context path"
+    default: "."
 
 outputs:
   image_registry:
@@ -41,7 +45,7 @@ runs:
           --cache-from=type=local,src=/tmp/.buildx-cache \
           --cache-to=type=local,dest=/tmp/.buildx-cache \
           -t ${{ inputs.image_registry }}/${{ inputs.image_repo }}:${{ inputs.image_tag }} \
-          -f ${{ inputs.dockerfile_path }} .
+          -f ${{ inputs.dockerfile_path }} ${{ inputs.build_context }}
 
       shell: bash
 

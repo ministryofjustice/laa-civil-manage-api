@@ -35,10 +35,10 @@ public class DataStoreClient {
         return response.getBody();
     }
 
-    public Application fetchApplicationById(String id) {
+    public Application fetchApplicationById(String applicationId) {
         log.info("Fetching application by ID from Data Store at {}", config.getDataStoreConfig().getUrl());
         ResponseEntity<Application> response = restTemplate.exchange(
-            config.getDataStoreConfig().getUrl() + "/applications/{id}", 
+            config.getDataStoreConfig().getUrl() + "/applications/" + applicationId, 
             HttpMethod.GET,
             null,
             Application.class
@@ -46,6 +46,11 @@ public class DataStoreClient {
 
         return response.getBody();
         
+    }
+
+    public void saveApplication(Application application) {
+        log.info("Saving application to Data Store at {}", config.getDataStoreConfig().getUrl());
+        restTemplate.postForEntity(config.getDataStoreConfig().getUrl() + "/applications", application, Void.class);
     }
 
 }

@@ -13,12 +13,16 @@ public class ApplicationService {
 
     private final DataStoreClient dataStoreClient;
 
-    public Application getApplicationById(String id) {
+    public Application getApplicationById(String applicationId) {
 
-        return dataStoreClient.fetchApplicationById(id);
+        return dataStoreClient.fetchApplicationById(applicationId);
     }
 
-    public List<Application> sgetAllApplications() {
+    public List<Application> getAllApplications() {
         return dataStoreClient.fetchApplications();
+    }
+
+    public void createApplication(Application application) {
+        dataStoreClient.saveApplication(application);
     }
 }

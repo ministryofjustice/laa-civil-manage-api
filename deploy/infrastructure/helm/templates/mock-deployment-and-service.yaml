@@ -15,6 +15,9 @@ spec:
       containers:
         - name: mock-datastore
           image: mockoon/cli:latest
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
           args: ["--data", "/data/mock-env.json", "--port", "3000"]
           ports:
             - containerPort: 3000

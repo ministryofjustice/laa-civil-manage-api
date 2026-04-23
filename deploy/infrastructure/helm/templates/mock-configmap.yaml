@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mockoon-config
+data:
+  mock-env.json: |-
+{{ .Files.Get "mock-env.json" | indent 4 }}

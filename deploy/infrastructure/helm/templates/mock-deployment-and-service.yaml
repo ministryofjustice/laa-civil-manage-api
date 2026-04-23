@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-datastore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-datastore
+  template:
+    metadata:
+      labels:
+        app: mock-datastore
+    spec:
+      containers:
+        - name: mock-datastore
+          image: mockoon/cli:latest
+          args: ["--data", "/data/mock-env.json", "--port", "3000"]
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: config-volume
+              mountPath: /data
+      volumes:
+        - name: config-volume
+          configMap:
+            name: mockoon-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-datastore
+spec:
+  selector:
+    app: mock-datastore
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000

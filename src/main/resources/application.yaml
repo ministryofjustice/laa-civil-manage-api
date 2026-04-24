@@ -14,4 +14,4 @@ management:
 
 laa-civil-manage-api:
   data-store-config:
-    url: "http://localhost:3000"
+    url: "http://mock-datastore:3000"

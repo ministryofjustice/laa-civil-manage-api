@@ -11,6 +11,29 @@
     }
   ],
   "paths": {
+    "/application": {
+      "post": {
+        "tags": [
+          "application-controller"
+        ],
+        "operationId": "createApplication",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Application"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/applications": {
       "get": {
         "tags": [
@@ -34,7 +57,7 @@
         }
       }
     },
-    "/applications/{id}": {
+    "/applications/{applicationId}": {
       "get": {
         "tags": [
           "application-controller"
@@ -42,7 +65,7 @@
         "operationId": "getApplicationById",
         "parameters": [
           {
-            "name": "id",
+            "name": "applicationId",
             "in": "path",
             "required": true,
             "schema": {
@@ -119,7 +142,7 @@
           "applicationType": {
             "type": "string"
           },
-          "lead": {
+          "isLead": {
             "type": "boolean"
           }
         }

@@ -4,52 +4,25 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
 import uk.gov.justice.laa_civil_manage_api.models.Application;
 
 @Service
+@RequiredArgsConstructor
 public class ApplicationService {
 
-    public Application getApplicationById(String id) {
+    private final DataStoreClient dataStoreClient;
 
-        return getAllApplications().stream()
-                .filter(app -> app.getApplicationId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException());
+    public Application getApplicationById(String applicationId) {
+
+        return dataStoreClient.fetchApplicationById(applicationId);
     }
 
-    private List<Application> getAllApplications() {
-        return List.of(
-                Application.builder()
-                        .applicationId("1")
-                        .clientFirstName("Ali")
-                        .clientLastName("Fletcher")
-                        .status("PENDING")
-                        .build(),
-                Application.builder()
-                        .applicationId("2")
-                        .clientFirstName("Lucas")
-                        .clientLastName("Morrison")
-                        .status("PENDING")
-                        .build(),
-                Application.builder()
-                        .applicationId("3")
-                        .clientFirstName("Denise")
-                        .clientLastName("Bennett")
-                        .status("PENDING")
-                        .build(),
-                Application.builder()
-                        .applicationId("4")
-                        .clientFirstName("Alan")
-                        .clientLastName("Harrington")
-                        .status("PENDING")
-                        .build(),
-                Application.builder()
-                        .applicationId("5")
-                        .clientFirstName("Tom")
-                        .clientLastName("Caldwell")
-                        .status("PENDING")
-                        .build()
+    public List<Application> getAllApplications() {
+        return dataStoreClient.fetchApplications();
+    }
 
-        );
+    public void createApplication(Application application) {
+        dataStoreClient.saveApplication(application);
     }
 }

@@ -1,0 +1,107 @@
+{
+  "uuid": "7a35c5c0-1209-4e78-9e61-8a9d1c258f31",
+  "lastMigration": 33,
+  "name": "Application CRUD API",
+  "endpointPrefix": "",
+  "latency": 0,
+  "port": 3000,
+  "hostname": "0.0.0.0",
+  "folders": [],
+  "routes": [
+    {
+      "uuid": "4b6c31a5-8e9a-4f51-b01a-8c237f9e8a10",
+      "type": "crud",
+      "documentation": "CRUD route for Applications",
+      "method": "",
+      "endpoint": "applications",
+      "responses": [
+        {
+          "uuid": "1e9f0c3d-6b5a-4e2a-8d1c-9b8a7c6f5e4d",
+          "body": "{}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Successful response",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "bodyType": "DATABUCKET",
+          "filePath": "",
+          "databucketID": "app-bucket",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "applicationId",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null,
+      "streamingMode": null,
+      "streamingInterval": 0
+    }
+  ],
+  "rootChildren": [
+    {
+      "type": "route",
+      "uuid": "4b6c31a5-8e9a-4f51-b01a-8c237f9e8a10"
+    }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
+  "cors": true,
+  "headers": [
+    {
+      "key": "Content-Type",
+      "value": "application/json"
+    },
+    {
+      "key": "Access-Control-Allow-Origin",
+      "value": "*"
+    },
+    {
+      "key": "Access-Control-Allow-Methods",
+      "value": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"
+    },
+    {
+      "key": "Access-Control-Allow-Headers",
+      "value": "Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With"
+    }
+  ],
+  "proxyReqHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "proxyResHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "data": [
+    {
+      "uuid": "9a8b7c6d-5e4f-3a2b-1c0d-e9f8a7b6c5d4",
+      "id": "app-bucket",
+      "name": "Applications",
+      "documentation": "Bucket holding our application states",
+      "value": "[\n  {\n    \"applicationId\": \"e84b7a10-2c3f-4e9b-8a7c-5b6d7e8f9a01\",\n    \"status\": \"SUBMITTED\",\n    \"submittedAt\": \"2023-10-01T12:00:00Z\",\n    \"lastUpdated\": \"2023-10-02T14:30:00Z\",\n    \"usedDelegatedFunctions\": true,\n    \"categoryOfLaw\": \"Family\",\n    \"matterType\": \"Divorce\",\n    \"assignedTo\": \"3b2a1c0d-e9f8-7a6b-5c4d-3e2f1a0b9c8d\",\n    \"autoGrant\": false,\n    \"clientFirstName\": \"Jane\",\n    \"clientLastName\": \"Doe\",\n    \"clientDateOfBirth\": \"1985-06-15\",\n    \"laaReference\": \"LAA-12345\",\n    \"officeCode\": \"OFF-ABC\",\n    \"applicationType\": \"Full Support\",\n    \"lead\": true\n  },\n  {\n    \"applicationId\": \"a1b2c3d4-e5f6-4a5b-8c9d-0123456789ab\",\n    \"status\": \"PENDING\",\n    \"submittedAt\": \"2023-10-05T09:15:00Z\",\n    \"lastUpdated\": \"2023-10-05T09:15:00Z\",\n    \"usedDelegatedFunctions\": false,\n    \"categoryOfLaw\": \"Housing\",\n    \"matterType\": \"Eviction\",\n    \"assignedTo\": \"f1e2d3c4-b5a6-9c8d-7e6f-5a4b3c2d1e0f\",\n    \"autoGrant\": true,\n    \"clientFirstName\": \"John\",\n    \"clientLastName\": \"Smith\",\n    \"clientDateOfBirth\": \"1990-11-22\",\n    \"laaReference\": \"LAA-67890\",\n    \"officeCode\": \"OFF-XYZ\",\n    \"applicationType\": \"Emergency\",\n    \"lead\": false\n  }\n]"
+    }
+  ],
+  "callbacks": []
+}

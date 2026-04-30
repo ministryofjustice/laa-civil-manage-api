@@ -11,3 +11,6 @@ management:
         health: "actuator/health"
       exposure:
         include: "health,info,prometheus"
+
+data-access-api:
+  base-url: https://laa-data-access-api-staging.cloud-platform.service.justice.gov.uk

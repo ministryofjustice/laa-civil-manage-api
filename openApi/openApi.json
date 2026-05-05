@@ -11,6 +11,29 @@
     }
   ],
   "paths": {
+    "/expertTypes": {
+      "get": {
+        "tags": [
+          "expert-controller"
+        ],
+        "operationId": "getExpertTypes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/applications": {
       "get": {
         "tags": [

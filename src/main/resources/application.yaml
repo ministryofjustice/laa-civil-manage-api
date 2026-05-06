@@ -11,3 +11,118 @@ management:
         health: "actuator/health"
       exposure:
         include: "health,info,prometheus"
+
+laa-civil-manage-api:
+  expert-types:
+    - A & E Consultant
+    - Aboriculturist
+    - Accountant
+    - Accountant Manager
+    - Accountant Partner
+    - Accountant Staff
+    - Accident Reconstruction
+    - Actuary
+    - Agricultural Expert
+    - Anaesthetist
+    - Arbitrator's fees
+    - Architect
+    - Assessment of supervised contact.
+    - Benefits Expert
+    - Cardiologist
+    - Cell telephone site analysis
+    - Child Psychiatrist
+    - Child Psychologist
+    - Computer Consultant
+    - Computer expert
+    - Consultant Engineer
+    - Conveyancing expert
+    - Costs Draughtsman Fees
+    - Court of protection expert
+    - Dentist
+    - Dermatologist
+    - Disability consultant
+    - Diving Expert
+    - DNA (per person) – preparation of report
+    - DNA (per person) – testing of sample
+    - Doctor (General Practitioner)
+    - Ear Nose and Throat Surgeon
+    - Employment consultant
+    - Enquiry agent
+    - ENT surgeon
+    - Equine Expert
+    - Ergonomist
+    - Expert - Other
+    - Financial Adviser
+    - Fire assessor/explosives expert
+    - Forensic expert
+    - General surgeon
+    - Geneticist
+    - GP (records report)
+    - Gymnastics Expert
+    - Gynaecologist
+    - Haematologist
+    - Handwriting expert
+    - Health and Safety Officer
+    - Independent Environmental Health Officer
+    - Independent social worker
+    - International Lawyer
+    - Interpreter
+    - Lip reader / Signer
+    - Mediators Fees
+    - Medical consultant
+    - Medical Microbiologist
+    - Medical records
+    - Meteorologist
+    - Midwife
+    - Mining Consultant
+    - Musicologist
+    - Neonatologist
+    - Neonatologist (clin neg cerebral palsy)
+    - Neonatologist (non-clin neg cerebral palsy)
+    - Neurologist
+    - Neurologist (clin neg cerebral palsy)
+    - Neurologist (non-clin neg cerebral palsy)
+    - Neuropsychiatrist
+    - Neuroradiologist
+    - Neuroradiologist (clin neg cerebral palsy)
+    - Neuroradiologist (non-clin neg cerebral palsy)
+    - Neurosurgeon
+    - Nursing Expert
+    - Obstetrician
+    - Occupational Therapist
+    - Oncologist
+    - Ophthalmologist
+    - Orthopaedic Surgeon
+    - Osteopath
+    - Paediatrician
+    - Parental Assessment
+    - Pathologist
+    - Pharmacologist
+    - Photographer
+    - Physical Education Expert
+    - Physiotherapist
+    - Plastic Surgeon
+    - Process server
+    - Psychiatrist
+    - Psychologist
+    - Psychotherapist
+    - Radiologist
+    - Rheumatologist
+    - Risk assessment expert
+    - Site visit by an expert
+    - Sol(Higher Rights) Advocacy for own firm
+    - Sol(Higher Rights)Advoc for another firm
+    - Solicitor (Higher Rights) Opinion
+    - Speech Therapist
+    - Surgeon
+    - Surveyor
+    - Surveyor (Housing Disrepair)
+    - Surveyor (Non-Housing Disrepair)
+    - Telecommunications Expert
+    - Toxicologist
+    - Translator
+    - Trichologist
+    - Urologist
+    - Valuer
+    - Vet
+    - Voice recognition expert

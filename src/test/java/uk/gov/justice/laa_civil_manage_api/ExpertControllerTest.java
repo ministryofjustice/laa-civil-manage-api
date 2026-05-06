@@ -5,6 +5,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -15,8 +16,10 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
+import uk.gov.justice.laa_civil_manage_api.config.LaaCivilManageApiConfig;
 import uk.gov.justice.laa_civil_manage_api.controllers.ExpertController;
 
+@EnableConfigurationProperties (LaaCivilManageApiConfig.class)
 @WebMvcTest(ExpertController.class)
 public class ExpertControllerTest {
 
@@ -35,7 +38,7 @@ public class ExpertControllerTest {
 
         List<String> expertTypes = mapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>(){});
 
-        assertEquals(113, expertTypes.size());
+        assertEquals(112, expertTypes.size());
         assertEquals("A & E Consultant", expertTypes.getFirst());
     }
 

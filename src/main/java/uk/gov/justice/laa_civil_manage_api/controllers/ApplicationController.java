@@ -1,5 +1,6 @@
 package uk.gov.justice.laa_civil_manage_api.controllers;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,13 +12,11 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class ApplicationController {
 
     private final ApplicationService applicationService;
 
-    public ApplicationController(ApplicationService applicationService) {
-        this.applicationService = applicationService;
-    }
 
     @GetMapping("/applications")
     public List<Application> getApplications() {

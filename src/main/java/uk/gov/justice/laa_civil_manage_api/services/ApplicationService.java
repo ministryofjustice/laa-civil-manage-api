@@ -1,5 +1,6 @@
 package uk.gov.justice.laa_civil_manage_api.services;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.justice.laa_civil_manage_api.clients.DataAccessApiClient;
 import uk.gov.justice.laa_civil_manage_api.models.Application;
@@ -7,13 +8,10 @@ import uk.gov.justice.laa_civil_manage_api.models.Application;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ApplicationService {
 
     private final DataAccessApiClient dataAccessApiClient;
-
-    public ApplicationService(DataAccessApiClient dataAccessApiClient) {
-        this.dataAccessApiClient = dataAccessApiClient;
-    }
 
     public List<Application> getApplications() {
         return dataAccessApiClient.getApplications();

@@ -24,9 +24,18 @@ class ApplicationServiceTest {
 
     @Test
     void shouldReturnAllApplications() {
+        Application app1 = Application.builder()
+                .applicationId("1")
+                .clientFirstName("Janet")
+                .status("PENDING")
+                .build();
 
-        Application app1 = buildDummyApplication("1", "Janet");
-        Application app2 = buildDummyApplication("2", "Bob");
+        Application app2 = Application.builder()
+                .applicationId("2")
+                .clientFirstName("Bob")
+                .status("PENDING")
+                .build();
+
         List<Application> expectedApplications = List.of(app1, app2);
 
         when(dataAccessApiClient.getApplications()).thenReturn(expectedApplications);
@@ -40,9 +49,17 @@ class ApplicationServiceTest {
 
     @Test
     void shouldReturnApplicationWhenIdExists() {
+        Application app1 = Application.builder()
+                .applicationId("1")
+                .clientFirstName("Janet")
+                .status("PENDING")
+                .build();
 
-        Application app1 = buildDummyApplication("1", "Janet");
-        Application app2 = buildDummyApplication("2", "Bob");
+        Application app2 = Application.builder()
+                .applicationId("2")
+                .clientFirstName("Bob")
+                .status("PENDING")
+                .build();
 
         when(dataAccessApiClient.getApplications()).thenReturn(List.of(app1, app2));
 
@@ -55,9 +72,17 @@ class ApplicationServiceTest {
 
     @Test
     void shouldThrowExceptionWhenIdDoesNotExist() {
+        Application app1 = Application.builder()
+                .applicationId("1")
+                .clientFirstName("Janet")
+                .status("PENDING")
+                .build();
 
-        Application app1 = buildDummyApplication("1", "Janet");
-        Application app2 = buildDummyApplication("2", "Bob");
+        Application app2 = Application.builder()
+                .applicationId("2")
+                .clientFirstName("Bob")
+                .status("PENDING")
+                .build();
 
         when(dataAccessApiClient.getApplications()).thenReturn(List.of(app1, app2));
 
@@ -67,26 +92,5 @@ class ApplicationServiceTest {
         );
 
         assertEquals("Application not found: 999", exception.getMessage());
-    }
-
-    private Application buildDummyApplication(String id, String firstName) {
-        return new Application(
-                id,
-                "PENDING",
-                null,
-                null,
-                false,
-                "FAMILY",
-                null,
-                null,
-                false,
-                firstName,
-                null,
-                null,
-                null,
-                null,
-                null,
-                false
-        );
     }
 }

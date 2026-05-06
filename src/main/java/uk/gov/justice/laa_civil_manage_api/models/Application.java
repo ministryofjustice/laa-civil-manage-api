@@ -1,9 +1,12 @@
 package uk.gov.justice.laa_civil_manage_api.models;
 
+import lombok.Builder;
+
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@Builder
 public record Application(
         String applicationId,
         String status,

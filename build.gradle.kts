@@ -89,3 +89,7 @@ tasks.register("verifyOpenApiSync") {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+tasks.named("build") {
+    dependsOn("generateOpenApiDocs")
+}

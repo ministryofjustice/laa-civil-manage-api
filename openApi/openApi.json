@@ -142,7 +142,7 @@
           "applicationType": {
             "type": "string"
           },
-          "lead": {
+          "isLead": {
             "type": "boolean"
           }
         }

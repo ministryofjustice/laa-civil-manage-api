@@ -166,6 +166,7 @@ jobs:
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
 
       - name: Deploy to dev
+        id: deploy_dev
         uses: ./.github/actions/deploy
         with:
           app-environment: dev
@@ -190,15 +191,7 @@ jobs:
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
-            const branch = context.payload.pull_request.head.ref;
-            const releaseName = branch
-              .toLowerCase()
-              .replace(/^\w*\//, '')
-              .replace(/[ _/\[\]().]+/g, '-')
-              .replace(/-+/g, '-')
-              .substring(0, 18)
-              .replace(/-$/, '');
-            const url = `https://${releaseName}-laa-civil-manage-api-dev.cloud-platform.service.justice.gov.uk`;
+            const url = `${{ steps.deploy_dev.outputs.release_url }}`;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,

@@ -40,6 +40,13 @@ inputs:
     description: "Rate limit max"
   ratewindow_ms:
     description: "Rate limit max"
+outputs:
+  release_host:
+    description: "Deployed host"
+    value: ${{ steps.deploy.outputs.release_host }}
+  release_url:
+    description: "Deployed URL"
+    value: ${{ steps.deploy.outputs.release_url }}
 runs:
   using: "composite"
   steps:
@@ -64,6 +71,7 @@ runs:
     #     fi
 
     - name: Deploy using Helm
+      id: deploy
       shell: bash
       run: ./deploy/scripts/deploy.sh ${{ inputs.app-environment }}
       env:

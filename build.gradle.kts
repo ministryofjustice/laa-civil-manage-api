@@ -31,6 +31,7 @@ dependencies {
 
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -38,15 +39,15 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    testImplementation("io.rest-assured:spring-mock-mvc:6.0.0") 
+    testImplementation("io.rest-assured:spring-mock-mvc:6.0.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
 
 	implementation("org.springframework.boot:spring-boot-starter-web")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
-	
-    // This addresses a vulnerability with transient dependency in Jackson serializer. 
+
+    // This addresses a vulnerability with transient dependency in Jackson serializer.
 	constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
             version {
@@ -54,34 +55,36 @@ dependencies {
             }
             because("version 2.20.2 has a DoS vulnerability (CVE-2025-52999)")
         }
-    }	
+    }
 }
 
 openApi {
-    apiDocsUrl.set("http://localhost:8080/v3/api-docs")
     outputDir.set(layout.projectDirectory.dir("openApi"))
-    outputFileName.set("openApi.json") 
+    groupedApiMappings.set(mapOf(
+        "http://localhost:8080/v3/api-docs/laa-civil-manage-api" to "openApi.json",
+        "http://localhost:8080/v3/api-docs/mock-access-data-store" to "mockAccessDataStore.json"
+    ))
 }
 
 tasks.register("verifyOpenApiSync") {
     dependsOn("generateOpenApiDocs")
-    
+
     group = "verification"
-    
+
     doLast {
-        val generatedFile = file("openApi/openApi.json")
+        val openApiDir = file("openApi")
 
         val status = providers.exec {
-            commandLine("git", "status", "--porcelain", generatedFile.absolutePath)
+            commandLine("git", "status", "--porcelain", openApiDir.absolutePath)
         }.standardOutput.asText.get().trim()
 
         if (status.isNotEmpty()) {
             throw GradleException(
-                "ERROR: OpenAPI schema is out of sync with your code changes!\n" +
-                "The file 'openApi/openApi.json' has changed. Please commit the updated version (this can be generated locally using ./gradlew generateOpenApiDocs)."
+                "ERROR: OpenAPI schemas are out of sync with your code changes!\n" +
+                "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs)."
             )
         }
-        
+
         println("OpenAPI sync verified: No changes detected.")
     }
 }

@@ -13,6 +13,10 @@ management:
         include: "health,info,prometheus"
 
 laa-civil-manage-api:
+  access-data-store:
+    default-base-url: http://localhost:8080/mock-access-data-store
+    operation-base-urls:
+      submit-prior-authority: http://localhost:8080/mock-access-data-store
   expert-types:
     - A & E Consultant
     - Aboriculturist
@@ -44,7 +48,7 @@ laa-civil-manage-api:
     - Diving Expert
     - DNA (per person) – preparation of report
     - DNA (per person) – testing of sample
-    - Doctor (General Practitioner)
+    - Psychologist
     - Ear Nose and Throat Surgeon
     - Employment consultant
     - Enquiry agent

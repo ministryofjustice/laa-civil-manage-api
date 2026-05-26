@@ -12,24 +12,36 @@
   ],
   "tags": [
     {
-      "name": "Prior Authority",
-      "description": "Submit requests for prior-authority to the Legal Aid Agency. Requests are forwarded to the Access Data Store"
+      "name": "Mock Access Data Store — Prior Authority",
+      "description": "Mock of the Access Data Store endpoint that accepts prior-authority submissions."
     }
   ],
   "paths": {
-    "/prior-authority-requests": {
+    "/mock-access-data-store/applications/{applicationId}/prior-authorities": {
       "post": {
         "tags": [
-          "Prior Authority"
+          "Mock Access Data Store — Prior Authority"
         ],
-        "summary": "Submit a prior-authority request",
-        "description": "Accepts a prior-authority request from the LAA Civil Manage frontend and forwards it to the Access Data Store. The applicationId in the payload identifies which application the request relates to. Returns the submission ID assigned by the Access Data Store.",
+        "summary": "Submit a prior-authority request against an application",
+        "description": "Accepts a prior-authority submission for the given application. Repeated submissions for the same applicationId return the same submission ID (idempotent).",
         "operationId": "submit",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "description": "ID of the application this prior-authority request is for.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PriorAuthority"
+                "$ref": "#/components/schemas/PriorAuthoritySubmission"
               }
             }
           },
@@ -37,7 +49,7 @@
         },
         "responses": {
           "201": {
-            "description": "Request accepted. Location header contains the submission URL.",
+            "description": "Submission accepted by the Access Data Store.",
             "content": {
               "*/*": {
                 "schema": {
@@ -47,83 +59,7 @@
             }
           },
           "400": {
-            "description": "Validation failed (missing required field, billing-type / field mismatch, etc.)."
-          }
-        }
-      }
-    },
-    "/expertTypes": {
-      "get": {
-        "tags": [
-          "expert-controller"
-        ],
-        "operationId": "getExpertTypes",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/applications": {
-      "get": {
-        "tags": [
-          "application-controller"
-        ],
-        "operationId": "getApplications",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Application"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/applications/{id}": {
-      "get": {
-        "tags": [
-          "application-controller"
-        ],
-        "operationId": "getApplicationById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Application"
-                }
-              }
-            }
+            "description": "Validation failed on the submission body."
           }
         }
       }
@@ -156,16 +92,10 @@
           "minutes"
         ]
       },
-      "PriorAuthority": {
+      "PriorAuthoritySubmission": {
         "type": "object",
-        "description": "A prior-authority request submitted by a legal aid provider against an existing application.",
+        "description": "Prior-authority request body as submitted to the Access Data Store. The applicationId is taken from the URL path; it does not appear in the body.",
         "properties": {
-          "applicationId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "ID of the application this prior-authority request is associated with.",
-            "example": "5f1b2c3d-1111-2222-3333-444455556666"
-          },
           "type": {
             "type": "string",
             "description": "The category of prior authority being requested.",
@@ -219,7 +149,7 @@
           },
           "totalAmount": {
             "type": "number",
-            "description": "Total amount in GBP for hourly billing (hourlyRate * estimatedTime). Required when billingType is HOURLY.",
+            "description": "Total amount in GBP for hourly billing. Required when billingType is HOURLY.",
             "example": 125.0
           },
           "flatRateTotalAmount": {
@@ -229,7 +159,6 @@
           }
         },
         "required": [
-          "applicationId",
           "billingType",
           "expertFullName",
           "type"
@@ -274,63 +203,6 @@
             "format": "date-time",
             "description": "Timestamp the application was accepted by the Access Data Store.",
             "example": "2026-05-22T10:00:00Z"
-          }
-        }
-      },
-      "Application": {
-        "type": "object",
-        "properties": {
-          "applicationId": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "submittedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "lastUpdated": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "usedDelegatedFunctions": {
-            "type": "boolean"
-          },
-          "categoryOfLaw": {
-            "type": "string"
-          },
-          "matterType": {
-            "type": "string"
-          },
-          "assignedTo": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "autoGrant": {
-            "type": "boolean"
-          },
-          "clientFirstName": {
-            "type": "string"
-          },
-          "clientLastName": {
-            "type": "string"
-          },
-          "clientDateOfBirth": {
-            "type": "string",
-            "format": "date"
-          },
-          "laaReference": {
-            "type": "string"
-          },
-          "officeCode": {
-            "type": "string"
-          },
-          "applicationType": {
-            "type": "string"
-          },
-          "lead": {
-            "type": "boolean"
           }
         }
       }

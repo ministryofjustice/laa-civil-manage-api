@@ -13,6 +13,12 @@ management:
         include: "health,info,prometheus"
 
 laa-civil-manage-api:
+  access-data-store:
+    default-base-url: http://localhost:8080/mock-access-data-store
+    connect-timeout: 3s
+    read-timeout: 5s
+    operation-base-urls:
+      submit-prior-authority: http://localhost:8080/mock-access-data-store
   expert-types:
     - A & E Consultant
     - Aboriculturist

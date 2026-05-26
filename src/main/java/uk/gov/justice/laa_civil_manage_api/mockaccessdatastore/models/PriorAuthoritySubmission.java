@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
 import uk.gov.justice.laa_civil_manage_api.models.EstimatedTime;
@@ -49,18 +50,18 @@ public record PriorAuthoritySubmission(
 
         @Schema(description = "Hourly rate in GBP. Required when billingType is HOURLY.",
                 example = "50.00")
-        BigDecimal hourlyRate,
+        @Positive BigDecimal hourlyRate,
 
         @Schema(description = "Estimated time the work will take. Required when billingType is HOURLY.")
         @Valid EstimatedTime estimatedTime,
 
         @Schema(description = "Total amount in GBP for hourly billing. Required when billingType is HOURLY.",
                 example = "125.00")
-        BigDecimal totalAmount,
+        @Positive BigDecimal totalAmount,
 
         @Schema(description = "Total flat-rate amount in GBP. Required when billingType is FLAT_RATE.",
                 example = "249.99")
-        BigDecimal flatRateTotalAmount
+        @Positive BigDecimal flatRateTotalAmount
 ) {
 
     public static PriorAuthoritySubmission from(PriorAuthority priorAuthority) {

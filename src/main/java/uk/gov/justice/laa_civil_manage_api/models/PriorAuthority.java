@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 
 @Schema(description = "A prior-authority request submitted by a legal aid provider against an existing application.")
@@ -62,7 +63,7 @@ public record PriorAuthority(
                 description = "Hourly rate in GBP. Required when billingType is HOURLY.",
                 example = "50.00"
         )
-        BigDecimal hourlyRate,
+        @Positive BigDecimal hourlyRate,
 
         @Schema(description = "Estimated time the work will take. Required when billingType is HOURLY.")
         @Valid EstimatedTime estimatedTime,
@@ -71,13 +72,13 @@ public record PriorAuthority(
                 description = "Total amount in GBP for hourly billing (hourlyRate * estimatedTime). Required when billingType is HOURLY.",
                 example = "125.00"
         )
-        BigDecimal totalAmount,
+        @Positive BigDecimal totalAmount,
 
         @Schema(
                 description = "Total flat-rate amount in GBP. Required when billingType is FLAT_RATE.",
                 example = "249.99"
         )
-        BigDecimal flatRateTotalAmount
+        @Positive BigDecimal flatRateTotalAmount
 ) {
 
     @AssertTrue(message = "hourlyRate, estimatedTime, and totalAmount are required when billingType is HOURLY")
@@ -87,10 +88,8 @@ public record PriorAuthority(
             return true;
         }
         return hourlyRate != null
-                && hourlyRate.signum() > 0
                 && estimatedTime != null
-                && totalAmount != null
-                && totalAmount.signum() > 0;
+                && totalAmount != null;
     }
 
     @AssertTrue(message = "flatRateTotalAmount is required when billingType is FLAT_RATE")
@@ -99,7 +98,7 @@ public record PriorAuthority(
         if (billingType != BillingType.FLAT_RATE) {
             return true;
         }
-        return flatRateTotalAmount != null && flatRateTotalAmount.signum() > 0;
+        return flatRateTotalAmount != null;
     }
 
     @AssertTrue(message = "expertType is required when type is EXPERT")

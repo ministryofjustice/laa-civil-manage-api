@@ -8,6 +8,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 
@@ -35,7 +36,12 @@ class HttpAccessDataStoreClientTest {
     void setup() {
         RestClient.Builder builder = RestClient.builder();
         server = MockRestServiceServer.bindTo(builder).build();
-        AccessDataStoreProperties properties = new AccessDataStoreProperties(BASE_URL, Map.of());
+        AccessDataStoreProperties properties = new AccessDataStoreProperties(
+                BASE_URL,
+                Map.of(),
+                Duration.ofSeconds(3),
+                Duration.ofSeconds(5)
+        );
         client = new HttpAccessDataStoreClient(builder, properties);
     }
 
@@ -88,8 +94,11 @@ class HttpAccessDataStoreClientTest {
         server = MockRestServiceServer.bindTo(builder).build();
         AccessDataStoreProperties properties = new AccessDataStoreProperties(
                 BASE_URL,
-                Map.of(AccessDataStoreOperations.SUBMIT_PRIOR_AUTHORITY, operationUrl)
+                Map.of(AccessDataStoreOperations.SUBMIT_PRIOR_AUTHORITY, operationUrl),
+                Duration.ofSeconds(3),
+                Duration.ofSeconds(5)
         );
+
         client = new HttpAccessDataStoreClient(builder, properties);
 
         server.expect(requestTo(operationUrl + "/applications/" + applicationId + "/prior-authorities"))

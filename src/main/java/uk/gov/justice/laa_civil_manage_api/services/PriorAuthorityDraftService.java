@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import lombok.extern.slf4j.Slf4j;
 import uk.gov.justice.laa_civil_manage_api.models.Draft;
 import uk.gov.justice.laa_civil_manage_api.models.DraftCreatedResponse;
 import uk.gov.justice.laa_civil_manage_api.models.DraftSummary;
@@ -15,6 +16,7 @@ import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraftSummary;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
 
+@Slf4j
 @Service
 public class PriorAuthorityDraftService {
 
@@ -33,23 +35,31 @@ public class PriorAuthorityDraftService {
     }
 
     public UUID create(PriorAuthorityDraft draft) {
+        log.info("Creating prior authority draft: applicationId={}, type={}, expertType={}, billingType={}",
+                draft.applicationId(), draft.type(), draft.expertType(), draft.billingType());
         DraftCreatedResponse response = accessDataStoreClient.createDraft(toEnvelope(draft));
+        log.info("Created prior authority draft: draftId={}, applicationId={}", response.draftId(), draft.applicationId());
         return response.draftId();
     }
 
     public void update(UUID draftId, PriorAuthorityDraft draft) {
+        log.info("Updating prior authority draft: draftId={}, applicationId={}, type={}, billingType={}",
+                draftId, draft.applicationId(), draft.type(), draft.billingType());
         accessDataStoreClient.updateDraft(draftId, toEnvelope(draft));
     }
 
     public List<PriorAuthorityDraftSummary> list(UUID applicationId) {
+        log.info("Listing prior authority drafts: applicationId={}", applicationId);
         List<DraftSummary> summaries = accessDataStoreClient.getDrafts(
                 SOURCE_SYSTEM, PLACEHOLDER_USER_ID, DRAFT_TYPE, applicationId);
+        log.info("Found {} prior authority draft(s) for applicationId={}", summaries.size(), applicationId);
         return summaries.stream()
                 .map(this::toTypedSummary)
                 .toList();
     }
 
     public void delete(UUID draftId) {
+        log.info("Deleting prior authority draft: draftId={}", draftId);
         accessDataStoreClient.deleteDraft(draftId);
     }
 

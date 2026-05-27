@@ -13,7 +13,7 @@ Requires Java 25 (managed by `mise.toml`).
 ./gradlew build                  # full build + tests
 ./gradlew test                   # run tests only
 ./gradlew test --rerun-tasks     # ignore cached results
-./gradlew bootRun                # run locally on http://localhost:8080
+./gradlew bootRun --args='--spring.profiles.active=local' # run locally with clean logging
 ./gradlew generateOpenApiDocs    # regenerate openApi/*.json
 ```
 > While running locally, you can view the API docs at [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html).

@@ -16,6 +16,7 @@ Requires Java 25 (managed by `mise.toml`).
 ./gradlew bootRun                # run locally on http://localhost:8080
 ./gradlew generateOpenApiDocs    # regenerate openApi/*.json
 ```
+> While running locally, you can view the API docs at [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html).
 
 Run a single test class:
 
@@ -23,12 +24,14 @@ Run a single test class:
 ./gradlew test --tests "uk.gov.justice.laa_civil_manage_api.controllers.PriorAuthorityControllerTest"
 ```
 
-## Example request
+## Example requests
 
-Submit a prior-authority request against a running local instance:
+All examples assume a local instance running at `http://localhost:8080`.
+
+### Submit a prior-authority request
 
 ```bash
-curl -i -X POST http://localhost:8080/prior-authority-requests \
+curl -i -X POST http://localhost:8080/prior-authority \
   -H 'Content-Type: application/json' \
   -d '{
     "applicationId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
@@ -39,4 +42,55 @@ curl -i -X POST http://localhost:8080/prior-authority-requests \
     "billingType": "FLAT_RATE",
     "flatRateTotalAmount": 249.99
   }'
+```
+
+### Prior-authority drafts
+
+Drafts let users save a partially-completed prior-authority form and come back later.
+
+#### Create a draft
+
+```bash
+curl -i -X POST http://localhost:8080/prior-authority/drafts \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "applicationId": "2a28f60d-fe15-43fe-92c3-5530595d5f51",
+    "type": "EXPERT",
+    "expertType": "Child psychologist",
+    "expertFullName": "Dr Joe Bloggs",
+    "billingType": "HOURLY",
+    "hourlyRate": 45.00,
+    "totalAmount": 135.00
+  }'
+```
+
+Returns `201` with `{"draftId": "..."}`
+
+#### Update an existing draft
+
+```bash
+curl -i -X PUT http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9d95-88f117a12b43 \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "applicationId": "2a28f60d-fe15-43fe-92c3-5530595d5f51",
+    "type": "EXPERT",
+    "expertType": "Child psychologist",
+    "expertFullName": "Dr Joe Bloggs",
+    "billingType": "HOURLY",
+    "hourlyRate": 45.00,
+    "totalAmount": 180.00
+  }'
+```
+
+#### List the current user's drafts
+
+```bash
+curl -i http://localhost:8080/prior-authority/drafts
+curl -i 'http://localhost:8080/prior-authority/drafts?applicationId=2a28f60d-fe15-43fe-92c3-5530595d5f51'
+```
+
+#### Delete a draft
+
+```bash
+curl -i -X DELETE http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9d95-88f117a12b43
 ```

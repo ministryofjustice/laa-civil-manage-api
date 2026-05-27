@@ -19,6 +19,10 @@ laa-civil-manage-api:
     read-timeout: 5s
     operation-base-urls:
       submit-prior-authority: http://localhost:8080/mock-access-data-store
+      create-draft: http://localhost:8080/mock-access-data-store
+      update-draft: http://localhost:8080/mock-access-data-store
+      get-drafts: http://localhost:8080/mock-access-data-store
+      delete-draft: http://localhost:8080/mock-access-data-store
   expert-types:
     - A & E Consultant
     - Aboriculturist

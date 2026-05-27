@@ -18,6 +18,7 @@ import org.springframework.boot.web.server.servlet.context.ServletWebServerAppli
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -87,7 +88,7 @@ class PriorAuthorityDraftIntegrationTest {
 
                 @Override
                 public List<DraftSummary> getDrafts(String sourceSystem, String userId,
-                                                   String draftType, UUID applicationId) {
+                                                    String draftType, UUID applicationId) {
                     UriComponentsBuilder uri = UriComponentsBuilder.fromUriString(url() + "/drafts")
                             .queryParam("sourceSystem", sourceSystem)
                             .queryParam("userId", userId);
@@ -142,7 +143,7 @@ class PriorAuthorityDraftIntegrationTest {
                 .retrieve()
                 .toEntity(DraftIdResponse.class);
 
-        assertEquals(HttpStatusCode.valueOf(201), create.getStatusCode());
+        assertEquals(HttpStatus.CREATED, create.getStatusCode());
         assertNotNull(create.getBody());
         UUID draftId = create.getBody().draftId();
         assertNotNull(draftId);
@@ -158,14 +159,14 @@ class PriorAuthorityDraftIntegrationTest {
                 .body(updated)
                 .retrieve()
                 .toBodilessEntity();
-        assertEquals(HttpStatusCode.valueOf(200), update.getStatusCode());
+        assertEquals(HttpStatus.OK, update.getStatusCode());
 
         ResponseEntity<List<PriorAuthorityDraftSummary>> list = restClient.get()
                 .uri("http://localhost:" + port + "/prior-authority/drafts?applicationId={a}", applicationId)
                 .retrieve()
                 .toEntity(TYPED_LIST);
 
-        assertEquals(HttpStatusCode.valueOf(200), list.getStatusCode());
+        assertEquals(HttpStatus.OK, list.getStatusCode());
         assertNotNull(list.getBody());
         assertEquals(1, list.getBody().size());
         PriorAuthorityDraftSummary summary = list.getBody().getFirst();
@@ -177,7 +178,7 @@ class PriorAuthorityDraftIntegrationTest {
                 .uri("http://localhost:" + port + "/prior-authority/drafts/{id}", draftId)
                 .retrieve()
                 .toBodilessEntity();
-        assertEquals(HttpStatusCode.valueOf(204), deleteResp.getStatusCode());
+        assertEquals(HttpStatus.NO_CONTENT, deleteResp.getStatusCode());
 
         List<PriorAuthorityDraftSummary> afterDelete = restClient.get()
                 .uri("http://localhost:" + port + "/prior-authority/drafts")
@@ -203,7 +204,7 @@ class PriorAuthorityDraftIntegrationTest {
                 .retrieve()
                 .toEntity(DraftIdResponse.class);
 
-        assertEquals(HttpStatusCode.valueOf(201), create.getStatusCode());
+        assertEquals(HttpStatus.CREATED, create.getStatusCode());
     }
 
     @Test
@@ -225,6 +226,6 @@ class PriorAuthorityDraftIntegrationTest {
                 .toBodilessEntity()
                 .getStatusCode();
 
-        assertEquals(HttpStatusCode.valueOf(404), status);
+        assertEquals(HttpStatus.NOT_FOUND, status);
     }
 }

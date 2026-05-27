@@ -74,59 +74,6 @@
           }
         }
       }
-    },
-    "/applications": {
-      "get": {
-        "tags": [
-          "application-controller"
-        ],
-        "operationId": "getApplications",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Application"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/applications/{id}": {
-      "get": {
-        "tags": [
-          "application-controller"
-        ],
-        "operationId": "getApplicationById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/Application"
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components": {
@@ -274,63 +221,6 @@
             "format": "date-time",
             "description": "Timestamp the application was accepted by the Access Data Store.",
             "example": "2026-05-22T10:00:00Z"
-          }
-        }
-      },
-      "Application": {
-        "type": "object",
-        "properties": {
-          "applicationId": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "submittedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "lastUpdated": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "usedDelegatedFunctions": {
-            "type": "boolean"
-          },
-          "categoryOfLaw": {
-            "type": "string"
-          },
-          "matterType": {
-            "type": "string"
-          },
-          "assignedTo": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "autoGrant": {
-            "type": "boolean"
-          },
-          "clientFirstName": {
-            "type": "string"
-          },
-          "clientLastName": {
-            "type": "string"
-          },
-          "clientDateOfBirth": {
-            "type": "string",
-            "format": "date"
-          },
-          "laaReference": {
-            "type": "string"
-          },
-          "officeCode": {
-            "type": "string"
-          },
-          "applicationType": {
-            "type": "string"
-          },
-          "lead": {
-            "type": "boolean"
           }
         }
       }

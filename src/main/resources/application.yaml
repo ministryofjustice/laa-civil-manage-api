@@ -12,6 +12,20 @@ management:
       exposure:
         include: "health,info,prometheus"
 
+logging:
+  level:
+    root: ${ROOT_LOGGING_LEVEL:info}
+    org.springframework: ${SPRING_LOGGING_LEVEL:info}
+    uk.gov.justice: ${APP_LOGGING_LEVEL:info}
+  structured:
+    format:
+      console: ecs
+    ecs:
+      service:
+        name: ${spring.application.name:default}
+        environment: ${spring.profiles.active:default}
+        node_name: ${HOSTNAME:unknown}
+
 laa-civil-manage-api:
   access-data-store:
     default-base-url: http://localhost:8080/mock-access-data-store

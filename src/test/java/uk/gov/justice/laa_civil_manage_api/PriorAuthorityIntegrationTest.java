@@ -20,8 +20,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
+
 import uk.gov.justice.laa_civil_manage_api.mockaccessdatastore.models.PriorAuthoritySubmission;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
+import uk.gov.justice.laa_civil_manage_api.models.Draft;
+import uk.gov.justice.laa_civil_manage_api.models.DraftCreatedResponse;
+import uk.gov.justice.laa_civil_manage_api.models.DraftSummary;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
@@ -40,16 +45,43 @@ class PriorAuthorityIntegrationTest {
                 ServletWebServerApplicationContext context,
                 RestClient.Builder builder
         ) {
-            return priorAuthority -> {
-                int port = context.getWebServer().getPort();
-                String url = "http://localhost:" + port + "/mock-access-data-store";
+            return new AccessDataStoreClient() {
 
-                return builder.build().post()
-                        .uri(url + "/applications/{applicationId}/prior-authorities", priorAuthority.applicationId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(PriorAuthoritySubmission.from(priorAuthority))
-                        .retrieve()
-                        .body(PriorAuthorityApplicationResponse.class);
+                private String url() {
+                    return "http://localhost:" + context.getWebServer().getPort() + "/mock-access-data-store";
+                }
+
+                @Override
+                public PriorAuthorityApplicationResponse submitPriorAuthority(PriorAuthority priorAuthority) {
+                    return builder.build().post()
+                            .uri(url() + "/applications/{applicationId}/prior-authority",
+                                    priorAuthority.applicationId())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(PriorAuthoritySubmission.from(priorAuthority))
+                            .retrieve()
+                            .body(PriorAuthorityApplicationResponse.class);
+                }
+
+                @Override
+                public DraftCreatedResponse createDraft(Draft draft) {
+                    throw new UnsupportedOperationException("Not used in this test");
+                }
+
+                @Override
+                public void updateDraft(java.util.UUID draftId, Draft draft) {
+                    throw new UnsupportedOperationException("Not used in this test");
+                }
+
+                @Override
+                public List<DraftSummary> getDrafts(String sourceSystem, String userId,
+                                                   String draftType, java.util.UUID applicationId) {
+                    throw new UnsupportedOperationException("Not used in this test");
+                }
+
+                @Override
+                public void deleteDraft(java.util.UUID draftId) {
+                    throw new UnsupportedOperationException("Not used in this test");
+                }
             };
         }
     }
@@ -75,7 +107,7 @@ class PriorAuthorityIntegrationTest {
                 .build();
 
         ResponseEntity<PriorAuthorityApplicationResponse> response = restClient.post()
-                .uri("http://localhost:" + port + "/prior-authority-requests")
+                .uri("http://localhost:" + port + "/prior-authority")
                 .body(body)
                 .retrieve()
                 .toEntity(PriorAuthorityApplicationResponse.class);

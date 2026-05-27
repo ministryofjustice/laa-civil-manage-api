@@ -12,12 +12,169 @@
   ],
   "tags": [
     {
+      "name": "Mock Access Data Store — Drafts",
+      "description": "Mock of the Access Data Store endpoints that store form drafts."
+    },
+    {
       "name": "Mock Access Data Store — Prior Authority",
       "description": "Mock of the Access Data Store endpoint that accepts prior-authority submissions."
     }
   ],
   "paths": {
-    "/mock-access-data-store/applications/{applicationId}/prior-authorities": {
+    "/mock-access-data-store/drafts/{draftId}": {
+      "put": {
+        "tags": [
+          "Mock Access Data Store — Drafts"
+        ],
+        "summary": "Update a draft in the Access Data Store",
+        "operationId": "update",
+        "parameters": [
+          {
+            "name": "draftId",
+            "in": "path",
+            "description": "ID of the draft to update.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Draft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Draft updated."
+          },
+          "404": {
+            "description": "Draft not found."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Mock Access Data Store — Drafts"
+        ],
+        "summary": "Delete a draft from the Access Data Store",
+        "operationId": "delete",
+        "parameters": [
+          {
+            "name": "draftId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Draft deleted (or did not exist)."
+          }
+        }
+      }
+    },
+    "/mock-access-data-store/drafts": {
+      "get": {
+        "tags": [
+          "Mock Access Data Store — Drafts"
+        ],
+        "summary": "List drafts matching the given keys",
+        "operationId": "list",
+        "parameters": [
+          {
+            "name": "sourceSystem",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "draftType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "applicationId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DraftSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Mock Access Data Store — Drafts"
+        ],
+        "summary": "Create a draft in the Access Data Store",
+        "operationId": "create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Draft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Draft created.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftCreatedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed."
+          }
+        }
+      }
+    },
+    "/mock-access-data-store/applications/{applicationId}/prior-authority": {
       "post": {
         "tags": [
           "Mock Access Data Store — Prior Authority"
@@ -67,6 +224,60 @@
   },
   "components": {
     "schemas": {
+      "Draft": {
+        "type": "object",
+        "description": "An in-progress draft that the user wants to save and return to later. The draftBody is an unstructured JSON payload owned by the calling system.",
+        "properties": {
+          "sourceSystem": {
+            "type": "string",
+            "description": "Identifies the system creating the draft (e.g., laa-civil-manage).",
+            "example": "laa-civil-manage",
+            "minLength": 1
+          },
+          "draftType": {
+            "type": "string",
+            "description": "Identifies the flow the draft belongs to (e.g., PRIOR_AUTHORITY). ",
+            "example": "PRIOR_AUTHORITY",
+            "minLength": 1
+          },
+          "applicationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the application the draft is associated with.",
+            "example": "2a28f60d-fe15-43fe-92c3-5530595d5f51"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Entra identity of the user who owns the draft.",
+            "example": "entra-id-uuid",
+            "minLength": 1
+          },
+          "draftBody": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "JSON payload representing the in-progress form. Not validated."
+          }
+        },
+        "required": [
+          "applicationId",
+          "draftBody",
+          "draftType",
+          "sourceSystem",
+          "userId"
+        ]
+      },
+      "DraftCreatedResponse": {
+        "type": "object",
+        "description": "Confirmation returned after a draft has been created.",
+        "properties": {
+          "draftId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier assigned to the draft by the Access Data Store.",
+            "example": "c3b07e24-d92b-410a-9d95-88f117a12b43"
+          }
+        }
+      },
       "EstimatedTime": {
         "type": "object",
         "description": "Estimated time required to carry out the work, in hours and minutes.",
@@ -203,6 +414,34 @@
             "format": "date-time",
             "description": "Timestamp the application was accepted by the Access Data Store.",
             "example": "2026-05-22T10:00:00Z"
+          }
+        }
+      },
+      "DraftSummary": {
+        "type": "object",
+        "description": "A single draft returned in a list lookup.",
+        "properties": {
+          "draftId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the draft.",
+            "example": "c3b07e24-d92b-410a-9d95-88f117a12b43"
+          },
+          "draftType": {
+            "type": "string",
+            "description": "The form flow this draft belongs to.",
+            "example": "PRIOR_AUTHORITY"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp the draft was last updated.",
+            "example": "2026-05-19T12:00:00Z"
+          },
+          "draftBody": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "The JSON payload originally saved by the caller."
           }
         }
       }

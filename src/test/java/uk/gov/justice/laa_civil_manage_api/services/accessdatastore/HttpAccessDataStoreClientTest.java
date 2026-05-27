@@ -7,8 +7,12 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.queryParam;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent;
+
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -20,6 +24,9 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
+import uk.gov.justice.laa_civil_manage_api.models.Draft;
+import uk.gov.justice.laa_civil_manage_api.models.DraftCreatedResponse;
+import uk.gov.justice.laa_civil_manage_api.models.DraftSummary;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
@@ -50,7 +57,7 @@ class HttpAccessDataStoreClientTest {
         UUID applicationId = UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
         UUID submissionId = UUID.fromString("11111111-2222-3333-4444-555555555555");
 
-        server.expect(requestTo(BASE_URL + "/applications/" + applicationId + "/prior-authorities"))
+        server.expect(requestTo(BASE_URL + "/applications/" + applicationId + "/prior-authority"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.applicationId").doesNotExist())
@@ -101,7 +108,7 @@ class HttpAccessDataStoreClientTest {
 
         client = new HttpAccessDataStoreClient(builder, properties);
 
-        server.expect(requestTo(operationUrl + "/applications/" + applicationId + "/prior-authorities"))
+        server.expect(requestTo(operationUrl + "/applications/" + applicationId + "/prior-authority"))
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess(
                         """
@@ -124,6 +131,114 @@ class HttpAccessDataStoreClientTest {
                 .flatRateTotalAmount(new BigDecimal("249.99"))
                 .build());
 
+        server.verify();
+    }
+
+    @Test
+    void createDraftPostsToAdsAndReturnsDraftId() {
+        UUID draftId = UUID.randomUUID();
+        UUID applicationId = UUID.randomUUID();
+
+        server.expect(requestTo(BASE_URL + "/drafts"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.sourceSystem").value("laa-civil-manage"))
+                .andExpect(jsonPath("$.draftType").value("PRIOR_AUTHORITY"))
+                .andExpect(jsonPath("$.draftBody.totalAmount").value(135.00))
+                .andRespond(withSuccess(
+                        "{ \"draftId\": \"" + draftId + "\" }",
+                        MediaType.APPLICATION_JSON
+                ));
+
+        Draft draft = Draft.builder()
+                .sourceSystem("laa-civil-manage")
+                .draftType("PRIOR_AUTHORITY")
+                .applicationId(applicationId)
+                .userId("entra-id")
+                .draftBody(Map.of("totalAmount", 135.00))
+                .build();
+
+        DraftCreatedResponse response = client.createDraft(draft);
+        assertEquals(draftId, response.draftId());
+        server.verify();
+    }
+
+    @Test
+    void updateDraftPutsToAdsWithDraftIdInPath() {
+        UUID draftId = UUID.randomUUID();
+        UUID applicationId = UUID.randomUUID();
+
+        server.expect(requestTo(BASE_URL + "/drafts/" + draftId))
+                .andExpect(method(HttpMethod.PUT))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.draftBody.totalAmount").value(180.00))
+                .andRespond(withSuccess());
+
+        Draft draft = Draft.builder()
+                .sourceSystem("laa-civil-manage")
+                .draftType("PRIOR_AUTHORITY")
+                .applicationId(applicationId)
+                .userId("entra-id")
+                .draftBody(Map.of("totalAmount", 180.00))
+                .build();
+
+        client.updateDraft(draftId, draft);
+        server.verify();
+    }
+
+    @Test
+    void getDraftsBuildsQueryStringWithRequiredAndOptionalParams() {
+        UUID applicationId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+        server.expect(requestTo(org.hamcrest.Matchers.startsWith(BASE_URL + "/drafts")))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(queryParam("sourceSystem", "laa-civil-manage"))
+                .andExpect(queryParam("userId", "entra-id"))
+                .andExpect(queryParam("draftType", "PRIOR_AUTHORITY"))
+                .andExpect(queryParam("applicationId", applicationId.toString()))
+                .andRespond(withSuccess(
+                        """
+                        [
+                          {
+                            "draftId": "c3b07e24-d92b-410a-9d95-88f117a12b43",
+                            "draftType": "PRIOR_AUTHORITY",
+                            "timestamp": "2026-05-19T12:00:00Z",
+                            "draftBody": { "totalAmount": 135.00 }
+                          }
+                        ]
+                        """,
+                        MediaType.APPLICATION_JSON
+                ));
+
+        List<DraftSummary> drafts = client.getDrafts("laa-civil-manage", "entra-id",
+                "PRIOR_AUTHORITY", applicationId);
+        assertEquals(1, drafts.size());
+        assertEquals("PRIOR_AUTHORITY", drafts.get(0).draftType());
+        server.verify();
+    }
+
+    @Test
+    void getDraftsOmitsOptionalParamsWhenNull() {
+        server.expect(requestTo(org.hamcrest.Matchers.containsString("sourceSystem=laa-civil-manage")))
+                .andExpect(method(HttpMethod.GET))
+                .andExpect(queryParam("sourceSystem", "laa-civil-manage"))
+                .andExpect(queryParam("userId", "entra-id"))
+                .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
+
+        List<DraftSummary> drafts = client.getDrafts("laa-civil-manage", "entra-id", null, null);
+        assertEquals(0, drafts.size());
+        server.verify();
+    }
+
+    @Test
+    void deleteDraftDeletesAtAdsWithDraftIdInPath() {
+        UUID draftId = UUID.randomUUID();
+
+        server.expect(requestTo(BASE_URL + "/drafts/" + draftId))
+                .andExpect(method(HttpMethod.DELETE))
+                .andRespond(withNoContent());
+
+        client.deleteDraft(draftId);
         server.verify();
     }
 }

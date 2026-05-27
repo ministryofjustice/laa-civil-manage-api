@@ -34,7 +34,7 @@ class MockPriorAuthorityControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/mock-access-data-store/applications/{id}/prior-authorities", UUID.randomUUID())
+        mockMvc.perform(post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
@@ -56,13 +56,13 @@ class MockPriorAuthorityControllerTest {
                 }
                 """;
 
-        MvcResult first = mockMvc.perform(post("/mock-access-data-store/applications/{id}/prior-authorities", applicationId)
+        MvcResult first = mockMvc.perform(post("/mock-access-data-store/applications/{id}/prior-authority", applicationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        mockMvc.perform(post("/mock-access-data-store/applications/{id}/prior-authorities", applicationId)
+        mockMvc.perform(post("/mock-access-data-store/applications/{id}/prior-authority", applicationId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
@@ -86,7 +86,7 @@ class MockPriorAuthorityControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/mock-access-data-store/applications/{id}/prior-authorities", UUID.randomUUID())
+        mockMvc.perform(post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isBadRequest());

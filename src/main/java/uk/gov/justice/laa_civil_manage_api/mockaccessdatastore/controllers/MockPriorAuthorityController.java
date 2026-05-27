@@ -28,7 +28,7 @@ import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationRespo
         description = "Mock of the Access Data Store endpoint that accepts prior-authority submissions."
 )
 @RestController
-@RequestMapping("/mock-access-data-store/applications/{applicationId}/prior-authorities")
+@RequestMapping("/mock-access-data-store/applications/{applicationId}/prior-authority")
 @RequiredArgsConstructor
 public class MockPriorAuthorityController {
 
@@ -60,7 +60,7 @@ public class MockPriorAuthorityController {
         PriorAuthorityApplicationResponse response = store.submit(applicationId, submission);
         URI location = URI.create(
                 "/mock-access-data-store/applications/" + applicationId
-                        + "/prior-authorities/" + response.submissionId()
+                        + "/prior-authority/" + response.submissionId()
         );
         return ResponseEntity.created(location).body(response);
     }

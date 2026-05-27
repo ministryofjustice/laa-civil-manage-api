@@ -14,7 +14,7 @@ run = "./gradlew bootRun"
 description = "Run unit tests"
 run = "./gradlew test"
 
-[tasks.generateOpenApiDocs]
+[tasks.apidocs]
 description = "Generate OpenAPI Schema from controllers"
 run = "./gradlew generateOpenApiDocs"
 

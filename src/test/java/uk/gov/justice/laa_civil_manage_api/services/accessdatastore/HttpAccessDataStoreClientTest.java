@@ -63,6 +63,7 @@ class HttpAccessDataStoreClientTest {
                 .andExpect(jsonPath("$.applicationId").doesNotExist())
                 .andExpect(jsonPath("$.type").value("EXPERT"))
                 .andExpect(jsonPath("$.expertFullName").value("John Doe"))
+                .andExpect(jsonPath("$.isInLondon").value(true))
                 .andExpect(jsonPath("$.flatRateTotalAmount").value(249.99))
                 .andRespond(withSuccess(
                         """
@@ -80,6 +81,7 @@ class HttpAccessDataStoreClientTest {
                 .type(PriorAuthorityType.EXPERT)
                 .expertType("Psychologist")
                 .expertFullName("John Doe")
+                .isInLondon(true)
                 .guidelineRatesExceeded(false)
                 .billingType(BillingType.FLAT_RATE)
                 .flatRateTotalAmount(new BigDecimal("249.99"))
@@ -126,6 +128,7 @@ class HttpAccessDataStoreClientTest {
                 .type(PriorAuthorityType.EXPERT)
                 .expertType("Psychologist")
                 .expertFullName("John Doe")
+                .isInLondon(false)
                 .guidelineRatesExceeded(false)
                 .billingType(BillingType.FLAT_RATE)
                 .flatRateTotalAmount(new BigDecimal("249.99"))

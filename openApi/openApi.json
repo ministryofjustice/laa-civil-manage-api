@@ -357,6 +357,11 @@
             "example": "John Doe",
             "minLength": 1
           },
+          "isInLondon": {
+            "type": "boolean",
+            "description": "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
+            "example": true
+          },
           "uploadedDocuments": {
             "type": "array",
             "description": "Supporting documents uploaded with the request.",
@@ -402,6 +407,7 @@
           "applicationId",
           "billingType",
           "expertFullName",
+          "isInLondon",
           "type"
         ]
       },

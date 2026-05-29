@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.math.BigDecimal;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -48,7 +50,7 @@ class PriorAuthorityIntegrationTest {
             return new AccessDataStoreClient() {
 
                 private String url() {
-                    return "http://localhost:" + context.getWebServer().getPort() + "/mock-access-data-store";
+                    return "http://localhost:" + Objects.requireNonNull(context.getWebServer()).getPort() + "/mock-access-data-store";
                 }
 
                 @Override
@@ -69,6 +71,11 @@ class PriorAuthorityIntegrationTest {
 
                 @Override
                 public void updateDraft(java.util.UUID draftId, Draft draft) {
+                    throw new UnsupportedOperationException("Not used in this test");
+                }
+
+                @Override
+                public Optional<DraftSummary> getDraft(UUID draftId) {
                     throw new UnsupportedOperationException("Not used in this test");
                 }
 

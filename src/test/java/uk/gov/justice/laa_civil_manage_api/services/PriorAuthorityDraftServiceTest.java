@@ -3,6 +3,7 @@ package uk.gov.justice.laa_civil_manage_api.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -68,6 +69,31 @@ class PriorAuthorityDraftServiceTest {
     }
 
     @Test
+    void createHandlesMinimalDraftWithNullFields() {
+        UUID applicationId = UUID.randomUUID();
+        UUID assignedDraftId = UUID.randomUUID();
+        when(client.createDraft(any(Draft.class)))
+                .thenReturn(DraftCreatedResponse.builder().draftId(assignedDraftId).build());
+
+        PriorAuthorityDraft minimalDraft = PriorAuthorityDraft.builder()
+                .applicationId(applicationId)
+                .build();
+
+        UUID result = service.create(minimalDraft);
+
+        assertEquals(assignedDraftId, result);
+
+        ArgumentCaptor<Draft> envelope = ArgumentCaptor.forClass(Draft.class);
+        verify(client).createDraft(envelope.capture());
+        Draft sent = envelope.getValue();
+
+        assertEquals(applicationId, sent.applicationId());
+        assertNull(sent.draftBody().get("expertType"));
+        assertNull(sent.draftBody().get("expertFullName"));
+        assertNull(sent.draftBody().get("billingType"));
+    }
+
+    @Test
     void updateDelegatesAndWrapsEnvelope() {
         UUID draftId = UUID.randomUUID();
         UUID applicationId = UUID.randomUUID();
@@ -112,6 +138,8 @@ class PriorAuthorityDraftServiceTest {
         assertEquals("Dr Joe Bloggs", summary.draft().expertFullName());
         assertEquals(BillingType.FLAT_RATE, summary.draft().billingType());
         assertEquals(0, new BigDecimal("249.99").compareTo(summary.draft().flatRateTotalAmount()));
+        assertNull(summary.draft().expertType());
+        assertNull(summary.draft().hourlyRate());
     }
 
     @Test

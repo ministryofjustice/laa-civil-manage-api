@@ -88,6 +88,33 @@ class MockDraftControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+
+    @Test
+    void getByDraftIdSucceedsWhenIdIsPresent() throws Exception {
+        String applicationId = UUID.randomUUID().toString();
+        String userId = "user-get-" + UUID.randomUUID();
+
+        MvcResult created = mockMvc.perform(post("/mock-access-data-store/drafts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(draftBody(userId, applicationId, 135.00)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        JsonNode createdBody = objectMapper.readTree(created.getResponse().getContentAsString());
+        String draftId = createdBody.get("draftId").asText();
+
+        mockMvc.perform(get("/mock-access-data-store/drafts/{draftId}", draftId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.draftId").value(draftId))
+                .andExpect(jsonPath("$.draftBody.totalAmount").value(135.00));
+    }
+
+    @Test
+    void getByDraftIdReturns404WhenIdIsNotPresent() throws Exception {
+        mockMvc.perform(get("/mock-access-data-store/drafts/{draftId}", UUID.randomUUID()))
+                .andExpect(status().isNotFound());
+    }
+
     @Test
     void getFiltersByUserAndDraftType() throws Exception {
         String userId = "user-filter-" + UUID.randomUUID();

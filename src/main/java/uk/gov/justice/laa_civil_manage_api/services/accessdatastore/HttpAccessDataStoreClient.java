@@ -1,6 +1,7 @@
 package uk.gov.justice.laa_civil_manage_api.services.accessdatastore;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -63,6 +64,17 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
                 .body(draft)
                 .retrieve()
                 .toBodilessEntity();
+    }
+
+    @Override
+    public Optional<DraftSummary> getDraft(UUID draftId) {
+        String baseUrl = properties.urlFor(AccessDataStoreOperations.GET_DRAFT);
+        return Optional.ofNullable(restClient.get()
+                .uri(baseUrl + "/drafts/{draftId}", draftId)
+                .retrieve()
+                .onStatus(status -> status.value() == 404, (_, _) -> {
+                })
+                .body(DraftSummary.class));
     }
 
     @Override

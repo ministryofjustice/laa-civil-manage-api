@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -257,6 +258,35 @@ class PriorAuthorityControllerTest {
                 .andExpect(status().isOk());
 
         verify(draftService).update(eq(DRAFT_ID), any(PriorAuthorityDraft.class));
+    }
+
+    @Test
+    void getDraftByIdReturns200WithBody() throws Exception {
+        PriorAuthorityDraft saved = PriorAuthorityDraft.builder()
+                .applicationId(UUID.fromString(DRAFT_APPLICATION_ID))
+                .expertFullName("Dr Joe Bloggs")
+                .billingType(BillingType.FLAT_RATE)
+                .flatRateTotalAmount(new BigDecimal("249.99"))
+                .build();
+        when(draftService.get(DRAFT_ID)).thenReturn(Optional.of(PriorAuthorityDraftSummary.builder()
+                .draftId(DRAFT_ID)
+                .timestamp(OffsetDateTime.parse("2026-05-19T12:00:00Z"))
+                .draft(saved)
+                .build()));
+
+        mockMvc.perform(get("/prior-authority/drafts/{draftId}", DRAFT_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.draftId").value(DRAFT_ID.toString()))
+                .andExpect(jsonPath("$.draft.expertFullName").value("Dr Joe Bloggs"))
+                .andExpect(jsonPath("$.draft.billingType").value("FLAT_RATE"));
+    }
+
+    @Test
+    void getDraftByIdReturns404WhenNotFound() throws Exception {
+        when(draftService.get(DRAFT_ID)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/prior-authority/drafts/{draftId}", DRAFT_ID))
+                .andExpect(status().isNotFound());
     }
 
     @Test

@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -56,7 +58,7 @@ class PriorAuthorityDraftIntegrationTest {
         ) {
             return new AccessDataStoreClient() {
                 private String url() {
-                    return "http://localhost:" + context.getWebServer().getPort() + "/mock-access-data-store";
+                    return "http://localhost:" + Objects.requireNonNull(context.getWebServer()).getPort() + "/mock-access-data-store";
                 }
 
                 @Override
@@ -84,6 +86,22 @@ class PriorAuthorityDraftIntegrationTest {
                             .body(draft)
                             .retrieve()
                             .toBodilessEntity();
+                }
+
+                @Override
+                public Optional<DraftSummary> getDraft(UUID draftId) {
+                    try {
+                        DraftSummary body = builder.build().get()
+                                .uri(UriComponentsBuilder.fromUriString(url() + "/drafts/{id}")
+                                        .buildAndExpand(draftId)
+                                        .toUri())
+                                .retrieve()
+                                .body(DraftSummary.class);
+
+                        return Optional.ofNullable(body);
+                    } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+                        return Optional.empty();
+                    }
                 }
 
                 @Override
@@ -136,6 +154,7 @@ class PriorAuthorityDraftIntegrationTest {
                 .totalAmount(new BigDecimal("135.00"))
                 .build();
 
+        // Create a new draft via the public API.
         ResponseEntity<DraftIdResponse> create = restClient.post()
                 .uri("http://localhost:" + port + "/prior-authority/drafts")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -153,6 +172,7 @@ class PriorAuthorityDraftIntegrationTest {
                 .totalAmount(new BigDecimal("180.00"))
                 .build();
 
+        // Update the draft.
         ResponseEntity<Void> update = restClient.put()
                 .uri("http://localhost:" + port + "/prior-authority/drafts/{id}", draftId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -161,6 +181,19 @@ class PriorAuthorityDraftIntegrationTest {
                 .toBodilessEntity();
         assertEquals(HttpStatus.OK, update.getStatusCode());
 
+        // Fetch by ID and verify we see the updated payload.
+        ResponseEntity<PriorAuthorityDraftSummary> getById = restClient.get()
+                .uri("http://localhost:" + port + "/prior-authority/drafts/{id}", draftId)
+                .retrieve()
+                .toEntity(PriorAuthorityDraftSummary.class);
+
+        assertEquals(HttpStatus.OK, getById.getStatusCode());
+        assertNotNull(getById.getBody());
+        assertEquals(draftId, getById.getBody().draftId());
+        assertEquals(applicationId, getById.getBody().draft().applicationId());
+        assertEquals(0, new BigDecimal("180.00").compareTo(getById.getBody().draft().totalAmount()));
+
+        // List by application ID and verify the same updated draft appears.
         ResponseEntity<List<PriorAuthorityDraftSummary>> list = restClient.get()
                 .uri("http://localhost:" + port + "/prior-authority/drafts?applicationId={a}", applicationId)
                 .retrieve()
@@ -174,12 +207,14 @@ class PriorAuthorityDraftIntegrationTest {
         assertEquals(applicationId, summary.draft().applicationId());
         assertEquals(0, new BigDecimal("180.00").compareTo(summary.draft().totalAmount()));
 
+        // Delete the draft.
         ResponseEntity<Void> deleteResp = restClient.delete()
                 .uri("http://localhost:" + port + "/prior-authority/drafts/{id}", draftId)
                 .retrieve()
                 .toBodilessEntity();
         assertEquals(HttpStatus.NO_CONTENT, deleteResp.getStatusCode());
 
+        // Confirm the deleted draft no longer shows up in a list call.
         List<PriorAuthorityDraftSummary> afterDelete = restClient.get()
                 .uri("http://localhost:" + port + "/prior-authority/drafts")
                 .retrieve()
@@ -222,7 +257,7 @@ class PriorAuthorityDraftIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(update)
                 .retrieve()
-                .onStatus(s -> true, (req, res) -> { /* swallow so we can inspect status */ })
+                .onStatus(_ -> true, (_, _) -> { /* swallow so we can inspect status */ })
                 .toBodilessEntity()
                 .getStatusCode();
 

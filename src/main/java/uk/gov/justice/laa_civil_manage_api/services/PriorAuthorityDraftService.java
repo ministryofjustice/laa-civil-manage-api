@@ -1,6 +1,7 @@
 package uk.gov.justice.laa_civil_manage_api.services;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -46,6 +47,20 @@ public class PriorAuthorityDraftService {
         log.info("Updating prior authority draft: draftId={}, applicationId={}, type={}, billingType={}",
                 draftId, draft.applicationId(), draft.type(), draft.billingType());
         accessDataStoreClient.updateDraft(draftId, toEnvelope(draft));
+    }
+
+    public Optional<PriorAuthorityDraftSummary> get(UUID draftId) {
+        log.info("Get prior authority draft: draftId={}", draftId);
+
+        Optional<DraftSummary> summary = accessDataStoreClient.getDraft(draftId);
+        summary.ifPresent(s -> log.info("Found prior authority draft: draftId={}, applicationId={}",
+                s.draftId(), s.draftBody().get("applicationId")));
+        summary.ifPresentOrElse(
+                _ -> {
+                },
+                () -> log.info("No prior authority draft found for draftId={}", draftId)
+        );
+        return summary.map(this::toTypedSummary);
     }
 
     public List<PriorAuthorityDraftSummary> list(UUID applicationId) {

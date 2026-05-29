@@ -18,6 +18,40 @@
   ],
   "paths": {
     "/prior-authority/drafts/{draftId}": {
+      "get": {
+        "tags": [
+          "Prior Authority"
+        ],
+        "summary": "Retrieve an existing prior-authority draft",
+        "operationId": "getDraft",
+        "parameters": [
+          {
+            "name": "draftId",
+            "in": "path",
+            "description": "ID of the draft to return.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft returned.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriorAuthorityDraftSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Draft not found."
+          }
+        }
+      },
       "put": {
         "tags": [
           "Prior Authority"
@@ -121,7 +155,7 @@
         "tags": [
           "Prior Authority"
         ],
-        "summary": "List the current user\u0027s prior-authority drafts",
+        "summary": "List prior-authority drafts for an Application",
         "description": "Returns all of the current user\u0027s prior-authority drafts. Use applicationId to narrow the list to a specific application.",
         "operationId": "listDrafts",
         "parameters": [

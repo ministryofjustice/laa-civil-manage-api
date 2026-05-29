@@ -108,6 +108,7 @@ class PriorAuthorityIntegrationTest {
                 .type(PriorAuthorityType.EXPERT)
                 .expertType("Psychologist")
                 .expertFullName("John Doe")
+                .expertBasedInLondon(true)
                 .guidelineRatesExceeded(false)
                 .billingType(BillingType.FLAT_RATE)
                 .flatRateTotalAmount(new BigDecimal("249.99"))

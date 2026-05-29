@@ -36,6 +36,13 @@ public record PriorAuthoritySubmission(
                 requiredMode = Schema.RequiredMode.REQUIRED)
         @NotBlank String expertFullName,
 
+        @Schema(
+                description = "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
+                example = "true",
+                requiredMode = Schema.RequiredMode.REQUIRED
+        )
+        @NotNull Boolean expertBasedInLondon,
+
         @Schema(description = "Supporting documents uploaded with the request.")
         @Valid List<UploadedDocument> uploadedDocuments,
 
@@ -69,6 +76,7 @@ public record PriorAuthoritySubmission(
                 .type(priorAuthority.type())
                 .expertType(priorAuthority.expertType())
                 .expertFullName(priorAuthority.expertFullName())
+                .expertBasedInLondon(priorAuthority.expertBasedInLondon())
                 .uploadedDocuments(priorAuthority.uploadedDocuments())
                 .guidelineRatesExceeded(priorAuthority.guidelineRatesExceeded())
                 .billingType(priorAuthority.billingType())

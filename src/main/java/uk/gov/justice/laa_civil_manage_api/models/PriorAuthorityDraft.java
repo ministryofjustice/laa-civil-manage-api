@@ -30,6 +30,9 @@ public record PriorAuthorityDraft(
         @Schema(description = "Full name of the expert the prior authority is for.", example = "Dr Joe Bloggs", nullable = true)
         String expertFullName,
 
+        @Schema(description = "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London", example = "true", nullable = true)
+        Boolean expertBasedInLondon,
+
         @Schema(description = "Supporting documents uploaded so far.", nullable = true)
         List<UploadedDocument> uploadedDocuments,
 

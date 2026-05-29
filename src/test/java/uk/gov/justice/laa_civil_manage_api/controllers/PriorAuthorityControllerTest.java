@@ -66,6 +66,7 @@ class PriorAuthorityControllerTest {
                   "type": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
+                  "expertBasedInLondon": true,
                   "uploadedDocuments": [
                     { "fileName": "report.pdf" }
                   ],
@@ -101,6 +102,7 @@ class PriorAuthorityControllerTest {
                   "type": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
+                  "expertBasedInLondon": false,
                   "guidelineRatesExceeded": false,
                   "billingType": "FLAT_RATE",
                   "flatRateTotalAmount": 249.99
@@ -120,6 +122,7 @@ class PriorAuthorityControllerTest {
                   "type": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
+                  "expertBasedInLondon": false,
                   "guidelineRatesExceeded": false,
                   "billingType": "FLAT_RATE",
                   "flatRateTotalAmount": 100.00
@@ -138,6 +141,7 @@ class PriorAuthorityControllerTest {
                 {
                   "applicationId": "%s",
                   "expertFullName": "John Doe",
+                  "expertBasedInLondon": false,
                   "guidelineRatesExceeded": false,
                   "billingType": "FLAT_RATE",
                   "flatRateTotalAmount": 100.00
@@ -158,6 +162,7 @@ class PriorAuthorityControllerTest {
                   "type": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
+                  "expertBasedInLondon": true,
                   "guidelineRatesExceeded": true,
                   "billingType": "HOURLY"
                 }
@@ -170,11 +175,32 @@ class PriorAuthorityControllerTest {
     }
 
     @Test
-    void returns400WhenExpertTypeIsExpertButExpertTypeMissing() throws Exception {
+    void returns400WhenPriorAuthorityTypeIsExpertButExpertTypeMissing() throws Exception {
         String body = """
                 {
                   "applicationId": "%s",
                   "type": "EXPERT",
+                  "expertFullName": "John Doe",
+                  "expertBasedInLondon": false,
+                  "guidelineRatesExceeded": false,
+                  "billingType": "FLAT_RATE",
+                  "flatRateTotalAmount": 100.00
+                }
+                """.formatted(APPLICATION_ID);
+
+        mockMvc.perform(post("/prior-authority")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void returns400WhenexpertBasedInLondonMissing() throws Exception {
+        String body = """
+                {
+                  "applicationId": "%s",
+                  "type": "EXPERT",
+                  "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "guidelineRatesExceeded": false,
                   "billingType": "FLAT_RATE",

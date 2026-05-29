@@ -28,6 +28,7 @@ class MockPriorAuthorityControllerTest {
                   "type": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
+                  "expertBasedInLondon": true,
                   "guidelineRatesExceeded": false,
                   "billingType": "FLAT_RATE",
                   "flatRateTotalAmount": 249.99
@@ -50,6 +51,7 @@ class MockPriorAuthorityControllerTest {
                   "type": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
+                  "expertBasedInLondon": false,
                   "guidelineRatesExceeded": false,
                   "billingType": "FLAT_RATE",
                   "flatRateTotalAmount": 249.99

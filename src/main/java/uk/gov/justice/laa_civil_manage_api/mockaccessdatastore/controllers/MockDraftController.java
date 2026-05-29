@@ -64,6 +64,10 @@ public class MockDraftController {
     }
 
     @GetMapping("/{draftId}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Draft returned."),
+            @ApiResponse(responseCode = "404", description = "Draft not found.", content = @Content)
+    })
     public ResponseEntity<DraftSummary> get(
             @Parameter(description = "ID of the draft to query.") @PathVariable UUID draftId
     ) {

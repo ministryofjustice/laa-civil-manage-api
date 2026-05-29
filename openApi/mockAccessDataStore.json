@@ -22,6 +22,39 @@
   ],
   "paths": {
     "/mock-access-data-store/drafts/{draftId}": {
+      "get": {
+        "tags": [
+          "Mock Access Data Store — Drafts"
+        ],
+        "operationId": "get",
+        "parameters": [
+          {
+            "name": "draftId",
+            "in": "path",
+            "description": "ID of the draft to query.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft returned.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Draft not found."
+          }
+        }
+      },
       "put": {
         "tags": [
           "Mock Access Data Store — Drafts"

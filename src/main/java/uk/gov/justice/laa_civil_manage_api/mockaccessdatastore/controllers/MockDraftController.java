@@ -63,6 +63,15 @@ public class MockDraftController {
         store.update(draftId, draft);
     }
 
+    @GetMapping("/{draftId}")
+    public ResponseEntity<DraftSummary> get(
+            @Parameter(description = "ID of the draft to query.") @PathVariable UUID draftId
+    ) {
+        return store.get(draftId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @Operation(summary = "List drafts matching the given keys")
     @GetMapping
     public List<DraftSummary> list(

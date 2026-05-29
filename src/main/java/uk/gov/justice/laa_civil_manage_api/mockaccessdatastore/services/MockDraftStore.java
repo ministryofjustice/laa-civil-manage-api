@@ -2,10 +2,12 @@ package uk.gov.justice.laa_civil_manage_api.mockaccessdatastore.services;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -14,6 +16,7 @@ import uk.gov.justice.laa_civil_manage_api.models.Draft;
 import uk.gov.justice.laa_civil_manage_api.models.DraftCreatedResponse;
 import uk.gov.justice.laa_civil_manage_api.models.DraftSummary;
 
+@Slf4j
 @Component
 public class MockDraftStore {
 
@@ -34,6 +37,16 @@ public class MockDraftStore {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Draft " + draftId + " not found");
         }
         draftsById.put(draftId, new StoredDraft(draftId, draft, OffsetDateTime.now()));
+    }
+
+    public Optional<DraftSummary> get(UUID draftId) {
+        return Optional.ofNullable(draftsById.get(draftId))
+                .map(stored -> DraftSummary.builder()
+                        .draftId(stored.draftId())
+                        .draftType(stored.draft().draftType())
+                        .timestamp(stored.timestamp())
+                        .draftBody(stored.draft().draftBody())
+                        .build());
     }
 
     public List<DraftSummary> list(String sourceSystem, String userId, String draftType, UUID applicationId) {

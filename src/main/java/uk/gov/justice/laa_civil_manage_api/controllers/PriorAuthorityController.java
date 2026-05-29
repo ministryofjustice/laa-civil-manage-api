@@ -92,8 +92,21 @@ public class PriorAuthorityController {
         draftService.update(draftId, draft);
     }
 
+    @GetMapping("/drafts/{draftId}")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Draft returned."),
+            @ApiResponse(responseCode = "404", description = "Draft not found.", content = @Content)
+    })
+    public ResponseEntity<PriorAuthorityDraftSummary> getDraft(
+            @Parameter(description = "ID of the draft to return.") @PathVariable UUID draftId
+    ) {
+        return draftService.get(draftId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @Operation(
-            summary = "List the current user's prior-authority drafts",
+            summary = "List prior-authority drafts for an Application",
             description = "Returns all of the current user's prior-authority drafts. "
                     + "Use applicationId to narrow the list to a specific application."
     )
@@ -102,7 +115,7 @@ public class PriorAuthorityController {
             @Parameter(description = "Optional parent application ID filter.")
             @RequestParam(required = false) UUID applicationId
     ) {
-        return draftService.list(applicationId);
+        return draftService.list(applicationId); // should we add userId here?
     }
 
     @Operation(

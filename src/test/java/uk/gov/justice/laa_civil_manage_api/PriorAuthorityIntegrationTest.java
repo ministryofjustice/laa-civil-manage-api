@@ -74,7 +74,7 @@ class PriorAuthorityIntegrationTest {
 
                 @Override
                 public List<DraftSummary> getDrafts(String sourceSystem, String userId,
-                                                   String draftType, java.util.UUID applicationId) {
+                                                    String draftType, java.util.UUID applicationId) {
                     throw new UnsupportedOperationException("Not used in this test");
                 }
 
@@ -101,7 +101,7 @@ class PriorAuthorityIntegrationTest {
                 .type(PriorAuthorityType.EXPERT)
                 .expertType("Psychologist")
                 .expertFullName("John Doe")
-                .isInLondon(true)
+                .expertBasedInLondon(true)
                 .guidelineRatesExceeded(false)
                 .billingType(BillingType.FLAT_RATE)
                 .flatRateTotalAmount(new BigDecimal("249.99"))

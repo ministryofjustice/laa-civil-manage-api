@@ -48,7 +48,7 @@ public record PriorAuthority(
                 example = "true",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
-        @NotNull Boolean isInLondon,
+        @NotNull Boolean expertBasedInLondon,
 
         @Schema(description = "Supporting documents uploaded with the request.")
         @Valid List<UploadedDocument> uploadedDocuments,

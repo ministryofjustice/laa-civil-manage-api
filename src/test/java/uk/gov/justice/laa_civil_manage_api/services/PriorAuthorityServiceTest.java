@@ -30,7 +30,7 @@ class PriorAuthorityServiceTest {
                 .type(PriorAuthorityType.EXPERT)
                 .expertType("Psychologist")
                 .expertFullName("John Doe")
-                .isInLondon(false)
+                .expertBasedInLondon(false)
                 .guidelineRatesExceeded(false)
                 .billingType(BillingType.FLAT_RATE)
                 .flatRateTotalAmount(new BigDecimal("249.99"))

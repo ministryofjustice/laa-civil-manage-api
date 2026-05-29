@@ -63,16 +63,16 @@ class HttpAccessDataStoreClientTest {
                 .andExpect(jsonPath("$.applicationId").doesNotExist())
                 .andExpect(jsonPath("$.type").value("EXPERT"))
                 .andExpect(jsonPath("$.expertFullName").value("John Doe"))
-                .andExpect(jsonPath("$.isInLondon").value(true))
+                .andExpect(jsonPath("$.expertBasedInLondon").value(true))
                 .andExpect(jsonPath("$.flatRateTotalAmount").value(249.99))
                 .andRespond(withSuccess(
                         """
-                        {
-                          "submissionId": "%s",
-                          "status": "ACCEPTED",
-                          "submittedAt": "2026-05-22T10:00:00Z"
-                        }
-                        """.formatted(submissionId),
+                                {
+                                  "submissionId": "%s",
+                                  "status": "ACCEPTED",
+                                  "submittedAt": "2026-05-22T10:00:00Z"
+                                }
+                                """.formatted(submissionId),
                         MediaType.APPLICATION_JSON
                 ));
 
@@ -81,7 +81,7 @@ class HttpAccessDataStoreClientTest {
                 .type(PriorAuthorityType.EXPERT)
                 .expertType("Psychologist")
                 .expertFullName("John Doe")
-                .isInLondon(true)
+                .expertBasedInLondon(true)
                 .guidelineRatesExceeded(false)
                 .billingType(BillingType.FLAT_RATE)
                 .flatRateTotalAmount(new BigDecimal("249.99"))
@@ -114,12 +114,12 @@ class HttpAccessDataStoreClientTest {
                 .andExpect(method(HttpMethod.POST))
                 .andRespond(withSuccess(
                         """
-                        {
-                          "submissionId": "11111111-1111-1111-1111-111111111111",
-                          "status": "ACCEPTED",
-                          "submittedAt": "2026-05-22T10:00:00Z"
-                        }
-                        """,
+                                {
+                                  "submissionId": "11111111-1111-1111-1111-111111111111",
+                                  "status": "ACCEPTED",
+                                  "submittedAt": "2026-05-22T10:00:00Z"
+                                }
+                                """,
                         MediaType.APPLICATION_JSON
                 ));
 
@@ -128,7 +128,7 @@ class HttpAccessDataStoreClientTest {
                 .type(PriorAuthorityType.EXPERT)
                 .expertType("Psychologist")
                 .expertFullName("John Doe")
-                .isInLondon(false)
+                .expertBasedInLondon(false)
                 .guidelineRatesExceeded(false)
                 .billingType(BillingType.FLAT_RATE)
                 .flatRateTotalAmount(new BigDecimal("249.99"))
@@ -201,15 +201,15 @@ class HttpAccessDataStoreClientTest {
                 .andExpect(queryParam("applicationId", applicationId.toString()))
                 .andRespond(withSuccess(
                         """
-                        [
-                          {
-                            "draftId": "c3b07e24-d92b-410a-9d95-88f117a12b43",
-                            "draftType": "PRIOR_AUTHORITY",
-                            "timestamp": "2026-05-19T12:00:00Z",
-                            "draftBody": { "totalAmount": 135.00 }
-                          }
-                        ]
-                        """,
+                                [
+                                  {
+                                    "draftId": "c3b07e24-d92b-410a-9d95-88f117a12b43",
+                                    "draftType": "PRIOR_AUTHORITY",
+                                    "timestamp": "2026-05-19T12:00:00Z",
+                                    "draftBody": { "totalAmount": 135.00 }
+                                  }
+                                ]
+                                """,
                         MediaType.APPLICATION_JSON
                 ));
 

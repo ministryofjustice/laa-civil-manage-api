@@ -65,7 +65,7 @@ class PriorAuthorityControllerTest {
                   "type": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
-                  "isInLondon": true,
+                  "expertBasedInLondon": true,
                   "uploadedDocuments": [
                     { "fileName": "report.pdf" }
                   ],
@@ -101,7 +101,7 @@ class PriorAuthorityControllerTest {
                   "type": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
-                  "isInLondon": false,
+                  "expertBasedInLondon": false,
                   "guidelineRatesExceeded": false,
                   "billingType": "FLAT_RATE",
                   "flatRateTotalAmount": 249.99
@@ -121,7 +121,7 @@ class PriorAuthorityControllerTest {
                   "type": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
-                  "isInLondon": false,
+                  "expertBasedInLondon": false,
                   "guidelineRatesExceeded": false,
                   "billingType": "FLAT_RATE",
                   "flatRateTotalAmount": 100.00
@@ -140,7 +140,7 @@ class PriorAuthorityControllerTest {
                 {
                   "applicationId": "%s",
                   "expertFullName": "John Doe",
-                  "isInLondon": false,
+                  "expertBasedInLondon": false,
                   "guidelineRatesExceeded": false,
                   "billingType": "FLAT_RATE",
                   "flatRateTotalAmount": 100.00
@@ -161,7 +161,7 @@ class PriorAuthorityControllerTest {
                   "type": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
-                  "isInLondon": true,
+                  "expertBasedInLondon": true,
                   "guidelineRatesExceeded": true,
                   "billingType": "HOURLY"
                 }
@@ -180,7 +180,7 @@ class PriorAuthorityControllerTest {
                   "applicationId": "%s",
                   "type": "EXPERT",
                   "expertFullName": "John Doe",
-                  "isInLondon": false,
+                  "expertBasedInLondon": false,
                   "guidelineRatesExceeded": false,
                   "billingType": "FLAT_RATE",
                   "flatRateTotalAmount": 100.00
@@ -194,7 +194,7 @@ class PriorAuthorityControllerTest {
     }
 
     @Test
-    void returns400WhenIsInLondonMissing() throws Exception {
+    void returns400WhenexpertBasedInLondonMissing() throws Exception {
         String body = """
                 {
                   "applicationId": "%s",

@@ -115,7 +115,7 @@ public class PriorAuthorityController {
             @Parameter(description = "Optional parent application ID filter.")
             @RequestParam(required = false) UUID applicationId
     ) {
-        return draftService.list(applicationId); // should we add userId here?
+        return draftService.list(applicationId);
     }
 
     @Operation(

@@ -1,9 +1,14 @@
 name: ZAP Security Scanning
 on:
+  pull_request:
+    branches: [ "main" ]
   workflow_call:
 
 jobs:
   zap-scan:
+    # Required checks must report for every PR. Dependabot PRs report this job as skipped,
+    # which GitHub treats as successful for branch protection, without running DAST.
+    if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
 
     permissions:

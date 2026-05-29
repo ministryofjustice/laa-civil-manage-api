@@ -141,8 +141,8 @@ jobs:
     uses: ./.github/workflows/zap-scanning.yml
     needs:
       - build-docker-image
-    # Only run tests when deploying to dev
-    if: success() && (github.event_name != 'workflow_dispatch' ||
+    # PR checks are emitted directly by zap-scanning.yml; keep this reusable call for push/dispatch deploy flows.
+    if: github.event_name != 'pull_request' && success() && (github.event_name != 'workflow_dispatch' ||
       (github.event_name == 'workflow_dispatch' &&
       github.event.inputs.environment == 'dev' ||
       github.event.inputs.environment == null))

@@ -82,6 +82,12 @@ curl -i -X PUT http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9
   }'
 ```
 
+#### Get a draft by ID
+
+```bash
+curl -i http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9d95-88f117a12b43
+```
+
 #### List the current user's drafts
 
 ```bash

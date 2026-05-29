@@ -22,6 +22,7 @@
         "tags": [
           "Prior Authority"
         ],
+        "summary": "Retrieve an existing prior-authority draft",
         "operationId": "getDraft",
         "parameters": [
           {

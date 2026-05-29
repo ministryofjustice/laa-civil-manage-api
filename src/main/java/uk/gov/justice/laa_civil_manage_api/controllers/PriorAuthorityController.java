@@ -92,6 +92,7 @@ public class PriorAuthorityController {
         draftService.update(draftId, draft);
     }
 
+    @Operation(summary = "Retrieve an existing prior-authority draft")
     @GetMapping("/drafts/{draftId}")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Draft returned."),

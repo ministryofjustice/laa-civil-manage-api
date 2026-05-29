@@ -267,6 +267,11 @@
             "description": "Full name of the expert the prior authority is for.",
             "example": "Dr Joe Bloggs"
           },
+          "isInLondon": {
+            "type": "boolean",
+            "description": "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
+            "example": true
+          },
           "uploadedDocuments": {
             "type": "array",
             "description": "Supporting documents uploaded so far.",

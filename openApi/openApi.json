@@ -311,7 +311,10 @@
             "example": "Dr Joe Bloggs"
           },
           "expertBasedInLondon": {
-            "type": "boolean",
+            "type": [
+              "boolean",
+              "null"
+            ],
             "description": "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
             "example": true
           },
@@ -473,8 +476,8 @@
         "required": [
           "applicationId",
           "billingType",
-          "expertFullName",
           "expertBasedInLondon",
+          "expertFullName",
           "type"
         ]
       },

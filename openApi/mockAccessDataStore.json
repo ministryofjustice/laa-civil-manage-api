@@ -409,8 +409,8 @@
         },
         "required": [
           "billingType",
-          "expertFullName",
           "expertBasedInLondon",
+          "expertFullName",
           "type"
         ]
       },

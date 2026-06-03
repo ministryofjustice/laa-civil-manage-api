@@ -26,29 +26,6 @@ on:
 permissions:
   contents: read
 jobs:
-  # snyk:
-  #   name: Snyk Security Scan
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
-
-  #     - name: Build local Docker image
-  #       working-directory: ${{ github.workspace }}
-  #       run: |
-  #         docker buildx build -t laa-civil-manage-api ./
-  #         docker save laa-civil-manage-api -o image.tar
-
-  #     - name: Run Snyk to scan Docker image from tarball
-  #       uses: snyk/actions/docker@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
-  #       with:
-  #         image: image.tar
-  #         args: --docker --severity-threshold=high
-  #           --file=Dockerfile --policy-path=.snyk
-  #       env:
-  #         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-
   build-and-test:
     runs-on: ubuntu-latest
     steps:
@@ -76,6 +53,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    outputs:
+      image_uri: ${{ steps.build_and_push.outputs.image_uri }}
     steps:
       - name: Checkout code
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
@@ -107,12 +86,28 @@ jobs:
             ${{ runner.os }}-buildx-
 
       - name: Build and push image with local action
+        id: build_and_push
         uses: ./.github/actions/docker_build_and_push
         with:
           image_registry: ${{ secrets.ECR_REGISTRY_URL }}
           image_repo: ${{ vars.ECR_REPOSITORY }}
           dockerfile_path: Dockerfile
           image_tag: ${{ github.sha }}
+
+  image-scan:
+    name: Image Scan
+    needs:
+      - build-docker-image
+    if: github.actor != 'dependabot[bot]'
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/image-scan.yml@8e0e6bbaa7d9075660c044b2e2c934a966c56570
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+      security-events: write
+    with:
+      image_uri: ${{ needs.build-docker-image.outputs.image_uri }}
+    secrets: inherit
 
   zap-scan:
     name: ZAP Security Scanning

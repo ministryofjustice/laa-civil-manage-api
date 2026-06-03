@@ -99,7 +99,7 @@ jobs:
     needs:
       - build-docker-image
     if: github.actor != 'dependabot[bot]'
-    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/image-scan.yml@8e0e6bbaa7d9075660c044b2e2c934a966c56570
+    uses: ministryofjustice/laa-reusable-github-actions/.github/actions/image-scan/action.yml@8e0e6bbaa7d9075660c044b2e2c934a966c56570
     permissions:
       id-token: write
       contents: read

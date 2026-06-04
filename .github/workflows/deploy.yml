@@ -24,31 +24,8 @@ on:
           - dev
 
 permissions:
-  contents: read    
+  contents: read
 jobs:
-  # snyk:
-  #   name: Snyk Security Scan
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
-
-  #     - name: Build local Docker image
-  #       working-directory: ${{ github.workspace }}
-  #       run: |
-  #         docker buildx build -t laa-civil-manage-api ./
-  #         docker save laa-civil-manage-api -o image.tar
-
-  #     - name: Run Snyk to scan Docker image from tarball
-  #       uses: snyk/actions/docker@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
-  #       with:
-  #         image: image.tar
-  #         args: --docker --severity-threshold=high
-  #           --file=Dockerfile --policy-path=.snyk
-  #       env:
-  #         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-
   build-and-test:
     runs-on: ubuntu-latest
     steps:
@@ -67,15 +44,17 @@ jobs:
           path: build/libs/laa-civil-manage-api-0.0.1-SNAPSHOT.jar
 
   build-docker-image:
-    name: Build Docker Image
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
     environment: dev
     needs:
       - build-and-test
-    if: github.actor != 'dependabot[bot]'
+    if: github.actor != 'renovate[bot]'
     permissions:
       id-token: write
       contents: read
+    outputs:
+      image_uri: ${{ steps.build_and_push.outputs.image_uri }}
     steps:
       - name: Checkout code
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
@@ -86,7 +65,7 @@ jobs:
           name: app-jar
           path: build/libs
 
-      - name: Set up AWS credentials for ECR and Kubernetes
+      - name: Set up AWS credentials for ECR
         uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
         with:
           role-to-assume: ${{ secrets.ECR_ROLE_TO_ASSUME }}
@@ -98,15 +77,8 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
 
-      - name: Cache Docker layers
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
-      - name: Build and push image with local action
+      - name: Build and push image
+        id: build_and_push
         uses: ./.github/actions/docker_build_and_push
         with:
           image_registry: ${{ secrets.ECR_REGISTRY_URL }}
@@ -114,27 +86,21 @@ jobs:
           dockerfile_path: Dockerfile
           image_tag: ${{ github.sha }}
 
-  # unit-tests:
-  #   name: Unit Tests
-  #   uses: ./.github/workflows/unit-tests.yml
-  #   needs:
-  #     - build-image
-  #   # Only run tests when deploying to dev
-  #   if: success() && (github.event_name != 'workflow_dispatch' ||
-  #     (github.event_name == 'workflow_dispatch' &&
-  #     github.event.inputs.environment == 'dev' ||
-  #     github.event.inputs.environment == null))
-
-  # playwright:
-  #   name: Playwright Tests
-  #   uses: ./.github/workflows/playwright.yml
-  #   needs:
-  #     - build-image
-  #   # Only run tests when deploying to dev
-  #   if: success() && (github.event_name != 'workflow_dispatch' ||
-  #     (github.event_name == 'workflow_dispatch' &&
-  #     github.event.inputs.environment == 'dev' ||
-  #     github.event.inputs.environment == null))
+  image-scan:
+    name: Image Scan
+    needs:
+      - build-docker-image
+    if: github.actor != 'renovate[bot]'
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/sast.yml@0cb7eb8ab4bf643986ab36ecf3ffcdffa9b55214
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+      security-events: write
+    with:
+      image_uri: ${{ needs.build-docker-image.outputs.image_uri }}
+      ecr_session_name: github-cicd-laa-civil-manage-api-scan-${{ github.run_number }}
+    secrets: inherit
 
   zap-scan:
     name: ZAP Security Scanning
@@ -148,15 +114,12 @@ jobs:
       github.event.inputs.environment == null))
 
   deploy-dev:
-    if: ${{ github.actor != 'dependabot[bot]' }}
-    environment: dev 
+    if: ${{ github.actor != 'renovate[bot]' && !failure() && !cancelled() }}
+    environment: dev
     runs-on: ubuntu-latest
     needs:
-      # - snyk
       - build-docker-image
-      # - unit-tests
-      # - playwright
-      # - zap-scan
+      - image-scan
     permissions:
       contents: read
       pull-requests: write
@@ -170,21 +133,12 @@ jobs:
         uses: ./.github/actions/deploy
         with:
           app-environment: dev
-          # auth_client_id: ${{ secrets.AUTH_CLIENT_ID }}
-          # auth_client_secret: ${{ secrets.AUTH_CLIENT_SECRET }}
-          # auth_directory_url: ${{ secrets.AUTH_DIRECTORY_URL }}
-          # auth_redirect_url: ${{ secrets.AUTH_REDIRECT_URL }}
           ecr-repository: ${{ vars.ECR_REPOSITORY }}
           ecr-registry_url: ${{ secrets.ECR_REGISTRY_URL }}
           kube-cert: ${{ secrets.KUBE_CERT }}
           kube-token: ${{ secrets.KUBE_TOKEN }}
           kube-cluster: ${{ secrets.KUBE_CLUSTER }}
           kube-namespace: ${{ secrets.KUBE_NAMESPACE }}
-          # ratelimit_max: ${{ vars.RATE_LIMIT_MAX }}
-          # ratewindow_ms: ${{ vars.RATE_WINDOW_MS }}
-          # service_name: ${{ vars.SERVICE_NAME }}
-          # session_name: ${{ vars.SESSION_NAME }}
-          # session_secret: ${{ secrets.SESSION_SECRET }}
 
       - name: Post deployment URL to PR
         if: github.event_name == 'pull_request'
@@ -199,28 +153,13 @@ jobs:
               body: `🚀 Branch deployed to dev: [${url}](${url})`,
             });
 
-#   notify-slack:
-#     # environment: dev
-#     needs: deploy-dev
-#     runs-on: ubuntu-latest
-#     if: always() && github.ref_name == 'main'
-#     steps:
-#       - name: Checkout Code
-#         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
-#       - name: Send Slack Notification
-#         uses: ./.github/actions/notify
-#         with:
-#           app-environment: dev
-#           slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-#           pipeline_status: "${{ job.status }} ${{ join(needs.*.result, ' ') }}"
-
   deploy-staging:
-    if: ${{ github.actor != 'dependabot[bot]' && github.ref == 'refs/heads/main' }}
-    environment: staging 
+    if: ${{ github.actor != 'renovate[bot]' && !failure() && !cancelled() && github.ref == 'refs/heads/main' }}
+    environment: staging
     runs-on: ubuntu-latest
     needs:
-      # - snyk
       - build-docker-image
+      - image-scan
 
     steps:
       - name: Checkout
@@ -230,18 +169,9 @@ jobs:
         uses: ./.github/actions/deploy
         with:
           app-environment: staging
-          # auth_client_id: ${{ secrets.AUTH_CLIENT_ID }}
-          # auth_client_secret: ${{ secrets.AUTH_CLIENT_SECRET }}
-          # auth_directory_url: ${{ secrets.AUTH_DIRECTORY_URL }}
-          # auth_redirect_url: ${{ secrets.AUTH_REDIRECT_URL }}
           ecr-repository: ${{ vars.ECR_REPOSITORY }}
           ecr-registry_url: ${{ secrets.ECR_REGISTRY_URL }}
           kube-cert: ${{ secrets.KUBE_CERT }}
           kube-token: ${{ secrets.KUBE_TOKEN }}
           kube-cluster: ${{ secrets.KUBE_CLUSTER }}
           kube-namespace: ${{ secrets.KUBE_NAMESPACE }}
-          # ratelimit_max: ${{ vars.RATE_LIMIT_MAX }}
-          # ratewindow_ms: ${{ vars.RATE_WINDOW_MS }}
-          # service_name: ${{ vars.SERVICE_NAME }}
-          # session_name: ${{ vars.SESSION_NAME }}
-          # session_secret: ${{ secrets.SESSION_SECRET }}

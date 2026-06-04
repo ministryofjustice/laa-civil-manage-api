@@ -1,0 +1,7 @@
+version: v1.5.0
+ignore:
+# note that any exemptions should have expiry dates to force review:
+#  SNYK-JS-EXAMPLE-12345678:
+#    - "*":
+#        reason: "Temporary exemption - describe why"
+#        expires: "2026-07-01"  # Expires in 4 weeks

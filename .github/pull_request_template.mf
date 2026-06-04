@@ -15,4 +15,4 @@ Before raising a PR, consider whether the following points apply and whether you
 - **Sufficient logging added?**
 - **Code has been self-reviewed**
 - **Code delivers against defined Acceptance Criteria** or notes about further PRs which will be raised against this ticket have been added to Description section
-- **README file and other documentation udpated**
+- **README file and other documentation updated**

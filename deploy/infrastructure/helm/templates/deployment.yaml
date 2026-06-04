@@ -50,6 +50,21 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+
+          env:
+            - name: AZURE_ENTRA_TENANT_ID
+              value: {{ .Values.env.azureEntraTenantId | quote }}
+            - name: AZURE_ENTRA_API_CLIENT_ID
+              value: {{ .Values.env.azureEntraApiClientId | quote }}
+            - name: ADS_TENANT_DOMAIN
+              value: {{ .Values.env.adsTenantDomain | quote }}
+            - name: ADS_CLIENT_ID
+              value: {{ .Values.env.adsClientId | quote }}
+            - name: AZURE_ENTRA_API_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: azure-entra-api-client-secret
+                  key: azure-entra-api-client-secret
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}

@@ -23,4 +23,6 @@ public interface AccessDataStoreClient {
       String sourceSystem, String userId, String draftType, UUID applicationId);
 
   void deleteDraft(UUID draftId);
+
+  String getApplications();
 }

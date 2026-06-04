@@ -9,7 +9,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -40,8 +39,7 @@ class PriorAuthorityIntegrationTest {
 
     @Bean
     @Primary
-    AccessDataStoreClient testAccessDataStoreClient(
-        ServletWebServerApplicationContext context, RestClient.Builder builder) {
+    AccessDataStoreClient testAccessDataStoreClient(ServletWebServerApplicationContext context) {
       return new AccessDataStoreClient() {
 
         private String url() {
@@ -53,8 +51,7 @@ class PriorAuthorityIntegrationTest {
         @Override
         public PriorAuthorityApplicationResponse submitPriorAuthority(
             PriorAuthority priorAuthority) {
-          return builder
-              .build()
+          return RestClient.create()
               .post()
               .uri(
                   url() + "/applications/{applicationId}/prior-authority",
@@ -67,6 +64,11 @@ class PriorAuthorityIntegrationTest {
 
         @Override
         public DraftCreatedResponse createDraft(Draft draft) {
+          throw new UnsupportedOperationException("Not used in this test");
+        }
+
+        @Override
+        public String getApplications() {
           throw new UnsupportedOperationException("Not used in this test");
         }
 
@@ -96,11 +98,9 @@ class PriorAuthorityIntegrationTest {
 
   @LocalServerPort private int port;
 
-  @Autowired private RestClient.Builder restClientBuilder;
-
   @Test
   void postingAPriorAuthorityRequestFlowsThroughToTheMockAccessDataStore() {
-    RestClient restClient = restClientBuilder.build();
+    RestClient restClient = RestClient.create();
 
     PriorAuthority body =
         PriorAuthority.builder()

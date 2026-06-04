@@ -4,6 +4,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
     id("com.diffplug.spotless") version "7.2.1"
+    id("com.adarshr.test-logger") version "4.0.0" // 🔗 Added for beautiful, clean Mocha-style logs
 }
 
 group = "uk.gov.justice"
@@ -35,13 +36,15 @@ repositories {
 }
 
 dependencies {
-
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -51,6 +54,7 @@ dependencies {
 
     testImplementation("io.rest-assured:spring-mock-mvc:6.0.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -65,6 +69,18 @@ openApi {
             "http://localhost:8080/v3/api-docs/mock-access-data-store" to "mockAccessDataStore.json",
         ),
     )
+    customBootRun {
+        args.set(
+            listOf(
+                "--spring.security.oauth2.client.registration.ads-api.client-id=openapi-doc-gen",
+                "--spring.security.oauth2.client.registration.ads-api.client-secret=openapi-doc-gen",
+                // 🔗 Fixed: Swapped out old JWK string for structural variables required by application.yaml
+                "--AZURE_ENTRA_TENANT_ID=openapi-doc-gen-tenant",
+                "--ADS_TENANT_DOMAIN=devlexternal.onmicrosoft.com",
+                "--ADS_CLIENT_ID=openapi-doc-gen-ads",
+            ),
+        )
+    }
 }
 
 spotless {
@@ -114,4 +130,8 @@ tasks.register("verifyOpenApiSync") {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+testlogger {
+    theme = com.adarshr.gradle.testlogger.theme.ThemeType.MOCHA
 }

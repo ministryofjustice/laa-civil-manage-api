@@ -242,6 +242,26 @@
           }
         }
       }
+    },
+    "/applications": {
+      "get": {
+        "tags": [
+          "applications-controller"
+        ],
+        "operationId": "getApplications",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

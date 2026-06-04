@@ -3,6 +3,11 @@ services:
     build: ../../../.
     ports:
       - "3000:3000"
+    # Throwaway OAuth2 config so the app can start for scanning.
+    # Real values come from Kubernetes namespace secrets in deployed envs.
+    environment:
+      AZURE_ENTRA_API_CLIENT_ID: zap-scan
+      AZURE_ENTRA_API_CLIENT_SECRET: zap-scan
 
   zap-scan:
     image: zaproxy/zap-stable@sha256:7c2f8afc893e4e4000be8ad3fd22013fc36e5cce59359349f5a2d45626e2ccb9

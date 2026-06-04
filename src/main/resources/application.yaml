@@ -2,6 +2,27 @@ spring:
   application:
     name: laa-civil-manage-api
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://login.microsoftonline.com/${AZURE_ENTRA_TENANT_ID:}/v2.0
+          jwk-set-uri: https://login.microsoftonline.com/${AZURE_ENTRA_TENANT_ID:}/discovery/v2.0/keys
+          audiences:
+            - ${AZURE_ENTRA_API_CLIENT_ID:}
+      client:
+        registration:
+          ads-api:
+            provider: azure-entra
+            client-id: ${AZURE_ENTRA_API_CLIENT_ID:}
+            client-secret: ${AZURE_ENTRA_API_CLIENT_SECRET:}
+            authorization-grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
+            scope:
+              - api://${ADS_TENANT_DOMAIN:}/${ADS_CLIENT_ID:}/access_as_user
+        provider:
+          azure-entra:
+            token-uri: https://login.microsoftonline.com/${AZURE_ENTRA_TENANT_ID:}/oauth2/v2.0/token
+
 management:
   endpoints:
     web:
@@ -37,6 +58,7 @@ laa-civil-manage-api:
       update-draft: http://localhost:8080/mock-access-data-store
       get-drafts: http://localhost:8080/mock-access-data-store
       delete-draft: http://localhost:8080/mock-access-data-store
+      get-applications: https://main-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk
   expert-types:
     - A & E Consultant
     - Aboriculturist

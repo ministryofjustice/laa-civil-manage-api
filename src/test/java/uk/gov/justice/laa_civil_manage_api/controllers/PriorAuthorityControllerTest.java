@@ -19,10 +19,13 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import uk.gov.justice.laa_civil_manage_api.config.SecurityConfig;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
@@ -33,6 +36,8 @@ import uk.gov.justice.laa_civil_manage_api.services.PriorAuthorityDraftService;
 import uk.gov.justice.laa_civil_manage_api.services.PriorAuthorityService;
 
 @WebMvcTest(PriorAuthorityController.class)
+@Import(SecurityConfig.class)
+@AutoConfigureMockMvc(addFilters = false)
 class PriorAuthorityControllerTest {
 
   private static final UUID SUBMISSION_ID = UUID.fromString("11111111-2222-3333-4444-555555555555");

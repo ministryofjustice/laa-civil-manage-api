@@ -57,12 +57,14 @@ jobs:
           path: build/libs
 
       - name: Set up AWS credentials for ECR
+        if: github.actor != 'renovate[bot]'
         uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
         with:
           role-to-assume: ${{ secrets.ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.ECR_REGION }}
 
       - uses: aws-actions/amazon-ecr-login@376925c9d111252e87ae59691e5a442dd100ef6a # v2.1.3
+        if: github.actor != 'renovate[bot]'
         id: login-ecr
 
       - name: Set up Docker Buildx
@@ -76,11 +78,13 @@ jobs:
           image_repo: ${{ vars.ECR_REPOSITORY }}
           dockerfile_path: Dockerfile
           image_tag: ${{ github.sha }}
+          push_image: ${{ github.actor != 'renovate[bot]' }}
 
   image-scan:
     name: Image Scan
     needs:
       - build-docker-image
+    if: github.actor != 'renovate[bot]'
     uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/sast.yml@0cb7eb8ab4bf643986ab36ecf3ffcdffa9b55214
     permissions:
       id-token: write

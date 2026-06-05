@@ -26,15 +26,9 @@ runs:
       run: ./gradlew build
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
-    
+
     - name: Verify that OpenAPI schema is up to date
       shell: bash
       run: ./gradlew verifyOpenApiSync
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
-
-    # - name: Publish package
-    #   shell: bash
-    #   run: ./gradlew publish
-    #   env:
-    #     GITHUB_TOKEN: ${{ inputs.github_token }}

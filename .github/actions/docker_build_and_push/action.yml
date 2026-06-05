@@ -15,6 +15,10 @@ inputs:
     required: true
     description: "Image Tag"
     default: ${{ github.sha }}
+  push_image:
+    required: false
+    description: "Whether to push the image to the registry"
+    default: "true"
 
 outputs:
   image_registry:
@@ -33,15 +37,24 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Docker Build & Push with Cache
+    - name: Docker Build (optionally push) with Cache
       id: build_and_push
       run: |
-        docker buildx build \
-          --push \
-          --cache-from=type=local,src=/tmp/.buildx-cache \
-          --cache-to=type=local,dest=/tmp/.buildx-cache \
-          -t ${{ inputs.image_registry }}/${{ inputs.image_repo }}:${{ inputs.image_tag }} \
-          -f ${{ inputs.dockerfile_path }} .
+        if [[ "${{ inputs.push_image }}" == "true" ]]; then
+          docker buildx build \
+            --push \
+            --cache-from=type=local,src=/tmp/.buildx-cache \
+            --cache-to=type=local,dest=/tmp/.buildx-cache \
+            -t ${{ inputs.image_registry }}/${{ inputs.image_repo }}:${{ inputs.image_tag }} \
+            -f ${{ inputs.dockerfile_path }} .
+        else
+          docker buildx build \
+            --load \
+            --cache-from=type=local,src=/tmp/.buildx-cache \
+            --cache-to=type=local,dest=/tmp/.buildx-cache \
+            -t ${{ inputs.image_registry }}/${{ inputs.image_repo }}:${{ inputs.image_tag }} \
+            -f ${{ inputs.dockerfile_path }} .
+        fi
 
       shell: bash
 

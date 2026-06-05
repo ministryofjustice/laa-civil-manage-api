@@ -61,15 +61,6 @@ runs:
         kube-cluster: ${{ inputs.kube-cluster }}
         kube-namespace: ${{ inputs.kube-namespace }}
 
-    # - name: Deploy infrastructure to UAT
-    #   shell: bash
-    #   run: |
-    #     if [ ${{ inputs.app-environment }} == 'uat' ]
-    #     then
-    #       echo "DEPLOYING"
-    #       kubectl apply --record=false -f ./deploy/infrastructure/grafana/
-    #     fi
-
     - name: Deploy using Helm
       id: deploy
       shell: bash
@@ -82,13 +73,4 @@ runs:
         GITHUB_REF_NAME: ${{ github.ref_name }}
         GITHUB_HEAD_REF: ${{ github.head_ref }}
         K8S_NAMESPACE: ${{ inputs.kube-namespace }}
-        # NODE_ENV: production
-        # AUTH_CLIENT_ID: ${{ inputs.auth_client_id }}
-        # AUTH_CLIENT_SECRET: ${{ inputs.auth_client_secret }}
-        # AUTH_DIRECTORY_URL: ${{ inputs.auth_directory_url }}
-        # AUTH_REDIRECT_URL: ${{ inputs.auth_redirect_url }}
-        # RATE_LIMIT_MAX: ${{ inputs.ratelimit_max || '100' }}
-        # RATE_WINDOW_MS: ${{ inputs.ratewindow_ms || '900000' }}
-        # SERVICE_NAME: ${{ inputs.service_name || 'LAA Civil Manage Example' }}
-        # SESSION_SECRET: ${{ inputs.session_secret }}
-        # SESSION_NAME: ${{ inputs.session_name || 'sessionIdExample' }}
+

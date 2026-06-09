@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "The type of prior authority")
 public enum PriorAuthorityType {
-    EXPERT,
-    DISBURSEMENT,
-    COUNSEL
+  EXPERT,
+  DISBURSEMENT,
+  COUNSEL
 }

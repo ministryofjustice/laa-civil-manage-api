@@ -8,8 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @SpringBootApplication
 public class LaaCivilManageApiApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(LaaCivilManageApiApplication.class, args);
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(LaaCivilManageApiApplication.class, args);
+  }
 }
-

@@ -1,0 +1,10 @@
+pre-commit:
+  commands:
+    spotless:
+      run: env -u JAVA_HOME ./gradlew spotlessApply spotlessCheck
+      stage_fixed: true
+
+pre-push:
+  commands:
+    test:
+      run: env -u JAVA_HOME ./gradlew test

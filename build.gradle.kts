@@ -1,8 +1,9 @@
 plugins {
-	java
-	id("org.springframework.boot") version "4.0.6"
-	id("io.spring.dependency-management") version "1.1.7"
-	id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
+    java
+    id("org.springframework.boot") version "4.0.6"
+    id("io.spring.dependency-management") version "1.1.7"
+    id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
+    id("com.diffplug.spotless") version "7.2.1"
 }
 
 group = "uk.gov.justice"
@@ -10,46 +11,45 @@ version = "0.0.1-SNAPSHOT"
 description = "Demo project for Spring Boot"
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(25)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom(configurations.annotationProcessor.get())
-	}
+    compileOnly {
+        extendsFrom(configurations.annotationProcessor.get())
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
 
-	implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 
-	implementation("org.springframework.boot:spring-boot-starter-webmvc")
-	implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
-	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
-	compileOnly("org.projectlombok:lombok")
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
-	annotationProcessor("org.projectlombok:lombok")
-	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+    compileOnly("org.projectlombok:lombok")
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
+    annotationProcessor("org.projectlombok:lombok")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     testImplementation("io.rest-assured:spring-mock-mvc:6.0.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-
-	implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
 
     // This addresses a vulnerability with transient dependency in Jackson serializer.
-	constraints {
+    constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
             version {
                 strictly("2.21.1")
@@ -61,10 +61,30 @@ dependencies {
 
 openApi {
     outputDir.set(layout.projectDirectory.dir("openApi"))
-    groupedApiMappings.set(mapOf(
-        "http://localhost:8080/v3/api-docs/laa-civil-manage-api" to "openApi.json",
-        "http://localhost:8080/v3/api-docs/mock-access-data-store" to "mockAccessDataStore.json"
-    ))
+    groupedApiMappings.set(
+        mapOf(
+            "http://localhost:8080/v3/api-docs/laa-civil-manage-api" to "openApi.json",
+            "http://localhost:8080/v3/api-docs/mock-access-data-store" to "mockAccessDataStore.json",
+        ),
+    )
+}
+
+spotless {
+    java {
+        target("src/*/java/**/*.java")
+        googleJavaFormat("1.30.0")
+    }
+
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint()
+    }
+
+    format("misc") {
+        target("*.md", "*.yml", "*.yaml")
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 tasks.register("verifyOpenApiSync") {
@@ -75,14 +95,18 @@ tasks.register("verifyOpenApiSync") {
     doLast {
         val openApiDir = file("openApi")
 
-        val status = providers.exec {
-            commandLine("git", "status", "--porcelain", openApiDir.absolutePath)
-        }.standardOutput.asText.get().trim()
+        val status =
+            providers
+                .exec {
+                    commandLine("git", "status", "--porcelain", openApiDir.absolutePath)
+                }.standardOutput.asText
+                .get()
+                .trim()
 
         if (status.isNotEmpty()) {
             throw GradleException(
                 "ERROR: OpenAPI schemas are out of sync with your code changes!\n" +
-                "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs)."
+                    "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
             )
         }
 
@@ -91,5 +115,5 @@ tasks.register("verifyOpenApiSync") {
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }

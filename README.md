@@ -9,12 +9,27 @@ API to allow legal providers to manage their applications for civil legal aid.
 
 Requires Java 25 (managed by `mise.toml`).
 
+This repo uses Spotless + Lefthook for local quality gates:
+
+```bash
+mise install
+lefthook install
+```
+
+Configured hooks:
+- pre-commit: `env -u JAVA_HOME ./gradlew spotlessApply spotlessCheck`
+- pre-push: `env -u JAVA_HOME ./gradlew test`
+
+The hooks explicitly unset `JAVA_HOME` to avoid failures in GUI Git clients that export `JAVA_HOME=undefined`.
+
 ```bash
 ./gradlew build                  # full build + tests
 ./gradlew test                   # run tests only
 ./gradlew test --rerun-tasks     # ignore cached results
 ./gradlew bootRun --args='--spring.profiles.active=local' # run locally with clean logging
 ./gradlew generateOpenApiDocs    # regenerate openApi/*.json
+./gradlew spotlessApply          # auto-format code/config/docs
+./gradlew spotlessCheck          # verify formatting
 ```
 > While running locally, you can view the API docs at [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html).
 

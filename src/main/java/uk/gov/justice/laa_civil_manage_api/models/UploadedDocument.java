@@ -7,12 +7,9 @@ import lombok.Builder;
 @Schema(description = "A document uploaded as supporting evidence for a prior-authority request.")
 @Builder
 public record UploadedDocument(
-
-        @Schema(
-                description = "Filename of the uploaded document.",
-                example = "abc123.pdf",
-                requiredMode = Schema.RequiredMode.REQUIRED
-        )
-        @NotBlank String fileName
-) {
-}
+    @Schema(
+            description = "Filename of the uploaded document.",
+            example = "abc123.pdf",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
+        String fileName) {}

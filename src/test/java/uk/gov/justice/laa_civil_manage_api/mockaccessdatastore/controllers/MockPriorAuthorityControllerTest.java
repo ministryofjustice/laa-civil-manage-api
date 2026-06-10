@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,12 +17,12 @@ import org.springframework.test.web.servlet.MvcResult;
 @AutoConfigureMockMvc
 class MockPriorAuthorityControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-    @Test
-    void returns201ForValidSubmission() throws Exception {
-        String body = """
+  @Test
+  void returns201ForValidSubmission() throws Exception {
+    String body =
+        """
                 {
                   "type": "EXPERT",
                   "expertType": "Psychologist",
@@ -35,18 +34,21 @@ class MockPriorAuthorityControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.submissionId").exists())
-                .andExpect(jsonPath("$.status").value("ACCEPTED"));
-    }
+    mockMvc
+        .perform(
+            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.submissionId").exists())
+        .andExpect(jsonPath("$.status").value("ACCEPTED"));
+  }
 
-    @Test
-    void repeatedSubmissionsForSameApplicationIdAreIdempotent() throws Exception {
-        UUID applicationId = UUID.randomUUID();
-        String body = """
+  @Test
+  void repeatedSubmissionsForSameApplicationIdAreIdempotent() throws Exception {
+    UUID applicationId = UUID.randomUUID();
+    String body =
+        """
                 {
                   "type": "EXPERT",
                   "expertType": "Psychologist",
@@ -58,29 +60,36 @@ class MockPriorAuthorityControllerTest {
                 }
                 """;
 
-        MvcResult first = mockMvc.perform(post("/mock-access-data-store/applications/{id}/prior-authority", applicationId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isCreated())
-                .andReturn();
+    MvcResult first =
+        mockMvc
+            .perform(
+                post("/mock-access-data-store/applications/{id}/prior-authority", applicationId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
+            .andExpect(status().isCreated())
+            .andReturn();
 
-        mockMvc.perform(post("/mock-access-data-store/applications/{id}/prior-authority", applicationId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isCreated())
-                .andExpect(result -> {
-                    String firstBody = first.getResponse().getContentAsString();
-                    String secondBody = result.getResponse().getContentAsString();
-                    if (!firstBody.equals(secondBody)) {
-                        throw new AssertionError(
-                                "Expected idempotent response. First: " + firstBody + " Second: " + secondBody);
-                    }
-                });
-    }
+    mockMvc
+        .perform(
+            post("/mock-access-data-store/applications/{id}/prior-authority", applicationId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isCreated())
+        .andExpect(
+            result -> {
+              String firstBody = first.getResponse().getContentAsString();
+              String secondBody = result.getResponse().getContentAsString();
+              if (!firstBody.equals(secondBody)) {
+                throw new AssertionError(
+                    "Expected idempotent response. First: " + firstBody + " Second: " + secondBody);
+              }
+            });
+  }
 
-    @Test
-    void returns400ForInvalidSubmission() throws Exception {
-        String body = """
+  @Test
+  void returns400ForInvalidSubmission() throws Exception {
+    String body =
+        """
                 {
                   "guidelineRatesExceeded": false,
                   "billingType": "FLAT_RATE",
@@ -88,9 +97,11 @@ class MockPriorAuthorityControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isBadRequest());
-    }
+    mockMvc
+        .perform(
+            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isBadRequest());
+  }
 }

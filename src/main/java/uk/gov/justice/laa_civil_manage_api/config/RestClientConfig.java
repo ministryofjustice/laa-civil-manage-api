@@ -9,11 +9,11 @@ import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataSt
 @Configuration
 public class RestClientConfig {
 
-    @Bean
-    public RestClient.Builder restClientBuilder(AccessDataStoreProperties properties) {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout((int) properties.connectTimeout().toMillis());
-        factory.setReadTimeout((int) properties.readTimeout().toMillis());
-        return RestClient.builder().requestFactory(factory);
-    }
+  @Bean
+  public RestClient.Builder restClientBuilder(AccessDataStoreProperties properties) {
+    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+    factory.setConnectTimeout((int) properties.connectTimeout().toMillis());
+    factory.setReadTimeout((int) properties.readTimeout().toMillis());
+    return RestClient.builder().requestFactory(factory);
+  }
 }

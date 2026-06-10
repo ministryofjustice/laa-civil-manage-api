@@ -12,39 +12,40 @@ import org.springframework.web.client.HttpServerErrorException;
 
 class AccessDataStoreErrorHandlerTest {
 
-    private final AccessDataStoreErrorHandler handler = new AccessDataStoreErrorHandler();
+  private final AccessDataStoreErrorHandler handler = new AccessDataStoreErrorHandler();
 
-    @Test
-    void forwards404FromAccessDataStoreAs404() {
-        HttpClientErrorException ex = HttpClientErrorException.create(
-                HttpStatus.NOT_FOUND, "Not Found", null, null, null);
+  @Test
+  void forwards404FromAccessDataStoreAs404() {
+    HttpClientErrorException ex =
+        HttpClientErrorException.create(HttpStatus.NOT_FOUND, "Not Found", null, null, null);
 
-        ResponseEntity<ProblemDetail> response = handler.handleClientError(ex);
+    ResponseEntity<ProblemDetail> response = handler.handleClientError(ex);
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(404, response.getBody().getStatus());
-    }
+    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertEquals(404, response.getBody().getStatus());
+  }
 
-    @Test
-    void forwards400FromAccessDataStoreAs400() {
-        HttpClientErrorException ex = HttpClientErrorException.create(
-                HttpStatus.BAD_REQUEST, "Bad Request", null, null, null);
+  @Test
+  void forwards400FromAccessDataStoreAs400() {
+    HttpClientErrorException ex =
+        HttpClientErrorException.create(HttpStatus.BAD_REQUEST, "Bad Request", null, null, null);
 
-        ResponseEntity<ProblemDetail> response = handler.handleClientError(ex);
+    ResponseEntity<ProblemDetail> response = handler.handleClientError(ex);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    }
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+  }
 
-    @Test
-    void translates5xxFromAccessDataStoreInto502BadGateway() {
-        HttpServerErrorException ex = HttpServerErrorException.create(
-                HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", null, null, null);
+  @Test
+  void translates5xxFromAccessDataStoreInto502BadGateway() {
+    HttpServerErrorException ex =
+        HttpServerErrorException.create(
+            HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", null, null, null);
 
-        ResponseEntity<ProblemDetail> response = handler.handleServerError(ex);
+    ResponseEntity<ProblemDetail> response = handler.handleServerError(ex);
 
-        assertEquals(HttpStatus.BAD_GATEWAY, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(502, response.getBody().getStatus());
-    }
+    assertEquals(HttpStatus.BAD_GATEWAY, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertEquals(502, response.getBody().getStatus());
+  }
 }

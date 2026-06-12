@@ -27,7 +27,7 @@ public record PriorAuthority(
             example = "EXPERT",
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull
-        PriorAuthorityType type,
+        PriorAuthorityType priorAuthorityType,
     @Schema(description = "The expert type.", example = "Psychologist") String expertType,
     @Schema(
             description = "Full name of the expert the prior authority is for.",
@@ -94,10 +94,10 @@ public record PriorAuthority(
     return flatRateTotalAmount != null;
   }
 
-  @AssertTrue(message = "expertType is required when type is EXPERT")
+  @AssertTrue(message = "expertType is required when priorAuthorityType is EXPERT")
   @Schema(hidden = true)
   public boolean isExpertTypePresentForExpert() {
-    if (type != PriorAuthorityType.EXPERT) {
+    if (priorAuthorityType != PriorAuthorityType.EXPERT) {
       return true;
     }
     return expertType != null && !expertType.isBlank();

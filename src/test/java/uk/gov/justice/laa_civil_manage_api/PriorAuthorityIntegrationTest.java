@@ -105,7 +105,7 @@ class PriorAuthorityIntegrationTest {
     PriorAuthority body =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
-            .type(PriorAuthorityType.EXPERT)
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertType("Psychologist")
             .expertFullName("John Doe")
             .expertBasedInLondon(true)

@@ -26,7 +26,7 @@ class PriorAuthorityServiceTest {
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
-            .type(PriorAuthorityType.EXPERT)
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertType("Psychologist")
             .expertFullName("John Doe")
             .expertBasedInLondon(false)

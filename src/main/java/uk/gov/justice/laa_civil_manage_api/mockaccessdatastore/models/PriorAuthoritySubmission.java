@@ -25,7 +25,7 @@ public record PriorAuthoritySubmission(
             example = "EXPERT",
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull
-        PriorAuthorityType type,
+        PriorAuthorityType priorAuthorityType,
     @Schema(description = "The expert type.", example = "Psychologist") String expertType,
     @Schema(
             description = "Full name of the expert the prior authority is for.",
@@ -74,7 +74,7 @@ public record PriorAuthoritySubmission(
 
   public static PriorAuthoritySubmission from(PriorAuthority priorAuthority) {
     return PriorAuthoritySubmission.builder()
-        .type(priorAuthority.type())
+        .priorAuthorityType(priorAuthority.priorAuthorityType())
         .expertType(priorAuthority.expertType())
         .expertFullName(priorAuthority.expertFullName())
         .expertBasedInLondon(priorAuthority.expertBasedInLondon())

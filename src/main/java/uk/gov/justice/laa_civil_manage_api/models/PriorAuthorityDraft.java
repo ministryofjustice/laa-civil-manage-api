@@ -20,7 +20,7 @@ public record PriorAuthorityDraft(
             description = "The type of prior authority being requested.",
             example = "EXPERT",
             nullable = true)
-        PriorAuthorityType type,
+        PriorAuthorityType priorAuthorityType,
     @Schema(description = "The expert type.", example = "Child psychologist", nullable = true)
         String expertType,
     @Schema(

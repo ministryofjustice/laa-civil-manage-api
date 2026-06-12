@@ -41,7 +41,7 @@ class PriorAuthorityDraftServiceTest {
     PriorAuthorityDraft draft =
         PriorAuthorityDraft.builder()
             .applicationId(applicationId)
-            .type(PriorAuthorityType.EXPERT)
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertType("Child psychologist")
             .expertFullName("Dr Joe Bloggs")
             .billingType(BillingType.HOURLY)

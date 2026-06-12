@@ -24,7 +24,7 @@ class MockPriorAuthorityControllerTest {
     String body =
         """
                 {
-                  "type": "EXPERT",
+                  "priorAuthorityType": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": true,
@@ -50,7 +50,7 @@ class MockPriorAuthorityControllerTest {
     String body =
         """
                 {
-                  "type": "EXPERT",
+                  "priorAuthorityType": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": false,
@@ -91,6 +91,7 @@ class MockPriorAuthorityControllerTest {
     String body =
         """
                 {
+                  "priorAuthorityType": "EXPERT",
                   "guidelineRatesExceeded": false,
                   "billingType": "FLAT_RATE",
                   "flatRateTotalAmount": 100.00

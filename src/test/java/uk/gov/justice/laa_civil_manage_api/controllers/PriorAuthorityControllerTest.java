@@ -60,7 +60,7 @@ class PriorAuthorityControllerTest {
         """
                 {
                   "applicationId": "%s",
-                  "type": "EXPERT",
+                  "priorAuthorityType": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": true,
@@ -98,7 +98,7 @@ class PriorAuthorityControllerTest {
         """
                 {
                   "applicationId": "%s",
-                  "type": "EXPERT",
+                  "priorAuthorityType": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": false,
@@ -119,7 +119,7 @@ class PriorAuthorityControllerTest {
     String body =
         """
                 {
-                  "type": "EXPERT",
+                  "priorAuthorityType": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": false,
@@ -160,7 +160,7 @@ class PriorAuthorityControllerTest {
         """
                 {
                   "applicationId": "%s",
-                  "type": "EXPERT",
+                  "priorAuthorityType": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": true,
@@ -181,7 +181,7 @@ class PriorAuthorityControllerTest {
         """
                 {
                   "applicationId": "%s",
-                  "type": "EXPERT",
+                  "priorAuthorityType": "EXPERT",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": false,
                   "guidelineRatesExceeded": false,
@@ -202,7 +202,7 @@ class PriorAuthorityControllerTest {
         """
                 {
                   "applicationId": "%s",
-                  "type": "EXPERT",
+                  "priorAuthorityType": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "guidelineRatesExceeded": false,

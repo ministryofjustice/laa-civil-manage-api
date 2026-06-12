@@ -78,6 +78,7 @@ jobs:
           image_repo: ${{ vars.API_ECR_REPOSITORY }}
           dockerfile_path: Dockerfile
           image_tag: ${{ github.sha }}
+          additional_tag: ${{ github.ref == 'refs/heads/main' && 'main' || '' }}
           push_image: ${{ github.actor != 'renovate[bot]' }}
 
   image-scan:

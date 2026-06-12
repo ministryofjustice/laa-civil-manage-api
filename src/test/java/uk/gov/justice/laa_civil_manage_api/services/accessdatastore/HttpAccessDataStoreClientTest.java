@@ -56,7 +56,7 @@ class HttpAccessDataStoreClientTest {
         .andExpect(method(HttpMethod.POST))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.applicationId").doesNotExist())
-        .andExpect(jsonPath("$.type").value("EXPERT"))
+        .andExpect(jsonPath("$.priorAuthorityType").value("EXPERT"))
         .andExpect(jsonPath("$.expertFullName").value("John Doe"))
         .andExpect(jsonPath("$.expertBasedInLondon").value(true))
         .andExpect(jsonPath("$.flatRateTotalAmount").value(249.99))

@@ -246,31 +246,6 @@
   },
   "components": {
     "schemas": {
-      "EstimatedTime": {
-        "type": "object",
-        "description": "Estimated time required to carry out the work, in hours and minutes.",
-        "properties": {
-          "hours": {
-            "type": "integer",
-            "format": "int32",
-            "description": "Estimated whole hours.",
-            "example": 2,
-            "minimum": 0
-          },
-          "minutes": {
-            "type": "integer",
-            "format": "int32",
-            "description": "Additional minutes (0–59).",
-            "example": 30,
-            "maximum": 59,
-            "minimum": 0
-          }
-        },
-        "required": [
-          "hours",
-          "minutes"
-        ]
-      },
       "PriorAuthorityDraft": {
         "type": "object",
         "description": "An in-progress prior-authority form saved as a draft.",
@@ -310,6 +285,14 @@
             "description": "Full name of the expert the prior authority is for.",
             "example": "Dr Joe Bloggs"
           },
+          "expertPostcode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Primary business postcode of the expert.",
+            "example": "SW1H 9AJ"
+          },
           "expertBasedInLondon": {
             "type": [
               "boolean",
@@ -328,13 +311,6 @@
               "$ref": "#/components/schemas/UploadedDocument"
             }
           },
-          "guidelineRatesExceeded": {
-            "type": [
-              "boolean",
-              "null"
-            ],
-            "description": "Whether the requested rates exceed published LAA guideline rates."
-          },
           "billingType": {
             "type": [
               "string",
@@ -343,7 +319,7 @@
             "description": "How the work will be billed.",
             "enum": [
               "HOURLY",
-              "FLAT_RATE"
+              "FIXED_RATE"
             ],
             "example": "HOURLY"
           },
@@ -355,26 +331,39 @@
             "description": "Hourly rate in GBP.",
             "example": 45.0
           },
-          "estimatedTime": {
-            "type": "null",
-            "$ref": "#/components/schemas/EstimatedTime",
-            "description": "Estimated time the work will take."
+          "timeHours": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Estimated whole hours.",
+            "example": 2
+          },
+          "timeMinutes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Estimated additional minutes.",
+            "example": 30
           },
           "totalAmount": {
             "type": [
               "number",
               "null"
             ],
-            "description": "Total amount in GBP for hourly billing.",
+            "description": "Total amount in GBP.",
             "example": 135.0
           },
-          "flatRateTotalAmount": {
+          "justification": {
             "type": [
-              "number",
+              "string",
               "null"
             ],
-            "description": "Total flat-rate amount in GBP.",
-            "example": 249.99
+            "description": "Detailed rationale explaining why funding is necessary.",
+            "example": "Expert evidence is needed to establish causation."
           }
         },
         "required": [
@@ -424,8 +413,12 @@
           "expertFullName": {
             "type": "string",
             "description": "Full name of the expert the prior authority is for.",
-            "example": "John Doe",
-            "minLength": 1
+            "example": "John Doe"
+          },
+          "expertPostcode": {
+            "type": "string",
+            "description": "Primary business postcode of the expert.",
+            "example": "SW1H 9AJ"
           },
           "expertBasedInLondon": {
             "type": "boolean",
@@ -439,17 +432,12 @@
               "$ref": "#/components/schemas/UploadedDocument"
             }
           },
-          "guidelineRatesExceeded": {
-            "type": "boolean",
-            "description": "True if the requested rates exceed the published LAA guideline rates.",
-            "example": false
-          },
           "billingType": {
             "type": "string",
             "description": "How the work will be billed.",
             "enum": [
               "HOURLY",
-              "FLAT_RATE"
+              "FIXED_RATE"
             ],
             "example": "HOURLY"
           },
@@ -458,27 +446,35 @@
             "description": "Hourly rate in GBP. Required when billingType is HOURLY.",
             "example": 50.0
           },
-          "estimatedTime": {
-            "$ref": "#/components/schemas/EstimatedTime",
-            "description": "Estimated time the work will take. Required when billingType is HOURLY."
+          "timeHours": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Estimated whole hours. Required when billingType is HOURLY.",
+            "example": 2
+          },
+          "timeMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Estimated additional minutes. Required when billingType is HOURLY.",
+            "example": 30
           },
           "totalAmount": {
             "type": "number",
-            "description": "Total amount in GBP for hourly billing (hourlyRate * estimatedTime). Required when billingType is HOURLY.",
+            "description": "Total amount in GBP.",
             "example": 125.0
           },
-          "flatRateTotalAmount": {
-            "type": "number",
-            "description": "Total flat-rate amount in GBP. Required when billingType is FLAT_RATE.",
-            "example": 249.99
+          "justification": {
+            "type": "string",
+            "description": "Detailed rationale explaining why funding is necessary.",
+            "example": "The case requires specialist expert evidence to proceed."
           }
         },
         "required": [
           "applicationId",
           "billingType",
-          "expertBasedInLondon",
-          "expertFullName",
-          "priorAuthorityType"
+          "justification",
+          "priorAuthorityType",
+          "totalAmount"
         ]
       },
       "PriorAuthorityApplicationResponse": {

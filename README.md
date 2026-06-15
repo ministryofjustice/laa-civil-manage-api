@@ -50,12 +50,14 @@ curl -i -X POST http://localhost:8080/prior-authority \
   -H 'Content-Type: application/json' \
   -d '{
     "applicationId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
-    "type": "EXPERT",
+    "priorAuthorityType": "EXPERT",
     "expertType": "Psychologist",
     "expertFullName": "Dr John Doe",
-    "guidelineRatesExceeded": false,
-    "billingType": "FLAT_RATE",
-    "flatRateTotalAmount": 249.99
+    "expertPostcode": "SW1H 9AJ",
+    "expertBasedInLondon": true,
+    "billingType": "FIXED_RATE",
+    "totalAmount": 249.99,
+    "justification": "Specialist evidence is required to progress the case."
   }'
 ```
 
@@ -70,12 +72,16 @@ curl -i -X POST http://localhost:8080/prior-authority/drafts \
   -H 'Content-Type: application/json' \
   -d '{
     "applicationId": "2a28f60d-fe15-43fe-92c3-5530595d5f51",
-    "type": "EXPERT",
+    "priorAuthorityType": "EXPERT",
     "expertType": "Child psychologist",
     "expertFullName": "Dr Joe Bloggs",
+    "expertPostcode": "N1 9GU",
     "billingType": "HOURLY",
     "hourlyRate": 45.00,
-    "totalAmount": 135.00
+    "timeHours": 3,
+    "timeMinutes": 0,
+    "totalAmount": 135.00,
+    "justification": "Drafting expert report estimate."
   }'
 ```
 
@@ -88,12 +94,15 @@ curl -i -X PUT http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9
   -H 'Content-Type: application/json' \
   -d '{
     "applicationId": "2a28f60d-fe15-43fe-92c3-5530595d5f51",
-    "type": "EXPERT",
+    "priorAuthorityType": "EXPERT",
     "expertType": "Child psychologist",
     "expertFullName": "Dr Joe Bloggs",
     "billingType": "HOURLY",
     "hourlyRate": 45.00,
-    "totalAmount": 180.00
+    "timeHours": 4,
+    "timeMinutes": 0,
+    "totalAmount": 180.00,
+    "justification": "Updated estimate after case review."
   }'
 ```
 

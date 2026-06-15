@@ -347,7 +347,9 @@
             ],
             "format": "int32",
             "description": "Estimated additional minutes.",
-            "example": 30
+            "example": 30,
+            "maximum": 59,
+            "minimum": 0
           },
           "totalAmount": {
             "type": [
@@ -456,7 +458,9 @@
             "type": "integer",
             "format": "int32",
             "description": "Estimated additional minutes. Required when billingType is HOURLY.",
-            "example": 30
+            "example": 30,
+            "maximum": 59,
+            "minimum": 0
           },
           "totalAmount": {
             "type": "number",

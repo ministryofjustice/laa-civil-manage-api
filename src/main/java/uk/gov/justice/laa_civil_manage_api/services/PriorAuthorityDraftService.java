@@ -35,9 +35,9 @@ public class PriorAuthorityDraftService {
 
   public UUID create(PriorAuthorityDraft draft) {
     log.info(
-        "Creating prior authority draft: applicationId={}, type={}, expertType={}, billingType={}",
+        "Creating prior authority draft: applicationId={}, priorAuthorityType={}, expertType={}, billingType={}",
         draft.applicationId(),
-        draft.type(),
+        draft.priorAuthorityType(),
         draft.expertType(),
         draft.billingType());
     DraftCreatedResponse response = accessDataStoreClient.createDraft(toEnvelope(draft));
@@ -50,10 +50,10 @@ public class PriorAuthorityDraftService {
 
   public void update(UUID draftId, PriorAuthorityDraft draft) {
     log.info(
-        "Updating prior authority draft: draftId={}, applicationId={}, type={}, billingType={}",
+        "Updating prior authority draft: draftId={}, applicationId={}, priorAuthorityType={}, billingType={}",
         draftId,
         draft.applicationId(),
-        draft.type(),
+        draft.priorAuthorityType(),
         draft.billingType());
     accessDataStoreClient.updateDraft(draftId, toEnvelope(draft));
   }

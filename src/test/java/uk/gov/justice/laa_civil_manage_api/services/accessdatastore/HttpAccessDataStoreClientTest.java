@@ -56,10 +56,11 @@ class HttpAccessDataStoreClientTest {
         .andExpect(method(HttpMethod.POST))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.applicationId").doesNotExist())
-        .andExpect(jsonPath("$.type").value("EXPERT"))
+        .andExpect(jsonPath("$.priorAuthorityType").value("EXPERT"))
         .andExpect(jsonPath("$.expertFullName").value("John Doe"))
         .andExpect(jsonPath("$.expertBasedInLondon").value(true))
-        .andExpect(jsonPath("$.flatRateTotalAmount").value(249.99))
+        .andExpect(jsonPath("$.totalAmount").value(249.99))
+        .andExpect(jsonPath("$.justification").value("Required expert evidence."))
         .andRespond(
             withSuccess(
                 """
@@ -75,13 +76,13 @@ class HttpAccessDataStoreClientTest {
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(applicationId)
-            .type(PriorAuthorityType.EXPERT)
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertType("Psychologist")
             .expertFullName("John Doe")
             .expertBasedInLondon(true)
-            .guidelineRatesExceeded(false)
-            .billingType(BillingType.FLAT_RATE)
-            .flatRateTotalAmount(new BigDecimal("249.99"))
+            .billingType(BillingType.FIXED_RATE)
+            .totalAmount(new BigDecimal("249.99"))
+            .justification("Required expert evidence.")
             .build();
 
     PriorAuthorityApplicationResponse response = client.submitPriorAuthority(pa);
@@ -124,13 +125,13 @@ class HttpAccessDataStoreClientTest {
     client.submitPriorAuthority(
         PriorAuthority.builder()
             .applicationId(applicationId)
-            .type(PriorAuthorityType.EXPERT)
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertType("Psychologist")
             .expertFullName("John Doe")
             .expertBasedInLondon(false)
-            .guidelineRatesExceeded(false)
-            .billingType(BillingType.FLAT_RATE)
-            .flatRateTotalAmount(new BigDecimal("249.99"))
+            .billingType(BillingType.FIXED_RATE)
+            .totalAmount(new BigDecimal("249.99"))
+            .justification("Required expert evidence.")
             .build());
 
     server.verify();

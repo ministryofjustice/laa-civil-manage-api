@@ -24,13 +24,13 @@ class MockPriorAuthorityControllerTest {
     String body =
         """
                 {
-                  "type": "EXPERT",
+                  "priorAuthorityType": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": true,
-                  "guidelineRatesExceeded": false,
-                  "billingType": "FLAT_RATE",
-                  "flatRateTotalAmount": 249.99
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 249.99,
+                  "justification": "Required expert evidence."
                 }
                 """;
 
@@ -50,13 +50,13 @@ class MockPriorAuthorityControllerTest {
     String body =
         """
                 {
-                  "type": "EXPERT",
+                  "priorAuthorityType": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": false,
-                  "guidelineRatesExceeded": false,
-                  "billingType": "FLAT_RATE",
-                  "flatRateTotalAmount": 249.99
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 249.99,
+                  "justification": "Required expert evidence."
                 }
                 """;
 
@@ -91,9 +91,33 @@ class MockPriorAuthorityControllerTest {
     String body =
         """
                 {
-                  "guidelineRatesExceeded": false,
-                  "billingType": "FLAT_RATE",
-                  "flatRateTotalAmount": 100.00
+                  "priorAuthorityType": "EXPERT",
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 100.00
+                }
+                """;
+
+    mockMvc
+        .perform(
+            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void returns400WhenTimeMinutesIsGreaterThan59() throws Exception {
+    String body =
+        """
+                {
+                  "priorAuthorityType": "EXPERT",
+                  "expertType": "Psychologist",
+                  "billingType": "HOURLY",
+                  "hourlyRate": 50.00,
+                  "timeHours": 1,
+                  "timeMinutes": 60,
+                  "totalAmount": 50.00,
+                  "justification": "Specialist evidence is required."
                 }
                 """;
 

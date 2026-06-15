@@ -2,14 +2,13 @@ package uk.gov.justice.laa_civil_manage_api.mockaccessdatastore.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.Builder;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
-import uk.gov.justice.laa_civil_manage_api.models.EstimatedTime;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
@@ -25,27 +24,21 @@ public record PriorAuthoritySubmission(
             example = "EXPERT",
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull
-        PriorAuthorityType type,
+        PriorAuthorityType priorAuthorityType,
     @Schema(description = "The expert type.", example = "Psychologist") String expertType,
     @Schema(
             description = "Full name of the expert the prior authority is for.",
-            example = "John Doe",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank
+            example = "John Doe")
         String expertFullName,
+    @Schema(description = "Primary business postcode of the expert.", example = "SW1H 9AJ")
+        String expertPostcode,
     @Schema(
             description =
                 "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
-            example = "true",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull
+            example = "true")
         Boolean expertBasedInLondon,
     @Schema(description = "Supporting documents uploaded with the request.") @Valid
         List<UploadedDocument> uploadedDocuments,
-    @Schema(
-            description = "True if the requested rates exceed the published LAA guideline rates.",
-            example = "false")
-        boolean guidelineRatesExceeded,
     @Schema(
             description = "How the work will be billed.",
             example = "HOURLY",
@@ -55,36 +48,40 @@ public record PriorAuthoritySubmission(
     @Schema(
             description = "Hourly rate in GBP. Required when billingType is HOURLY.",
             example = "50.00")
-        @Positive
         BigDecimal hourlyRate,
-    @Schema(description = "Estimated time the work will take. Required when billingType is HOURLY.")
-        @Valid
-        EstimatedTime estimatedTime,
     @Schema(
-            description =
-                "Total amount in GBP for hourly billing. Required when billingType is HOURLY.",
-            example = "125.00")
-        @Positive
+            description = "Estimated whole hours. Required when billingType is HOURLY.",
+            example = "2")
+        Integer timeHours,
+    @Schema(
+            description = "Estimated additional minutes. Required when billingType is HOURLY.",
+            example = "30")
+        @Min(0)
+        @Max(59)
+        Integer timeMinutes,
+    @Schema(description = "Total amount in GBP.", example = "125.00") @NotNull
         BigDecimal totalAmount,
     @Schema(
-            description = "Total flat-rate amount in GBP. Required when billingType is FLAT_RATE.",
-            example = "249.99")
-        @Positive
-        BigDecimal flatRateTotalAmount) {
+            description = "Detailed rationale explaining why funding is necessary.",
+            example = "Expert evidence is needed to support the claim.",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
+        String justification) {
 
   public static PriorAuthoritySubmission from(PriorAuthority priorAuthority) {
     return PriorAuthoritySubmission.builder()
-        .type(priorAuthority.type())
+        .priorAuthorityType(priorAuthority.priorAuthorityType())
         .expertType(priorAuthority.expertType())
         .expertFullName(priorAuthority.expertFullName())
+        .expertPostcode(priorAuthority.expertPostcode())
         .expertBasedInLondon(priorAuthority.expertBasedInLondon())
         .uploadedDocuments(priorAuthority.uploadedDocuments())
-        .guidelineRatesExceeded(priorAuthority.guidelineRatesExceeded())
         .billingType(priorAuthority.billingType())
         .hourlyRate(priorAuthority.hourlyRate())
-        .estimatedTime(priorAuthority.estimatedTime())
+        .timeHours(priorAuthority.timeHours())
+        .timeMinutes(priorAuthority.timeMinutes())
         .totalAmount(priorAuthority.totalAmount())
-        .flatRateTotalAmount(priorAuthority.flatRateTotalAmount())
+        .justification(priorAuthority.justification())
         .build();
   }
 }

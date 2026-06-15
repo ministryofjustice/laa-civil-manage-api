@@ -2,10 +2,9 @@ package uk.gov.justice.laa_civil_manage_api.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -27,27 +26,21 @@ public record PriorAuthority(
             example = "EXPERT",
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull
-        PriorAuthorityType type,
+        PriorAuthorityType priorAuthorityType,
     @Schema(description = "The expert type.", example = "Psychologist") String expertType,
     @Schema(
             description = "Full name of the expert the prior authority is for.",
-            example = "John Doe",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank
+            example = "John Doe")
         String expertFullName,
+    @Schema(description = "Primary business postcode of the expert.", example = "SW1H 9AJ")
+        String expertPostcode,
     @Schema(
             description =
                 "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
-            example = "true",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull
+            example = "true")
         Boolean expertBasedInLondon,
     @Schema(description = "Supporting documents uploaded with the request.") @Valid
         List<UploadedDocument> uploadedDocuments,
-    @Schema(
-            description = "True if the requested rates exceed the published LAA guideline rates.",
-            example = "false")
-        boolean guidelineRatesExceeded,
     @Schema(
             description = "How the work will be billed.",
             example = "HOURLY",
@@ -57,49 +50,26 @@ public record PriorAuthority(
     @Schema(
             description = "Hourly rate in GBP. Required when billingType is HOURLY.",
             example = "50.00")
-        @Positive
         BigDecimal hourlyRate,
-    @Schema(description = "Estimated time the work will take. Required when billingType is HOURLY.")
-        @Valid
-        EstimatedTime estimatedTime,
     @Schema(
-            description =
-                "Total amount in GBP for hourly billing (hourlyRate * estimatedTime). Required when billingType is HOURLY.",
-            example = "125.00")
-        @Positive
+            description = "Estimated whole hours. Required when billingType is HOURLY.",
+            example = "2")
+        Integer timeHours,
+    @Schema(
+            description = "Estimated additional minutes. Required when billingType is HOURLY.",
+            example = "30")
+        @Min(0)
+        @Max(59)
+        Integer timeMinutes,
+    @Schema(
+            description = "Total amount in GBP.",
+            example = "125.00",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
         BigDecimal totalAmount,
     @Schema(
-            description = "Total flat-rate amount in GBP. Required when billingType is FLAT_RATE.",
-            example = "249.99")
-        @Positive
-        BigDecimal flatRateTotalAmount) {
-
-  @AssertTrue(
-      message =
-          "hourlyRate, estimatedTime, and totalAmount are required when billingType is HOURLY")
-  @Schema(hidden = true)
-  public boolean isHourlyFieldsConsistent() {
-    if (billingType != BillingType.HOURLY) {
-      return true;
-    }
-    return hourlyRate != null && estimatedTime != null && totalAmount != null;
-  }
-
-  @AssertTrue(message = "flatRateTotalAmount is required when billingType is FLAT_RATE")
-  @Schema(hidden = true)
-  public boolean isFlatRateFieldsConsistent() {
-    if (billingType != BillingType.FLAT_RATE) {
-      return true;
-    }
-    return flatRateTotalAmount != null;
-  }
-
-  @AssertTrue(message = "expertType is required when type is EXPERT")
-  @Schema(hidden = true)
-  public boolean isExpertTypePresentForExpert() {
-    if (type != PriorAuthorityType.EXPERT) {
-      return true;
-    }
-    return expertType != null && !expertType.isBlank();
-  }
-}
+            description = "Detailed rationale explaining why funding is necessary.",
+            example = "The case requires specialist expert evidence to proceed.",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotNull
+        String justification) {}

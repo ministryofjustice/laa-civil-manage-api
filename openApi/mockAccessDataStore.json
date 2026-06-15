@@ -311,36 +311,11 @@
           }
         }
       },
-      "EstimatedTime": {
-        "type": "object",
-        "description": "Estimated time required to carry out the work, in hours and minutes.",
-        "properties": {
-          "hours": {
-            "type": "integer",
-            "format": "int32",
-            "description": "Estimated whole hours.",
-            "example": 2,
-            "minimum": 0
-          },
-          "minutes": {
-            "type": "integer",
-            "format": "int32",
-            "description": "Additional minutes (0–59).",
-            "example": 30,
-            "maximum": 59,
-            "minimum": 0
-          }
-        },
-        "required": [
-          "hours",
-          "minutes"
-        ]
-      },
       "PriorAuthoritySubmission": {
         "type": "object",
         "description": "Prior-authority request body as submitted to the Access Data Store. The applicationId is taken from the URL path; it does not appear in the body.",
         "properties": {
-          "type": {
+          "priorAuthorityType": {
             "type": "string",
             "description": "The category of prior authority being requested.",
             "enum": [
@@ -358,8 +333,12 @@
           "expertFullName": {
             "type": "string",
             "description": "Full name of the expert the prior authority is for.",
-            "example": "John Doe",
-            "minLength": 1
+            "example": "John Doe"
+          },
+          "expertPostcode": {
+            "type": "string",
+            "description": "Primary business postcode of the expert.",
+            "example": "SW1H 9AJ"
           },
           "expertBasedInLondon": {
             "type": "boolean",
@@ -373,17 +352,12 @@
               "$ref": "#/components/schemas/UploadedDocument"
             }
           },
-          "guidelineRatesExceeded": {
-            "type": "boolean",
-            "description": "True if the requested rates exceed the published LAA guideline rates.",
-            "example": false
-          },
           "billingType": {
             "type": "string",
             "description": "How the work will be billed.",
             "enum": [
               "HOURLY",
-              "FLAT_RATE"
+              "FIXED_RATE"
             ],
             "example": "HOURLY"
           },
@@ -392,26 +366,36 @@
             "description": "Hourly rate in GBP. Required when billingType is HOURLY.",
             "example": 50.0
           },
-          "estimatedTime": {
-            "$ref": "#/components/schemas/EstimatedTime",
-            "description": "Estimated time the work will take. Required when billingType is HOURLY."
+          "timeHours": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Estimated whole hours. Required when billingType is HOURLY.",
+            "example": 2
+          },
+          "timeMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Estimated additional minutes. Required when billingType is HOURLY.",
+            "example": 30,
+            "maximum": 59,
+            "minimum": 0
           },
           "totalAmount": {
             "type": "number",
-            "description": "Total amount in GBP for hourly billing. Required when billingType is HOURLY.",
+            "description": "Total amount in GBP.",
             "example": 125.0
           },
-          "flatRateTotalAmount": {
-            "type": "number",
-            "description": "Total flat-rate amount in GBP. Required when billingType is FLAT_RATE.",
-            "example": 249.99
+          "justification": {
+            "type": "string",
+            "description": "Detailed rationale explaining why funding is necessary.",
+            "example": "Expert evidence is needed to support the claim."
           }
         },
         "required": [
           "billingType",
-          "expertBasedInLondon",
-          "expertFullName",
-          "type"
+          "justification",
+          "priorAuthorityType",
+          "totalAmount"
         ]
       },
       "UploadedDocument": {

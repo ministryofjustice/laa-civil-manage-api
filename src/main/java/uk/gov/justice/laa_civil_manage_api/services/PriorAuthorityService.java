@@ -18,9 +18,9 @@ public class PriorAuthorityService {
     int documentCount =
         priorAuthority.uploadedDocuments() == null ? 0 : priorAuthority.uploadedDocuments().size();
     log.info(
-        "Submitting prior authority: applicationId={}, type={}, expertType={}, billingType={}, documentCount={}",
+        "Submitting prior authority: applicationId={}, priorAuthorityType={}, expertType={}, billingType={}, documentCount={}",
         priorAuthority.applicationId(),
-        priorAuthority.type(),
+        priorAuthority.priorAuthorityType(),
         priorAuthority.expertType(),
         priorAuthority.billingType(),
         documentCount);

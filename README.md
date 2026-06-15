@@ -65,6 +65,8 @@ curl -i -X POST http://localhost:8080/prior-authority \
 
 Drafts let users save a partially-completed prior-authority form and come back later.
 
+For `timeMinutes`, use values from `0` to `59`. If the time is longer, add to `timeHours` instead.
+
 #### Create a draft
 
 ```bash

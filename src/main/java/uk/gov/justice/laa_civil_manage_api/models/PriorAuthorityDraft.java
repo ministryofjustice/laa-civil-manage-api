@@ -1,6 +1,8 @@
 package uk.gov.justice.laa_civil_manage_api.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
@@ -48,6 +50,8 @@ public record PriorAuthorityDraft(
     @Schema(description = "Estimated whole hours.", example = "2", nullable = true)
         Integer timeHours,
     @Schema(description = "Estimated additional minutes.", example = "30", nullable = true)
+        @Min(0)
+        @Max(59)
         Integer timeMinutes,
     @Schema(description = "Total amount in GBP.", example = "135.00", nullable = true)
         BigDecimal totalAmount,

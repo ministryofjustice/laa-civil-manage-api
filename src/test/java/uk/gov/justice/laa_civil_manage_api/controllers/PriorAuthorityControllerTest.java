@@ -245,6 +245,29 @@ class PriorAuthorityControllerTest {
   }
 
   @Test
+  void returns400WhenTimeMinutesIsGreaterThan59() throws Exception {
+    String body =
+        """
+                {
+                  "applicationId": "%s",
+                  "priorAuthorityType": "EXPERT",
+                  "expertType": "Psychologist",
+                  "billingType": "HOURLY",
+                  "hourlyRate": 50.00,
+                  "timeHours": 1,
+                  "timeMinutes": 60,
+                  "totalAmount": 50.00,
+                  "justification": "Specialist evidence is required."
+                }
+                """
+            .formatted(APPLICATION_ID);
+
+    mockMvc
+        .perform(post("/prior-authority").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void postDraftReturns201WithLocationAndDraftId() throws Exception {
     when(draftService.create(any(PriorAuthorityDraft.class))).thenReturn(DRAFT_ID);
 
@@ -289,6 +312,24 @@ class PriorAuthorityControllerTest {
         .perform(
             post("/prior-authority/drafts").contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isCreated());
+  }
+
+  @Test
+  void postDraftReturns400WhenTimeMinutesIsGreaterThan59() throws Exception {
+    String body =
+        """
+                {
+                  "applicationId": "%s",
+                  "billingType": "HOURLY",
+                  "timeMinutes": 60
+                }
+                """
+            .formatted(DRAFT_APPLICATION_ID);
+
+    mockMvc
+        .perform(
+            post("/prior-authority/drafts").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest());
   }
 
   @Test

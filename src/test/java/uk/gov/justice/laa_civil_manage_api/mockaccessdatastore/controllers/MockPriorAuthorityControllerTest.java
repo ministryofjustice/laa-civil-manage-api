@@ -104,4 +104,28 @@ class MockPriorAuthorityControllerTest {
                 .content(body))
         .andExpect(status().isBadRequest());
   }
+
+  @Test
+  void returns400WhenTimeMinutesIsGreaterThan59() throws Exception {
+    String body =
+        """
+                {
+                  "priorAuthorityType": "EXPERT",
+                  "expertType": "Psychologist",
+                  "billingType": "HOURLY",
+                  "hourlyRate": 50.00,
+                  "timeHours": 1,
+                  "timeMinutes": 60,
+                  "totalAmount": 50.00,
+                  "justification": "Specialist evidence is required."
+                }
+                """;
+
+    mockMvc
+        .perform(
+            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isBadRequest());
+  }
 }

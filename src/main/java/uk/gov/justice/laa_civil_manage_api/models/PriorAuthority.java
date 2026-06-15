@@ -2,6 +2,8 @@ package uk.gov.justice.laa_civil_manage_api.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
@@ -56,6 +58,8 @@ public record PriorAuthority(
     @Schema(
             description = "Estimated additional minutes. Required when billingType is HOURLY.",
             example = "30")
+        @Min(0)
+        @Max(59)
         Integer timeMinutes,
     @Schema(
             description = "Total amount in GBP.",

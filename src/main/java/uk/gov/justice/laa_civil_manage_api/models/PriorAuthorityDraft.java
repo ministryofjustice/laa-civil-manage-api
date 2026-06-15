@@ -29,6 +29,11 @@ public record PriorAuthorityDraft(
             nullable = true)
         String expertFullName,
     @Schema(
+            description = "Primary business postcode of the expert.",
+            example = "SW1H 9AJ",
+            nullable = true)
+        String expertPostcode,
+    @Schema(
             description =
                 "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
             example = "true",
@@ -36,20 +41,18 @@ public record PriorAuthorityDraft(
         Boolean expertBasedInLondon,
     @Schema(description = "Supporting documents uploaded so far.", nullable = true)
         List<UploadedDocument> uploadedDocuments,
-    @Schema(
-            description = "Whether the requested rates exceed published LAA guideline rates.",
-            nullable = true)
-        Boolean guidelineRatesExceeded,
     @Schema(description = "How the work will be billed.", example = "HOURLY", nullable = true)
         BillingType billingType,
     @Schema(description = "Hourly rate in GBP.", example = "45.00", nullable = true)
         BigDecimal hourlyRate,
-    @Schema(description = "Estimated time the work will take.", nullable = true)
-        EstimatedTime estimatedTime,
-    @Schema(
-            description = "Total amount in GBP for hourly billing.",
-            example = "135.00",
-            nullable = true)
+    @Schema(description = "Estimated whole hours.", example = "2", nullable = true)
+        Integer timeHours,
+    @Schema(description = "Estimated additional minutes.", example = "30", nullable = true)
+        Integer timeMinutes,
+    @Schema(description = "Total amount in GBP.", example = "135.00", nullable = true)
         BigDecimal totalAmount,
-    @Schema(description = "Total flat-rate amount in GBP.", example = "249.99", nullable = true)
-        BigDecimal flatRateTotalAmount) {}
+    @Schema(
+            description = "Detailed rationale explaining why funding is necessary.",
+            example = "Expert evidence is needed to establish causation.",
+            nullable = true)
+        String justification) {}

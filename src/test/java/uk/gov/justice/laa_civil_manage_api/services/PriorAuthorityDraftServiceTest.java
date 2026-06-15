@@ -128,8 +128,8 @@ class PriorAuthorityDraftServiceTest {
                             "expertFullName",
                             "Dr Joe Bloggs",
                             "billingType",
-                            "FLAT_RATE",
-                            "flatRateTotalAmount",
+                            "FIXED_RATE",
+                            "totalAmount",
                             249.99))
                     .build()));
 
@@ -141,8 +141,8 @@ class PriorAuthorityDraftServiceTest {
     assertEquals(OffsetDateTime.parse("2026-05-19T12:00:00Z"), summary.timestamp());
     assertEquals(applicationId, summary.draft().applicationId());
     assertEquals("Dr Joe Bloggs", summary.draft().expertFullName());
-    assertEquals(BillingType.FLAT_RATE, summary.draft().billingType());
-    assertEquals(0, new BigDecimal("249.99").compareTo(summary.draft().flatRateTotalAmount()));
+    assertEquals(BillingType.FIXED_RATE, summary.draft().billingType());
+    assertEquals(0, new BigDecimal("249.99").compareTo(summary.draft().totalAmount()));
     assertNull(summary.draft().expertType());
     assertNull(summary.draft().hourlyRate());
   }

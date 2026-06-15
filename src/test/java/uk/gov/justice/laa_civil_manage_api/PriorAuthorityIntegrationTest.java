@@ -109,9 +109,9 @@ class PriorAuthorityIntegrationTest {
             .expertType("Psychologist")
             .expertFullName("John Doe")
             .expertBasedInLondon(true)
-            .guidelineRatesExceeded(false)
-            .billingType(BillingType.FLAT_RATE)
-            .flatRateTotalAmount(new BigDecimal("249.99"))
+            .billingType(BillingType.FIXED_RATE)
+            .totalAmount(new BigDecimal("249.99"))
+            .justification("Required expert evidence.")
             .build();
 
     ResponseEntity<PriorAuthorityApplicationResponse> response =

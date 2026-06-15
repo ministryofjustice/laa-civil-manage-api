@@ -59,7 +59,8 @@ class HttpAccessDataStoreClientTest {
         .andExpect(jsonPath("$.priorAuthorityType").value("EXPERT"))
         .andExpect(jsonPath("$.expertFullName").value("John Doe"))
         .andExpect(jsonPath("$.expertBasedInLondon").value(true))
-        .andExpect(jsonPath("$.flatRateTotalAmount").value(249.99))
+        .andExpect(jsonPath("$.totalAmount").value(249.99))
+        .andExpect(jsonPath("$.justification").value("Required expert evidence."))
         .andRespond(
             withSuccess(
                 """
@@ -79,9 +80,9 @@ class HttpAccessDataStoreClientTest {
             .expertType("Psychologist")
             .expertFullName("John Doe")
             .expertBasedInLondon(true)
-            .guidelineRatesExceeded(false)
-            .billingType(BillingType.FLAT_RATE)
-            .flatRateTotalAmount(new BigDecimal("249.99"))
+            .billingType(BillingType.FIXED_RATE)
+            .totalAmount(new BigDecimal("249.99"))
+            .justification("Required expert evidence.")
             .build();
 
     PriorAuthorityApplicationResponse response = client.submitPriorAuthority(pa);
@@ -128,9 +129,9 @@ class HttpAccessDataStoreClientTest {
             .expertType("Psychologist")
             .expertFullName("John Doe")
             .expertBasedInLondon(false)
-            .guidelineRatesExceeded(false)
-            .billingType(BillingType.FLAT_RATE)
-            .flatRateTotalAmount(new BigDecimal("249.99"))
+            .billingType(BillingType.FIXED_RATE)
+            .totalAmount(new BigDecimal("249.99"))
+            .justification("Required expert evidence.")
             .build());
 
     server.verify();

@@ -28,9 +28,9 @@ class MockPriorAuthorityControllerTest {
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": true,
-                  "guidelineRatesExceeded": false,
-                  "billingType": "FLAT_RATE",
-                  "flatRateTotalAmount": 249.99
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 249.99,
+                  "justification": "Required expert evidence."
                 }
                 """;
 
@@ -54,9 +54,9 @@ class MockPriorAuthorityControllerTest {
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": false,
-                  "guidelineRatesExceeded": false,
-                  "billingType": "FLAT_RATE",
-                  "flatRateTotalAmount": 249.99
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 249.99,
+                  "justification": "Required expert evidence."
                 }
                 """;
 
@@ -92,9 +92,8 @@ class MockPriorAuthorityControllerTest {
         """
                 {
                   "priorAuthorityType": "EXPERT",
-                  "guidelineRatesExceeded": false,
-                  "billingType": "FLAT_RATE",
-                  "flatRateTotalAmount": 100.00
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 100.00
                 }
                 """;
 

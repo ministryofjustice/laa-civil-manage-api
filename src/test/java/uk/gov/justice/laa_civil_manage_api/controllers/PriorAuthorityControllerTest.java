@@ -63,15 +63,17 @@ class PriorAuthorityControllerTest {
                   "priorAuthorityType": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
+                  "expertPostcode": "SW1H 9AJ",
                   "expertBasedInLondon": true,
                   "uploadedDocuments": [
                     { "fileName": "report.pdf" }
                   ],
-                  "guidelineRatesExceeded": true,
                   "billingType": "HOURLY",
                   "hourlyRate": 50.00,
-                  "estimatedTime": { "hours": 2, "minutes": 30 },
-                  "totalAmount": 125.00
+                  "timeHours": 2,
+                  "timeMinutes": 30,
+                  "totalAmount": 125.00,
+                  "justification": "Specialist evidence is required."
                 }
                 """
             .formatted(APPLICATION_ID);
@@ -85,7 +87,7 @@ class PriorAuthorityControllerTest {
   }
 
   @Test
-  void returns201ForFlatRateSubmission() throws Exception {
+  void returns201ForFixedRateSubmission() throws Exception {
     when(priorAuthorityService.submit(any(PriorAuthority.class)))
         .thenReturn(
             PriorAuthorityApplicationResponse.builder()
@@ -102,9 +104,9 @@ class PriorAuthorityControllerTest {
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": false,
-                  "guidelineRatesExceeded": false,
-                  "billingType": "FLAT_RATE",
-                  "flatRateTotalAmount": 249.99
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 249.99,
+                  "justification": "A fixed fee is appropriate for this work."
                 }
                 """
             .formatted(APPLICATION_ID);
@@ -123,9 +125,9 @@ class PriorAuthorityControllerTest {
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": false,
-                  "guidelineRatesExceeded": false,
-                  "billingType": "FLAT_RATE",
-                  "flatRateTotalAmount": 100.00
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 100.00,
+                  "justification": "Required to progress the case."
                 }
                 """;
 
@@ -142,9 +144,9 @@ class PriorAuthorityControllerTest {
                   "applicationId": "%s",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": false,
-                  "guidelineRatesExceeded": false,
-                  "billingType": "FLAT_RATE",
-                  "flatRateTotalAmount": 100.00
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 100.00,
+                  "justification": "Required to progress the case."
                 }
                 """
             .formatted(APPLICATION_ID);
@@ -155,7 +157,15 @@ class PriorAuthorityControllerTest {
   }
 
   @Test
-  void returns400WhenHourlyBillingMissesHourlyFields() throws Exception {
+  void returns201WhenHourlyBillingMissesTimeFields() throws Exception {
+    when(priorAuthorityService.submit(any(PriorAuthority.class)))
+        .thenReturn(
+            PriorAuthorityApplicationResponse.builder()
+                .submissionId(SUBMISSION_ID)
+                .status(SubmissionStatus.ACCEPTED)
+                .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
+                .build());
+
     String body =
         """
                 {
@@ -164,19 +174,28 @@ class PriorAuthorityControllerTest {
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": true,
-                  "guidelineRatesExceeded": true,
-                  "billingType": "HOURLY"
+                  "billingType": "HOURLY",
+                  "totalAmount": 120.00,
+                  "justification": "Interim submission without time breakdown."
                 }
                 """
             .formatted(APPLICATION_ID);
 
     mockMvc
         .perform(post("/prior-authority").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isCreated());
   }
 
   @Test
-  void returns400WhenPriorAuthorityTypeIsExpertButExpertTypeMissing() throws Exception {
+  void returns201WhenPriorAuthorityTypeIsExpertButExpertTypeMissing() throws Exception {
+    when(priorAuthorityService.submit(any(PriorAuthority.class)))
+        .thenReturn(
+            PriorAuthorityApplicationResponse.builder()
+                .submissionId(SUBMISSION_ID)
+                .status(SubmissionStatus.ACCEPTED)
+                .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
+                .build());
+
     String body =
         """
                 {
@@ -184,20 +203,28 @@ class PriorAuthorityControllerTest {
                   "priorAuthorityType": "EXPERT",
                   "expertFullName": "John Doe",
                   "expertBasedInLondon": false,
-                  "guidelineRatesExceeded": false,
-                  "billingType": "FLAT_RATE",
-                  "flatRateTotalAmount": 100.00
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 100.00,
+                  "justification": "Expert type to be confirmed later."
                 }
                 """
             .formatted(APPLICATION_ID);
 
     mockMvc
         .perform(post("/prior-authority").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isCreated());
   }
 
   @Test
-  void returns400WhenexpertBasedInLondonMissing() throws Exception {
+  void returns201WhenExpertBasedInLondonMissing() throws Exception {
+    when(priorAuthorityService.submit(any(PriorAuthority.class)))
+        .thenReturn(
+            PriorAuthorityApplicationResponse.builder()
+                .submissionId(SUBMISSION_ID)
+                .status(SubmissionStatus.ACCEPTED)
+                .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
+                .build());
+
     String body =
         """
                 {
@@ -205,16 +232,16 @@ class PriorAuthorityControllerTest {
                   "priorAuthorityType": "EXPERT",
                   "expertType": "Psychologist",
                   "expertFullName": "John Doe",
-                  "guidelineRatesExceeded": false,
-                  "billingType": "FLAT_RATE",
-                  "flatRateTotalAmount": 100.00
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 100.00,
+                  "justification": "Location flag supplied later."
                 }
                 """
             .formatted(APPLICATION_ID);
 
     mockMvc
         .perform(post("/prior-authority").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isCreated());
   }
 
   @Test
@@ -229,7 +256,8 @@ class PriorAuthorityControllerTest {
                   "expertFullName": "Dr Joe Bloggs",
                   "billingType": "HOURLY",
                   "hourlyRate": 45.00,
-                  "totalAmount": 135.00
+                  "totalAmount": 135.00,
+                  "justification": "Draft justification"
                 }
                 """
             .formatted(DRAFT_APPLICATION_ID);
@@ -305,8 +333,8 @@ class PriorAuthorityControllerTest {
         PriorAuthorityDraft.builder()
             .applicationId(UUID.fromString(DRAFT_APPLICATION_ID))
             .expertFullName("Dr Joe Bloggs")
-            .billingType(BillingType.FLAT_RATE)
-            .flatRateTotalAmount(new BigDecimal("249.99"))
+            .billingType(BillingType.FIXED_RATE)
+            .totalAmount(new BigDecimal("249.99"))
             .build();
     when(draftService.get(DRAFT_ID))
         .thenReturn(
@@ -322,7 +350,7 @@ class PriorAuthorityControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.draftId").value(DRAFT_ID.toString()))
         .andExpect(jsonPath("$.draft.expertFullName").value("Dr Joe Bloggs"))
-        .andExpect(jsonPath("$.draft.billingType").value("FLAT_RATE"));
+        .andExpect(jsonPath("$.draft.billingType").value("FIXED_RATE"));
   }
 
   @Test
@@ -341,8 +369,8 @@ class PriorAuthorityControllerTest {
         PriorAuthorityDraft.builder()
             .applicationId(applicationId)
             .expertFullName("Dr Joe Bloggs")
-            .billingType(BillingType.FLAT_RATE)
-            .flatRateTotalAmount(new BigDecimal("249.99"))
+            .billingType(BillingType.FIXED_RATE)
+            .totalAmount(new BigDecimal("249.99"))
             .build();
     when(draftService.list(applicationId))
         .thenReturn(
@@ -358,7 +386,7 @@ class PriorAuthorityControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].draftId").value(DRAFT_ID.toString()))
         .andExpect(jsonPath("$[0].draft.expertFullName").value("Dr Joe Bloggs"))
-        .andExpect(jsonPath("$[0].draft.billingType").value("FLAT_RATE"));
+        .andExpect(jsonPath("$[0].draft.billingType").value("FIXED_RATE"));
   }
 
   @Test

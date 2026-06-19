@@ -1,5 +1,6 @@
 package uk.gov.justice.laa_civil_manage_api.controllers;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -25,5 +26,12 @@ public class AccessDataStoreErrorHandler {
         ProblemDetail.forStatusAndDetail(
             HttpStatus.BAD_GATEWAY, "Access Data Store returned " + ex.getStatusCode().value());
     return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(body);
+  }
+
+  @ExceptionHandler(ConstraintViolationException.class)
+  public ResponseEntity<ProblemDetail> handleConstraintViolation(ConstraintViolationException ex) {
+    ProblemDetail body =
+        ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
   }
 }

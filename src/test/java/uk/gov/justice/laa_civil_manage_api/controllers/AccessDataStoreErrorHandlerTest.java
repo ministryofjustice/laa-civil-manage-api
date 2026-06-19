@@ -3,6 +3,7 @@ package uk.gov.justice.laa_civil_manage_api.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -47,5 +48,16 @@ class AccessDataStoreErrorHandlerTest {
     assertEquals(HttpStatus.BAD_GATEWAY, response.getStatusCode());
     assertNotNull(response.getBody());
     assertEquals(502, response.getBody().getStatus());
+  }
+
+  @Test
+  void translatesConstraintViolationInto400BadRequest() {
+    ConstraintViolationException ex = new ConstraintViolationException("postcode must not be blank", null);
+
+    ResponseEntity<ProblemDetail> response = handler.handleConstraintViolation(ex);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertEquals(400, response.getBody().getStatus());
   }
 }

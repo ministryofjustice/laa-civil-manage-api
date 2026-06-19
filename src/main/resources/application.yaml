@@ -37,6 +37,43 @@ laa-civil-manage-api:
       update-draft: http://localhost:8080/mock-access-data-store
       get-drafts: http://localhost:8080/mock-access-data-store
       delete-draft: http://localhost:8080/mock-access-data-store
+  os-places:
+    base-url: https://api.os.uk/search/places/v1
+    api-key: ${OS_PLACES_API_KEY:tbc}
+    london-custodian-codes:
+      - 5010
+      - 5020
+      - 5030
+      - 5040
+      - 5050
+      - 5060
+      - 5070
+      - 5080
+      - 5090
+      - 5100
+      - 5110
+      - 5120
+      - 5130
+      - 5210
+      - 5220
+      - 5230
+      - 5240
+      - 5250
+      - 5260
+      - 5270
+      - 5280
+      - 5290
+      - 5310
+      - 5320
+      - 5330
+      - 5340
+      - 5350
+      - 5360
+      - 5370
+      - 5380
+      - 5390
+      - 5400
+      - 5990
   expert-types:
     - A & E Consultant
     - Aboriculturist

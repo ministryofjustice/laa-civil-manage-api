@@ -23,10 +23,12 @@ configurations {
 }
 
 repositories {
+    mavenLocal() // TODO: Remove when done testing locally
     mavenCentral()
 }
 
 dependencies {
+    implementation("uk.gov.justice:laa-os-places:0.0.1-SNAPSHOT")
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 

@@ -1,6 +1,6 @@
 plugins {
     java
-    id("org.springframework.boot") version "4.0.6"
+    id("org.springframework.boot") version "4.0.7"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
     id("com.diffplug.spotless") version "7.2.1"
@@ -52,9 +52,9 @@ dependencies {
     constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
             version {
-                strictly("2.21.1")
+                strictly("2.21.4")
             }
-            because("version 2.20.2 has a DoS vulnerability (CVE-2025-52999)")
+            because("older Jackson 2.21.x releases have known vulnerabilities")
         }
     }
 }

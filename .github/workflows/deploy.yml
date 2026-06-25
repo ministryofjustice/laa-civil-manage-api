@@ -86,7 +86,7 @@ jobs:
     needs:
       - build-docker-image
     if: github.actor != 'renovate[bot]'
-    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/sast.yml@0cb7eb8ab4bf643986ab36ecf3ffcdffa9b55214
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/sast.yml@0b8a78341f7a7288ba47819a4873c6cf3dbae484
     permissions:
       id-token: write
       contents: read
@@ -95,6 +95,7 @@ jobs:
     with:
       image_uri: ${{ needs.build-docker-image.outputs.image_uri }}
       ecr_session_name: github-cicd-laa-civil-manage-api-scan-${{ github.run_number }}
+      ecr_role: '${{ secrets.API_ECR_ROLE_TO_ASSUME }}'
     secrets: inherit
 
   zap-scan:

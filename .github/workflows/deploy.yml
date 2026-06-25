@@ -95,8 +95,8 @@ jobs:
     with:
       image_uri: ${{ needs.build-docker-image.outputs.image_uri }}
       ecr_session_name: github-cicd-laa-civil-manage-api-scan-${{ github.run_number }}
-      ecr_role: ${{ secrets.API_ECR_ROLE_TO_ASSUME }}
-    secrets: inherit
+    secrets:
+      ECR_ROLE_TO_ASSUME: ${{ secrets.API_ECR_ROLE_TO_ASSUME }}
 
   zap-scan:
     name: ZAP Security Scanning

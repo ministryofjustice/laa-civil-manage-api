@@ -96,6 +96,8 @@ jobs:
       image_uri: ${{ needs.build-docker-image.outputs.image_uri }}
       ecr_session_name: github-cicd-laa-civil-manage-api-scan-${{ github.run_number }}
     secrets:
+      SNYK_CLIENT_ID: ${{ secrets.SNYK_CLIENT_ID }}
+      SNYK_CLIENT_SECRET: ${{ secrets.SNYK_CLIENT_SECRET }}
       ECR_ROLE_TO_ASSUME: ${{ secrets.API_ECR_ROLE_TO_ASSUME }}
 
   zap-scan:

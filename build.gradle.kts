@@ -150,8 +150,8 @@ tasks.register("verifyOpenApiSync") {
 
             throw GradleException(
                 "ERROR: OpenAPI schemas are out of sync with your code changes!\n" +
-                        "$diffSummary\n\n" +
-                        "Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
+                    "$diffSummary\n\n" +
+                    "Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
             )
         }
 

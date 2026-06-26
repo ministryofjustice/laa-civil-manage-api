@@ -1,6 +1,6 @@
 plugins {
     java
-    id("org.springframework.boot") version "4.0.6"
+    id("org.springframework.boot") version "4.0.7"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
     id("com.diffplug.spotless") version "7.2.1"
@@ -52,9 +52,9 @@ dependencies {
     constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
             version {
-                strictly("2.21.1")
+                strictly("2.21.4")
             }
-            because("version 2.20.2 has a DoS vulnerability (CVE-2025-52999)")
+            because("older Jackson 2.21.x releases have known vulnerabilities")
         }
     }
 }
@@ -95,7 +95,7 @@ tasks.register("verifyOpenApiSync") {
     doLast {
         val openApiDir = file("openApi")
 
-        val statusOutput =
+        val status =
             providers
                 .exec {
                     commandLine("git", "status", "--porcelain", openApiDir.absolutePath)
@@ -103,55 +103,10 @@ tasks.register("verifyOpenApiSync") {
                 .get()
                 .trim()
 
-        if (statusOutput.isNotEmpty()) {
-            val changedFiles =
-                statusOutput
-                    .lineSequence()
-                    .filter { it.isNotBlank() }
-                    .map { line ->
-                        val statusCode = line.take(2).trim().ifEmpty { "??" }
-                        val filePath = line.drop(3)
-                        " - [$statusCode] $filePath"
-                    }.toList()
-
-            val diffStat =
-                providers
-                    .exec {
-                        commandLine("git", "--no-pager", "diff", "--stat", "--", openApiDir.absolutePath)
-                    }.standardOutput.asText
-                    .get()
-                    .trim()
-
-            val cachedDiffStat =
-                providers
-                    .exec {
-                        commandLine("git", "--no-pager", "diff", "--cached", "--stat", "--", openApiDir.absolutePath)
-                    }.standardOutput.asText
-                    .get()
-                    .trim()
-
-            val diffSummary =
-                buildList {
-                    add("Changed files detected under 'openApi/':")
-                    addAll(changedFiles)
-
-                    if (diffStat.isNotEmpty()) {
-                        add("")
-                        add("Unstaged diff summary:")
-                        add(diffStat)
-                    }
-
-                    if (cachedDiffStat.isNotEmpty()) {
-                        add("")
-                        add("Staged diff summary:")
-                        add(cachedDiffStat)
-                    }
-                }.joinToString("\n")
-
+        if (status.isNotEmpty()) {
             throw GradleException(
                 "ERROR: OpenAPI schemas are out of sync with your code changes!\n" +
-                    "$diffSummary\n\n" +
-                    "Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
+                    "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
             )
         }
 

@@ -95,7 +95,7 @@ tasks.register("verifyOpenApiSync") {
     doLast {
         val openApiDir = file("openApi")
 
-        val status =
+        val statusOutput =
             providers
                 .exec {
                     commandLine("git", "status", "--porcelain", openApiDir.absolutePath)
@@ -103,10 +103,55 @@ tasks.register("verifyOpenApiSync") {
                 .get()
                 .trim()
 
-        if (status.isNotEmpty()) {
+        if (statusOutput.isNotEmpty()) {
+            val changedFiles =
+                statusOutput
+                    .lineSequence()
+                    .filter { it.isNotBlank() }
+                    .map { line ->
+                        val statusCode = line.take(2).trim().ifEmpty { "??" }
+                        val filePath = line.drop(3)
+                        " - [$statusCode] $filePath"
+                    }.toList()
+
+            val diffStat =
+                providers
+                    .exec {
+                        commandLine("git", "--no-pager", "diff", "--stat", "--", openApiDir.absolutePath)
+                    }.standardOutput.asText
+                    .get()
+                    .trim()
+
+            val cachedDiffStat =
+                providers
+                    .exec {
+                        commandLine("git", "--no-pager", "diff", "--cached", "--stat", "--", openApiDir.absolutePath)
+                    }.standardOutput.asText
+                    .get()
+                    .trim()
+
+            val diffSummary =
+                buildList {
+                    add("Changed files detected under 'openApi/':")
+                    addAll(changedFiles)
+
+                    if (diffStat.isNotEmpty()) {
+                        add("")
+                        add("Unstaged diff summary:")
+                        add(diffStat)
+                    }
+
+                    if (cachedDiffStat.isNotEmpty()) {
+                        add("")
+                        add("Staged diff summary:")
+                        add(cachedDiffStat)
+                    }
+                }.joinToString("\n")
+
             throw GradleException(
                 "ERROR: OpenAPI schemas are out of sync with your code changes!\n" +
-                        "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
+                        "$diffSummary\n\n" +
+                        "Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
             )
         }
 

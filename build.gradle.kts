@@ -1,6 +1,6 @@
 plugins {
     java
-    id("org.springframework.boot") version "4.0.7"
+    id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
     id("com.diffplug.spotless") version "7.2.1"
@@ -106,7 +106,7 @@ tasks.register("verifyOpenApiSync") {
         if (status.isNotEmpty()) {
             throw GradleException(
                 "ERROR: OpenAPI schemas are out of sync with your code changes!\n" +
-                    "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
+                        "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
             )
         }
 

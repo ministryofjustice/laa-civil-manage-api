@@ -47,16 +47,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
-
-    // This addresses a vulnerability with transient dependency in Jackson serializer.
-    constraints {
-        implementation("com.fasterxml.jackson.core:jackson-core") {
-            version {
-                strictly("2.21.4")
-            }
-            because("older Jackson 2.21.x releases have known vulnerabilities")
-        }
-    }
 }
 
 openApi {
@@ -106,7 +96,7 @@ tasks.register("verifyOpenApiSync") {
         if (status.isNotEmpty()) {
             throw GradleException(
                 "ERROR: OpenAPI schemas are out of sync with your code changes!\n" +
-                    "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
+                        "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
             )
         }
 

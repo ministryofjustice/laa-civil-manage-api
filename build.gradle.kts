@@ -52,9 +52,9 @@ dependencies {
     constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
             version {
-                strictly("2.21.4")
+                strictly("2.21.1")
             }
-            because("older Jackson 2.21.x releases have known vulnerabilities")
+            because("version 2.20.2 has a DoS vulnerability (CVE-2025-52999)")
         }
     }
 }

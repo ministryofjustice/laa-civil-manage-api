@@ -1,5 +1,5 @@
 # Specify java runtime base image
-FROM amazoncorretto:26-alpine@sha256:5f73844deb7a511f1f3f257525968a5175cd669b9d1abb039db21682c97cff8d
+FROM amazoncorretto:26-alpine@sha256:c232ebdeb14ffcefb98645016cee3247bc11bd8770505b2dc23ec691a3712f7f
 
 # Set up working directory in the container
 RUN mkdir -p /opt/laa-civil-manage-api/

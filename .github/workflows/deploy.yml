@@ -86,7 +86,7 @@ jobs:
     needs:
       - build-docker-image
     if: github.actor != 'renovate[bot]'
-    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/sast.yml@fd25ff3494aca9c3c3e4e17bfbebf2ab97631311 # TODO - update to main once code is merged in laa-reusable-github-actions
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/sast.yml@df9a4a8ad625a391c27ccf81a1c1a2d7b23e6474
     permissions:
       id-token: write
       contents: read

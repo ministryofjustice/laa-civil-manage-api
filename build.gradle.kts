@@ -47,6 +47,13 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
+
+    constraints {
+        // Temporary: force logback-core >= 1.5.36 until Spring Boot includes a safe version.
+        // Fix for SNYK-JAVA-CHQOSLOGBACK-17675439 (Expression Injection, High).
+        // Remove this constraint once Spring Boot's dependency management includes logback-core >= 1.5.36.
+        implementation("ch.qos.logback:logback-core:1.5.36")
+    }
 }
 
 openApi {

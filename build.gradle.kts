@@ -12,7 +12,7 @@ description = "Demo project for Spring Boot"
 
 // Temporary: override Spring Boot BOM's logback version to fix SNYK-JAVA-CHQOSLOGBACK-17675439
 // (Expression Injection, High severity). Remove once Spring Boot ships with logback-core >= 1.5.36.
-extra["logback.version"] = "1.5.36"
+//extra["logback.version"] = "1.5.36"
 
 java {
     toolchain {
@@ -100,7 +100,7 @@ tasks.register("verifyOpenApiSync") {
         if (status.isNotEmpty()) {
             throw GradleException(
                 "ERROR: OpenAPI schemas are out of sync with your code changes!\n" +
-                    "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
+                        "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
             )
         }
 

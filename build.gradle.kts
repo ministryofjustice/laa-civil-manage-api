@@ -1,6 +1,6 @@
 plugins {
     java
-    id("org.springframework.boot") version "4.0.7"
+    id("org.springframework.boot") version "4.1.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
     id("com.diffplug.spotless") version "7.2.1"
@@ -12,7 +12,11 @@ description = "Demo project for Spring Boot"
 
 // Temporary: override Spring Boot BOM's logback version to fix SNYK-JAVA-CHQOSLOGBACK-17675439
 // (Expression Injection, High severity). Remove once Spring Boot ships with logback-core >= 1.5.36.
-// extra["logback.version"] = "1.5.36"
+extra["logback.version"] = "1.5.36"
+
+// Temporary: override Spring Boot BOM's Tomcat version to fix SNYK-JAVA-ORGAPACHETOMCATEMBED-17732890
+// and SNYK-JAVA-ORGAPACHETOMCATEMBED-17733746. Remove once Spring Boot ships with tomcat-embed-core >= 11.0.23.
+extra["tomcat.version"] = "11.0.23"
 
 java {
     toolchain {
@@ -100,7 +104,7 @@ tasks.register("verifyOpenApiSync") {
         if (status.isNotEmpty()) {
             throw GradleException(
                 "ERROR: OpenAPI schemas are out of sync with your code changes!\n" +
-                    "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
+                        "Files under 'openApi/' have changed. Please commit the updated versions (regenerate locally using ./gradlew generateOpenApiDocs).",
             )
         }
 

@@ -74,7 +74,7 @@ jobs:
         id: build_and_push
         uses: ./.github/actions/docker_build_and_push
         with:
-          image_registry: ${{ secrets.ECR_REGISTRY_URL }}
+          image_registry: ${{ steps.login-ecr.outputs.registry }}
           image_repo: ${{ vars.API_ECR_REPOSITORY }}
           dockerfile_path: Dockerfile
           image_tag: ${{ github.sha }}
@@ -86,7 +86,7 @@ jobs:
     needs:
       - build-docker-image
     if: github.actor != 'renovate[bot]'
-    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/sast.yml@0cb7eb8ab4bf643986ab36ecf3ffcdffa9b55214
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/sast.yml@df9a4a8ad625a391c27ccf81a1c1a2d7b23e6474
     permissions:
       id-token: write
       contents: read
@@ -95,7 +95,10 @@ jobs:
     with:
       image_uri: ${{ needs.build-docker-image.outputs.image_uri }}
       ecr_session_name: github-cicd-laa-civil-manage-api-scan-${{ github.run_number }}
-    secrets: inherit
+    secrets:
+      SNYK_CLIENT_ID: ${{ secrets.SNYK_CLIENT_ID }}
+      SNYK_CLIENT_SECRET: ${{ secrets.SNYK_CLIENT_SECRET }}
+      ECR_ROLE_TO_ASSUME: ${{ secrets.API_ECR_ROLE_TO_ASSUME }}
 
   zap-scan:
     name: ZAP Security Scanning

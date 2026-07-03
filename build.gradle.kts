@@ -1,6 +1,6 @@
 plugins {
     java
-    id("org.springframework.boot") version "4.0.6"
+    id("org.springframework.boot") version "4.1.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
     id("com.diffplug.spotless") version "7.2.1"
@@ -9,6 +9,14 @@ plugins {
 group = "uk.gov.justice"
 version = "0.0.1-SNAPSHOT"
 description = "Demo project for Spring Boot"
+
+// Temporary: override Spring Boot BOM's logback version to fix SNYK-JAVA-CHQOSLOGBACK-17675439
+// (Expression Injection, High severity). Remove once Spring Boot ships with logback-core >= 1.5.36.
+extra["logback.version"] = "1.5.36"
+
+// Temporary: override Spring Boot BOM's Tomcat version to fix SNYK-JAVA-ORGAPACHETOMCATEMBED-17732890
+// and SNYK-JAVA-ORGAPACHETOMCATEMBED-17733746. Remove once Spring Boot ships with tomcat-embed-core >= 11.0.23.
+extra["tomcat.version"] = "11.0.23"
 
 java {
     toolchain {
@@ -47,16 +55,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.fasterxml.jackson.core:jackson-databind")
-
-    // This addresses a vulnerability with transient dependency in Jackson serializer.
-    constraints {
-        implementation("com.fasterxml.jackson.core:jackson-core") {
-            version {
-                strictly("2.21.1")
-            }
-            because("version 2.20.2 has a DoS vulnerability (CVE-2025-52999)")
-        }
-    }
 }
 
 openApi {

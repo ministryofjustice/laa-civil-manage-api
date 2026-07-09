@@ -26,3 +26,8 @@ logging:
       console: ""
   pattern:
     console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr([%X{traceId:-},%X{spanId:-}]){yellow} %clr(%-35logger{35}){cyan} : %m%n"
+
+laa-civil-manage-api:
+  access-data-store:
+    operation-base-urls:
+      get-applications: https://main-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk

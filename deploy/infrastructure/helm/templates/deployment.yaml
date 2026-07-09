@@ -60,6 +60,8 @@ spec:
               value: {{ .Values.env.adsTenantDomain | quote }}
             - name: ADS_CLIENT_ID
               value: {{ .Values.env.adsClientId | quote }}
+            - name: ACCESS_DATA_STORE_BASE_URL
+              value: {{ .Values.env.accessDataStoreBaseUrl | quote }}
             - name: AZURE_ENTRA_API_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:

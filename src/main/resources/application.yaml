@@ -58,7 +58,7 @@ laa-civil-manage-api:
       update-draft: http://localhost:8080/mock-access-data-store
       get-drafts: http://localhost:8080/mock-access-data-store
       delete-draft: http://localhost:8080/mock-access-data-store
-      get-applications: https://main-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk
+      get-applications: ${ACCESS_DATA_STORE_BASE_URL}
   expert-types:
     - A & E Consultant
     - Aboriculturist

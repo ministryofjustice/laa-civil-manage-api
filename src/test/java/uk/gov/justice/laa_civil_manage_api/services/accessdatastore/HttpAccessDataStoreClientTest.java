@@ -2,6 +2,7 @@ package uk.gov.justice.laa_civil_manage_api.services.accessdatastore;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.queryParam;
@@ -43,7 +44,7 @@ class HttpAccessDataStoreClientTest {
     AccessDataStoreProperties properties =
         new AccessDataStoreProperties(
             BASE_URL, Map.of(), Duration.ofSeconds(3), Duration.ofSeconds(5));
-    client = new HttpAccessDataStoreClient(builder, properties);
+    client = new HttpAccessDataStoreClient(builder.build(), properties);
   }
 
   @Test
@@ -106,7 +107,7 @@ class HttpAccessDataStoreClientTest {
             Duration.ofSeconds(3),
             Duration.ofSeconds(5));
 
-    client = new HttpAccessDataStoreClient(builder, properties);
+    client = new HttpAccessDataStoreClient(builder.build(), properties);
 
     server
         .expect(requestTo(operationUrl + "/applications/" + applicationId + "/prior-authority"))
@@ -247,6 +248,20 @@ class HttpAccessDataStoreClientTest {
         .andRespond(withNoContent());
 
     client.deleteDraft(draftId);
+    server.verify();
+  }
+
+  @Test
+  void getApplicationsGetsFromAdsWithServiceNameHeader() {
+    server
+        .expect(requestTo(BASE_URL + "/api/v0/applications"))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
+        .andRespond(withSuccess("[{\"id\":\"APP-1\"}]", MediaType.APPLICATION_JSON));
+
+    String result = client.getApplications();
+
+    assertEquals("[{\"id\":\"APP-1\"}]", result);
     server.verify();
   }
 }

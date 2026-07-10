@@ -40,6 +40,7 @@ public class PriorAuthorityDraftService {
         draft.priorAuthorityType(),
         draft.expertType(),
         draft.billingType());
+
     DraftCreatedResponse response = accessDataStoreClient.createDraft(toEnvelope(draft));
     log.info(
         "Created prior authority draft: draftId={}, applicationId={}",

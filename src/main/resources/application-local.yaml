@@ -1,6 +1,33 @@
+spring:
+  config:
+    import: "optional:file:.env[.properties]"
+  security:
+    oauth2:
+      # --- Inbound Security (Validates tokens from the Node UI) ---
+      resourceserver:
+        jwt:
+          audiences:
+            - ${AZURE_ENTRA_API_CLIENT_ID}
+            - api://devlexternal.onmicrosoft.com/${AZURE_ENTRA_API_CLIENT_ID}
+            - 770fe17c-7942-4c3d-8608-4f7f367d95ce
+
+custom:
+  proxy:
+    host: ""
+    port: 0
+
 logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLogger: INFO
   structured:
     format:
       console: ""
   pattern:
     console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr([%X{traceId:-},%X{spanId:-}]){yellow} %clr(%-35logger{35}){cyan} : %m%n"
+
+laa-civil-manage-api:
+  access-data-store:
+    operation-base-urls:
+      get-applications: https://main-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk

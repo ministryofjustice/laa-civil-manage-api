@@ -24,9 +24,8 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
   private final RestClient restClient;
   private final AccessDataStoreProperties properties;
 
-  public HttpAccessDataStoreClient(
-      RestClient.Builder builder, AccessDataStoreProperties properties) {
-    this.restClient = builder.build();
+  public HttpAccessDataStoreClient(RestClient adsRestClient, AccessDataStoreProperties properties) {
+    this.restClient = adsRestClient;
     this.properties = properties;
   }
 
@@ -101,5 +100,17 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
   public void deleteDraft(UUID draftId) {
     String baseUrl = properties.urlFor(AccessDataStoreOperations.DELETE_DRAFT);
     restClient.delete().uri(baseUrl + "/drafts/{draftId}", draftId).retrieve().toBodilessEntity();
+  }
+
+  @Override
+  public String getApplications() {
+    String baseUrl = properties.urlFor(AccessDataStoreOperations.GET_APPLICATIONS);
+
+    return restClient
+        .get()
+        .uri(baseUrl + "/api/v0/applications")
+        .header("X-Service-Name", "CIVIL_APPLY")
+        .retrieve()
+        .body(String.class);
   }
 }

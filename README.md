@@ -13,7 +13,7 @@ This repo uses Spotless + Lefthook for local quality gates:
 
 ```bash
 mise install
-lefthook install
+mise exec -- lefthook install
 ```
 
 Configured hooks:
@@ -21,6 +21,13 @@ Configured hooks:
 - pre-push: `env -u JAVA_HOME ./gradlew test`
 
 The hooks explicitly unset `JAVA_HOME` to avoid failures in GUI Git clients that export `JAVA_HOME=undefined`.
+
+Running with the `local` profile needs Entra/ADS secrets. Copy the template and fill it in — `.env`
+is gitignored and loaded automatically (via `spring.config.import` in `application-local.yaml`):
+
+```bash
+cp .env.example .env             # then fill in the values; never commit .env
+```
 
 ```bash
 ./gradlew build                  # full build + tests

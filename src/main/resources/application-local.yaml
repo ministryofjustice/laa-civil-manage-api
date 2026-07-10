@@ -30,4 +30,4 @@ logging:
 laa-civil-manage-api:
   access-data-store:
     operation-base-urls:
-      get-applications: https://main-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk
+      get-applications: https://dev-token-enabled-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk

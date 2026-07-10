@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.security.oauth2.client.JwtBearerOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider;
@@ -16,6 +17,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.client.OAuth2ClientHttpRequestInterceptor;
+import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreProperties;
@@ -57,11 +59,8 @@ public class RestClientConfig {
             .configureMessageConverters(
                 builder -> {
                   builder.registerDefaults();
-                  builder.addCustomConverter(
-                      new org.springframework.http.converter.FormHttpMessageConverter());
-                  builder.addCustomConverter(
-                      new org.springframework.security.oauth2.core.http.converter
-                          .OAuth2AccessTokenResponseHttpMessageConverter());
+                  builder.addCustomConverter(new FormHttpMessageConverter());
+                  builder.addCustomConverter(new OAuth2AccessTokenResponseHttpMessageConverter());
                 })
             .build());
 

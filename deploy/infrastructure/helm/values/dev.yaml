@@ -100,7 +100,7 @@ env:
   azureEntraApiClientId: "024c9bb4-b5fd-434b-abff-1d7d7c8776f4"
   adsTenantDomain: "devlexternal.onmicrosoft.com"
   adsClientId: "efb49b90-5365-456f-bc87-c5a613e0d08d"
-  accessDataStoreBaseUrl: "https://main-internal-laa-data-access-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk"
+  accessDataStoreBaseUrl: "https://dev-token-enabled-internal-laa-data-access-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk"
 
 # Additional volumes on the output Deployment definition.
 volumes: []

@@ -46,14 +46,24 @@ Run a single test class:
 ./gradlew test --tests "uk.gov.justice.laa_civil_manage_api.controllers.PriorAuthorityControllerTest"
 ```
 
+## Authentication
+
+This API is fully secured using Microsoft Entra ID via OAuth 2.0.
+
+* **Frontend API Calls:** All incoming requests must be authenticated using the **Authorization Code flow**. The frontend application attaches a valid user JWT (Bearer token) to the `Authorization` header of every request.
+* **Downstream API Calls:** Any request that needs to interact with the downstream Access Data Store utilizes the **On-Behalf-Of (OBO) flow**. The backend exchanges the user's incoming Entra token for a new token scoped specifically for the Data Store, ensuring strict, end-to-end user identity propagation.
+
+*(Note: If you need to test endpoints locally without a token, you can temporarily set `SKIP_AUTH=true` in your `.env` file).*
+
 ## Example requests
 
-All examples assume a local instance running at `http://localhost:8080`.
+All examples assume a local instance running at `http://localhost:8080`. Unless `SKIP_AUTH=true` is set locally, all requests require a valid Entra ID token in the `Authorization` header.
 
 ### Submit a prior-authority request
 
 ```bash
 curl -i -X POST http://localhost:8080/prior-authority \
+  -H "Authorization: Bearer <token>" \
   -H 'Content-Type: application/json' \
   -d '{
     "applicationId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
@@ -67,7 +77,6 @@ curl -i -X POST http://localhost:8080/prior-authority \
     "justification": "Specialist evidence is required to progress the case."
   }'
 ```
-
 ### Prior-authority drafts
 
 Drafts let users save a partially-completed prior-authority form and come back later.
@@ -78,6 +87,7 @@ For `timeMinutes`, use values from `0` to `59`. If the time is longer, add to `t
 
 ```bash
 curl -i -X POST http://localhost:8080/prior-authority/drafts \
+  -H "Authorization: Bearer <token>" \
   -H 'Content-Type: application/json' \
   -d '{
     "applicationId": "2a28f60d-fe15-43fe-92c3-5530595d5f51",
@@ -100,6 +110,7 @@ Returns `201` with `{"draftId": "..."}`
 
 ```bash
 curl -i -X PUT http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9d95-88f117a12b43 \
+  -H "Authorization: Bearer <token>" \
   -H 'Content-Type: application/json' \
   -d '{
     "applicationId": "2a28f60d-fe15-43fe-92c3-5530595d5f51",
@@ -118,18 +129,20 @@ curl -i -X PUT http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9
 #### Get a draft by ID
 
 ```bash
-curl -i http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9d95-88f117a12b43
+curl -i http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9d95-88f117a12b43 \
+  -H "Authorization: Bearer <token>"
 ```
 
 #### List the current user's drafts
 
 ```bash
-curl -i http://localhost:8080/prior-authority/drafts
-curl -i 'http://localhost:8080/prior-authority/drafts?applicationId=2a28f60d-fe15-43fe-92c3-5530595d5f51'
+curl -i http://localhost:8080/prior-authority/drafts -H "Authorization: Bearer <token>"
+curl -i 'http://localhost:8080/prior-authority/drafts?applicationId=2a28f60d-fe15-43fe-92c3-5530595d5f51' -H "Authorization: Bearer <token>"
 ```
 
 #### Delete a draft
 
 ```bash
-curl -i -X DELETE http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9d95-88f117a12b43
+curl -i -X DELETE http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9d95-88f117a12b43 \
+  -H "Authorization: Bearer <token>"
 ```

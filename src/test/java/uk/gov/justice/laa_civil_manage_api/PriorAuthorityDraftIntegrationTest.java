@@ -3,12 +3,15 @@ package uk.gov.justice.laa_civil_manage_api;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -22,6 +25,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.justice.laa_civil_manage_api.controllers.PriorAuthorityController.DraftIdResponse;
@@ -136,9 +142,21 @@ class PriorAuthorityDraftIntegrationTest {
 
   @LocalServerPort private int port;
 
+  @MockitoBean private JwtDecoder jwtDecoder;
+
+  @BeforeEach
+  void setUp() {
+    Jwt mockJwt =
+        Jwt.withTokenValue("test-token").header("alg", "none").claim("sub", "test-user").build();
+
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+  }
+
   @Test
   void fullDraftLifecycleFromPublicApiThroughMockAccessDataStore() {
-    RestClient restClient = RestClient.create();
+    RestClient restClient =
+        RestClient.builder().defaultHeader("Authorization", "Bearer test-token").build();
+
     UUID applicationId = UUID.randomUUID();
 
     PriorAuthorityDraft draft =
@@ -239,7 +257,8 @@ class PriorAuthorityDraftIntegrationTest {
 
   @Test
   void partiallyCompletedDraftIsAcceptedEvenThoughItWouldFailSubmitValidation() {
-    RestClient restClient = RestClient.create();
+    RestClient restClient =
+        RestClient.builder().defaultHeader("Authorization", "Bearer test-token").build();
 
     PriorAuthorityDraft incomplete =
         PriorAuthorityDraft.builder()
@@ -261,7 +280,9 @@ class PriorAuthorityDraftIntegrationTest {
 
   @Test
   void updatingNonExistentDraftReturns404FromAccessDataStoreAsA404() {
-    RestClient restClient = RestClient.create();
+    RestClient restClient =
+        RestClient.builder().defaultHeader("Authorization", "Bearer test-token").build();
+
     UUID unknownDraftId = UUID.randomUUID();
 
     PriorAuthorityDraft update =
@@ -286,5 +307,26 @@ class PriorAuthorityDraftIntegrationTest {
             .getStatusCode();
 
     assertEquals(HttpStatus.NOT_FOUND, status);
+  }
+
+  @Test
+  void draftRequestWithoutTokenReturns401Unauthorized() {
+    RestClient unauthenticatedClient = RestClient.create();
+
+    PriorAuthorityDraft draft =
+        PriorAuthorityDraft.builder().applicationId(UUID.randomUUID()).build();
+
+    HttpStatusCode status =
+        unauthenticatedClient
+            .post()
+            .uri("http://localhost:" + port + "/prior-authority/drafts")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(draft)
+            .retrieve()
+            .onStatus(_ -> true, (_, _) -> {})
+            .toBodilessEntity()
+            .getStatusCode();
+
+    assertEquals(HttpStatus.UNAUTHORIZED, status);
   }
 }

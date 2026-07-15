@@ -13,6 +13,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
@@ -43,6 +44,9 @@ public class SecurityConfig {
   @Value("${custom.proxy.port:0}")
   private int proxyPort;
 
+  @Value("${SKIP_AUTH:false}")
+  private boolean skipAuth;
+
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     // CSRF is disabled as API uses tokens instead of cookies. Without cookies, CSRF attacks are
@@ -53,10 +57,11 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             authz ->
                 authz
-                    .requestMatchers("/applications", "/applications/**")
-                    .authenticated()
+                    .requestMatchers(
+                        "/actuator/health", "/info", "/error", "/v3/api-docs/**", "/swagger-ui/**")
+                    .permitAll()
                     .anyRequest()
-                    .permitAll())
+                    .authenticated())
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}));
 
     return http.build();
@@ -103,5 +108,16 @@ public class SecurityConfig {
               JwtClaimNames.AUD, aud -> aud.stream().anyMatch(audiences::contains)));
     }
     return new DelegatingOAuth2TokenValidator<>(validators);
+  }
+
+  @Bean
+  public WebSecurityCustomizer webSecurityCustomizer() {
+    return (web) -> {
+      if (skipAuth) {
+        web.ignoring().anyRequest();
+      } else {
+        web.ignoring().requestMatchers("/mock-access-data-store/**");
+      }
+    };
   }
 }

@@ -2,12 +2,15 @@ package uk.gov.justice.laa_civil_manage_api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -16,9 +19,13 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
 import uk.gov.justice.laa_civil_manage_api.mockaccessdatastore.models.PriorAuthoritySubmission;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
@@ -98,9 +105,20 @@ class PriorAuthorityIntegrationTest {
 
   @LocalServerPort private int port;
 
+  @MockitoBean private JwtDecoder jwtDecoder;
+
+  @BeforeEach
+  void setUp() {
+    Jwt mockJwt =
+        Jwt.withTokenValue("test-token").header("alg", "none").claim("sub", "test-user").build();
+
+    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+  }
+
   @Test
   void postingAPriorAuthorityRequestFlowsThroughToTheMockAccessDataStore() {
-    RestClient restClient = RestClient.create();
+    RestClient restClient =
+        RestClient.builder().defaultHeader("Authorization", "Bearer test-token").build();
 
     PriorAuthority body =
         PriorAuthority.builder()
@@ -126,5 +144,29 @@ class PriorAuthorityIntegrationTest {
     assertNotNull(response.getBody());
     assertNotNull(response.getBody().submissionId());
     assertEquals(SubmissionStatus.ACCEPTED, response.getBody().status());
+  }
+
+  @Test
+  void requestWithoutTokenReturns401Unauthorized() {
+    RestClient unauthenticatedClient = RestClient.create();
+
+    PriorAuthority body =
+        PriorAuthority.builder()
+            .applicationId(UUID.randomUUID())
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
+            .build();
+
+    HttpStatusCode status =
+        unauthenticatedClient
+            .post()
+            .uri("http://localhost:" + port + "/prior-authority")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body)
+            .retrieve()
+            .onStatus(_ -> true, (_, _) -> {})
+            .toBodilessEntity()
+            .getStatusCode();
+
+    assertEquals(HttpStatus.UNAUTHORIZED, status);
   }
 }

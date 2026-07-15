@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -22,9 +23,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.justice.laa_civil_manage_api.config.SecurityConfig;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
@@ -32,6 +36,7 @@ import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationRespo
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraftSummary;
 import uk.gov.justice.laa_civil_manage_api.models.SubmissionStatus;
+import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.PriorAuthorityDraftService;
 import uk.gov.justice.laa_civil_manage_api.services.PriorAuthorityService;
 
@@ -451,5 +456,63 @@ class PriorAuthorityControllerTest {
         .andExpect(status().isNoContent());
 
     verify(draftService).delete(DRAFT_ID);
+  }
+
+  @Test
+  void uploadDocumentReturns200WithFileMetadata() throws Exception {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "evidence.pdf", "application/pdf", "pdf-content".getBytes());
+
+    when(priorAuthorityService.uploadDocument(any()))
+        .thenReturn(UploadedDocument.builder().fileName("evidence.pdf").build());
+
+    mockMvc
+        .perform(multipart("/prior-authority/documents").file(file))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.fileName").value("evidence.pdf"));
+  }
+
+  @Test
+  void uploadDocumentReturns400WhenFileIsEmpty() throws Exception {
+    MockMultipartFile emptyFile =
+        new MockMultipartFile("file", "empty.pdf", "application/pdf", new byte[0]);
+
+    when(priorAuthorityService.uploadDocument(any()))
+        .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "file must not be empty"));
+
+    mockMvc
+        .perform(multipart("/prior-authority/documents").file(emptyFile))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void uploadDocumentReturns400WhenFileTypeIsNotAllowed() throws Exception {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "script.js", "application/javascript", "alert(1)".getBytes());
+
+    when(priorAuthorityService.uploadDocument(any()))
+        .thenThrow(
+            new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "unsupported file type; allowed: DOC, DOCX, RTF, ODT, JPG, BMP, PNG, TIF, PDF"));
+
+    mockMvc
+        .perform(multipart("/prior-authority/documents").file(file))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void uploadDocumentReturns400WhenFileExceeds10Mb() throws Exception {
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "large.pdf", "application/pdf", new byte[(10 * 1024 * 1024) + 1]);
+
+    when(priorAuthorityService.uploadDocument(any()))
+        .thenThrow(
+            new ResponseStatusException(HttpStatus.BAD_REQUEST, "file size must not exceed 10MB"));
+
+    mockMvc
+        .perform(multipart("/prior-authority/documents").file(file))
+        .andExpect(status().isBadRequest());
   }
 }

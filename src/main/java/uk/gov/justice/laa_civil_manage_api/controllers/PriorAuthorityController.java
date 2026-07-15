@@ -13,12 +13,15 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraftSummary;
+import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.PriorAuthorityDraftService;
 import uk.gov.justice.laa_civil_manage_api.services.PriorAuthorityService;
 
@@ -54,6 +57,24 @@ public class PriorAuthorityController {
     PriorAuthorityApplicationResponse response = priorAuthorityService.submit(priorAuthority);
     URI location = URI.create("/prior-authority/" + response.submissionId());
     return ResponseEntity.created(location).body(response);
+  }
+
+  @Operation(
+      summary = "Upload a supporting document",
+      description =
+          "Accepts a multipart/form-data file upload from the frontend and returns the uploaded filename.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "File accepted.",
+        content = @Content(schema = @Schema(implementation = UploadedDocument.class))),
+    @ApiResponse(responseCode = "400", description = "No file supplied or file is empty.")
+  })
+  @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<UploadedDocument> uploadDocument(
+      @Parameter(description = "File to upload.") @RequestPart("file") MultipartFile file) {
+    UploadedDocument uploadedDocument = priorAuthorityService.uploadDocument(file);
+    return ResponseEntity.ok(uploadedDocument);
   }
 
   @Operation(

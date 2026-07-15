@@ -12,4 +12,6 @@ public record UploadedDocument(
             example = "abc123.pdf",
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotBlank
-        String fileName) {}
+        String fileName,
+    @NotBlank Long fileSize,
+    @NotBlank String hostedUrl) {}

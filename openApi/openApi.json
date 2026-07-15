@@ -220,6 +220,57 @@
         }
       }
     },
+    "/prior-authority/documents": {
+      "post": {
+        "tags": [
+          "Prior Authority"
+        ],
+        "summary": "Upload a supporting document",
+        "description": "Accepts a multipart/form-data file upload from the frontend and returns the uploaded filename.",
+        "operationId": "uploadDocument",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "File to upload."
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File accepted.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadedDocument"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No file supplied or file is empty.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadedDocument"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/expertTypes": {
       "get": {
         "tags": [
@@ -401,10 +452,20 @@
             "description": "Filename of the uploaded document.",
             "example": "abc123.pdf",
             "minLength": 1
+          },
+          "fileSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "hostedUrl": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
-          "fileName"
+          "fileName",
+          "fileSize",
+          "hostedUrl"
         ]
       },
       "PriorAuthority": {

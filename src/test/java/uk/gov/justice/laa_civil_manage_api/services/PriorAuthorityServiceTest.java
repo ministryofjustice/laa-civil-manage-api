@@ -1,6 +1,8 @@
 package uk.gov.justice.laa_civil_manage_api.services;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -9,11 +11,14 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
 import uk.gov.justice.laa_civil_manage_api.models.SubmissionStatus;
+import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
 
 class PriorAuthorityServiceTest {
@@ -46,5 +51,40 @@ class PriorAuthorityServiceTest {
 
     assertSame(expected, actual);
     verify(client).submitPriorAuthority(pa);
+  }
+
+  @Test
+  void uploadDocumentReturnsUploadedFilename() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "evidence.pdf", "application/pdf", "content".getBytes());
+
+    UploadedDocument uploadedDocument = service.uploadDocument(file);
+
+    assertEquals("evidence.pdf", uploadedDocument.fileName());
+  }
+
+  @Test
+  void uploadDocumentThrowsWhenFileIsEmpty() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "empty.pdf", "application/pdf", new byte[0]);
+
+    assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+  }
+
+  @Test
+  void uploadDocumentThrowsWhenFileIsGreaterThan10Mb() {
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "large.pdf", "application/pdf", new byte[(10 * 1024 * 1024) + 1]);
+
+    assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+  }
+
+  @Test
+  void uploadDocumentThrowsWhenFileTypeIsNotAllowed() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "malware.exe", "application/octet-stream", "x".getBytes());
+
+    assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
   }
 }

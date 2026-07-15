@@ -1,16 +1,27 @@
 package uk.gov.justice.laa_civil_manage_api.services;
 
+import java.util.Locale;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
+import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PriorAuthorityService {
+
+  private static final long MAX_FILE_SIZE_BYTES = 10L * 1024 * 1024;
+  private static final Set<String> ALLOWED_FILE_EXTENSIONS =
+      Set.of("doc", "docx", "rtf", "odt", "jpg", "bmp", "png", "tif", "pdf");
 
   private final AccessDataStoreClient accessDataStoreClient;
 
@@ -30,5 +41,42 @@ public class PriorAuthorityService {
 
     log.info("Prior authority submitted: applicationId={}", priorAuthority.applicationId());
     return response;
+  }
+
+  public UploadedDocument uploadDocument(MultipartFile file) {
+    if (file == null || file.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file must not be empty");
+    }
+
+    if (file.getSize() > MAX_FILE_SIZE_BYTES) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file size must not exceed 10MB");
+    }
+
+    String originalFilename =
+        StringUtils.hasText(file.getOriginalFilename())
+            ? file.getOriginalFilename()
+            : "uploaded-file";
+
+    Long originalFileSize = file.getSize();
+
+    String extension = StringUtils.getFilenameExtension(originalFilename);
+    String normalizedExtension = extension == null ? "" : extension.toLowerCase(Locale.ROOT);
+    if (!ALLOWED_FILE_EXTENSIONS.contains(normalizedExtension)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "unsupported file type; allowed: DOC, DOCX, RTF, ODT, JPG, BMP, PNG, TIF, PDF");
+    }
+
+    log.info(
+        "Received document upload: filename={}, sizeBytes={}, contentType={}",
+        originalFilename,
+        file.getSize(),
+        file.getContentType());
+
+    return UploadedDocument.builder()
+        .fileName(originalFilename)
+        .fileSize(originalFileSize)
+        .hostedUrl("https://example.com/" + originalFilename)
+        .build();
   }
 }

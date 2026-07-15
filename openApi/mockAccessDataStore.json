@@ -407,10 +407,20 @@
             "description": "Filename of the uploaded document.",
             "example": "abc123.pdf",
             "minLength": 1
+          },
+          "fileSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "hostedUrl": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
-          "fileName"
+          "fileName",
+          "fileSize",
+          "hostedUrl"
         ]
       },
       "PriorAuthorityApplicationResponse": {

@@ -53,7 +53,7 @@ spec:
 
           env:
             - name: SKIP_AUTH
-            - value: {{ .Values.env.skipAuth | default "false" | quote }}
+              value: {{ .Values.env.skipAuth | default "false" | quote }}
             - name: AZURE_ENTRA_TENANT_ID
               value: {{ .Values.env.azureEntraTenantId | quote }}
             - name: AZURE_ENTRA_API_CLIENT_ID

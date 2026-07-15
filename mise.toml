@@ -26,3 +26,7 @@ run = "./gradlew generateOpenApiDocs"
 [tasks.zap]
 description = "Run Zap security scanning"
 run = "./deploy/scripts/zap/zap-run-local.sh"
+
+[tasks.check-deps]
+description = "Check for outdated dependencies"
+run = "./gradlew dependencyUpdates"

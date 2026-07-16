@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -109,4 +110,48 @@ class PriorAuthorityServiceTest {
 
     assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
   }
+
+  @Test
+  void uploadDocumentThrowsWhenFileIsNull() {
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(null));
+
+    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+  }
+
+  @Test
+  void uploadDocumentThrowsWhenFileHasNoExtension() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "nodotinfilename", "application/pdf", "content".getBytes());
+
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+
+    assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
+  }
+
+  @Test
+  void submitLogsCorrectlyWhenUploadedDocumentsIsNonNull() {
+    PriorAuthority pa =
+        PriorAuthority.builder()
+            .applicationId(UUID.randomUUID())
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
+            .billingType(BillingType.FIXED_RATE)
+            .totalAmount(new BigDecimal("100.00"))
+            .justification("Test.")
+            .uploadedDocuments(List.of())
+            .build();
+    PriorAuthorityApplicationResponse expected =
+        PriorAuthorityApplicationResponse.builder()
+            .submissionId(UUID.randomUUID())
+            .status(SubmissionStatus.ACCEPTED)
+            .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
+            .build();
+    when(client.submitPriorAuthority(pa)).thenReturn(expected);
+
+    PriorAuthorityApplicationResponse actual = service.submit(pa);
+
+    assertSame(expected, actual);
+  }
 }
+

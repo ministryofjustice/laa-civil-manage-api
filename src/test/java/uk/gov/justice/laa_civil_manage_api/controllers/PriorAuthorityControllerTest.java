@@ -490,6 +490,19 @@ class PriorAuthorityControllerTest {
     }
 
     @Test
+    void uploadDocumentReturns400WhenFilenameIsMissing() throws Exception {
+        MockMultipartFile file =
+                new MockMultipartFile("file", null, "application/pdf", "pdf-content".getBytes());
+
+        when(priorAuthorityService.uploadDocument(any()))
+                .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "file name must not be empty"));
+
+        mockMvc
+                .perform(multipart("/prior-authority/documents").file(file))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void uploadDocumentReturns415WhenFileTypeIsNotAllowed() throws Exception {
         MockMultipartFile file =
                 new MockMultipartFile("file", "script.js", "application/javascript", "alert(1)".getBytes());

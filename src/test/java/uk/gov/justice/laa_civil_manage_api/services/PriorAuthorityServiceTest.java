@@ -89,6 +89,18 @@ class PriorAuthorityServiceTest {
     }
 
     @Test
+    void uploadDocumentThrowsWhenFilenameIsMissing() {
+        MockMultipartFile file =
+                new MockMultipartFile("file", null, "application/pdf", "content".getBytes());
+
+        ResponseStatusException ex =
+                assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        assertEquals("file name must not be empty", ex.getReason());
+    }
+
+    @Test
     void uploadDocumentThrowsWhenFileTypeIsNotAllowed() {
         MockMultipartFile file =
                 new MockMultipartFile("file", "malware.exe", "application/octet-stream", "x".getBytes());

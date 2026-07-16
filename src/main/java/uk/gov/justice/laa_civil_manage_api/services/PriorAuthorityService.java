@@ -54,10 +54,10 @@ public class PriorAuthorityService {
                     HttpStatus.CONTENT_TOO_LARGE, "file size must not exceed 10MB");
         }
 
-        String originalFilename =
-                StringUtils.hasText(file.getOriginalFilename())
-                        ? file.getOriginalFilename()
-                        : "uploaded-file";
+        String originalFilename = file.getOriginalFilename();
+        if (!StringUtils.hasText(originalFilename)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file name must not be empty");
+        }
 
         Long originalFileSize = file.getSize();
 

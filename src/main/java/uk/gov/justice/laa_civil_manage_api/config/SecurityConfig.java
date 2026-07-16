@@ -5,6 +5,7 @@ import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +14,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
@@ -44,13 +44,20 @@ public class SecurityConfig {
   @Value("${custom.proxy.port:0}")
   private int proxyPort;
 
-  @Value("${SKIP_AUTH:false}")
-  private boolean skipAuth;
+  @Bean
+  @ConditionalOnProperty(name = "SKIP_AUTH", havingValue = "true")
+  public SecurityFilterChain skipAuthFilterChain(HttpSecurity http) throws Exception {
+    http.csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(authz -> authz.anyRequest().permitAll());
+
+    return http.build();
+  }
 
   @Bean
-  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    // CSRF is disabled as API uses tokens instead of cookies. Without cookies, CSRF attacks are
-    // impossible.
+  @ConditionalOnProperty(name = "SKIP_AUTH", havingValue = "false", matchIfMissing = true)
+  public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -58,7 +65,13 @@ public class SecurityConfig {
             authz ->
                 authz
                     .requestMatchers(
-                        "/actuator/health", "/info", "/error", "/v3/api-docs/**", "/swagger-ui/**")
+                        "/actuator/health",
+                        "/info",
+                        "/error",
+                        "/metrics",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/mock-access-data-store/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
@@ -108,16 +121,5 @@ public class SecurityConfig {
               JwtClaimNames.AUD, aud -> aud.stream().anyMatch(audiences::contains)));
     }
     return new DelegatingOAuth2TokenValidator<>(validators);
-  }
-
-  @Bean
-  public WebSecurityCustomizer webSecurityCustomizer() {
-    return (web) -> {
-      if (skipAuth) {
-        web.ignoring().anyRequest();
-      } else {
-        web.ignoring().requestMatchers("/mock-access-data-store/**");
-      }
-    };
   }
 }

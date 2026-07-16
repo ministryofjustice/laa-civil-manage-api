@@ -46,6 +46,23 @@ Run a single test class:
 ./gradlew test --tests "uk.gov.justice.laa_civil_manage_api.controllers.PriorAuthorityControllerTest"
 ```
 
+### Code coverage
+
+Coverage is measured with [JaCoCo](https://docs.gradle.org/current/userguide/jacoco_plugin.html). Generate a
+report locally to check your coverage before raising a PR:
+
+```bash
+./gradlew test jacocoTestReport   # run tests and generate the coverage report
+```
+
+The report is written under `build/reports/jacoco/`:
+- `jacoco.xml` — machine-readable report (consumed by CI)
+- `html/index.html` — open in a browser for a line-by-line breakdown
+
+On a pull request, CI runs this report and posts a coverage summary as a PR comment. The build gates on an
+overall coverage threshold (`min-coverage-overall` in `.github/workflows/deploy.yml`), so a significant drop
+will be flagged there.
+
 ## Authentication
 
 This API is fully secured using Microsoft Entra ID via OAuth 2.0.

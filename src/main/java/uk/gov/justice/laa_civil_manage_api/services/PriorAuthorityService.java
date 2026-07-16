@@ -21,7 +21,7 @@ public class PriorAuthorityService {
 
   private static final long MAX_FILE_SIZE_BYTES = 10L * 1024 * 1024;
   private static final List<String> ALLOWED_FILE_EXTENSIONS =
-      List.of("doc", "docx", "rtf", "odt", "jpg", "bmp", "png", "tif", "pdf");
+      List.of("pdf", "doc", "docx", "odt", "rtf", "jpeg", "jpg", "png", "bmp", "tiff", "tif");
 
   private final AccessDataStoreClient accessDataStoreClient;
 

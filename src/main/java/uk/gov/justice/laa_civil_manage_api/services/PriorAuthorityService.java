@@ -1,8 +1,5 @@
 package uk.gov.justice.laa_civil_manage_api.services;
 
-import java.util.Locale;
-import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -15,14 +12,17 @@ import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationRespo
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
 
+import java.util.List;
+import java.util.Locale;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PriorAuthorityService {
 
     private static final long MAX_FILE_SIZE_BYTES = 10L * 1024 * 1024;
-    private static final Set<String> ALLOWED_FILE_EXTENSIONS =
-            Set.of("doc", "docx", "rtf", "odt", "jpg", "bmp", "png", "tif", "pdf");
+    private static final List<String> ALLOWED_FILE_EXTENSIONS =
+            List.of("doc", "docx", "rtf", "odt", "jpg", "bmp", "png", "tif", "pdf");
 
     private final AccessDataStoreClient accessDataStoreClient;
 
@@ -66,13 +66,14 @@ public class PriorAuthorityService {
         if (!ALLOWED_FILE_EXTENSIONS.contains(normalizedExtension)) {
             throw new ResponseStatusException(
                     HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                    "unsupported file type; allowed: DOC, DOCX, RTF, ODT, JPG, BMP, PNG, TIF, PDF");
+                    "unsupported file type; allowed: "
+                            + String.join(", ", ALLOWED_FILE_EXTENSIONS).toUpperCase(Locale.ROOT));
         }
 
         log.info(
                 "Received document upload: filename={}, sizeBytes={}, contentType={}",
                 originalFilename,
-                file.getSize(),
+                originalFileSize,
                 file.getContentType());
 
         return UploadedDocument.builder()

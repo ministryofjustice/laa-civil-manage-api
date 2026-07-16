@@ -15,6 +15,10 @@ run = "./gradlew bootRun"
 description = "Run unit tests"
 run = "./gradlew test"
 
+[tasks.format]
+description = "Format and check code using Spotless"
+run = "./gradlew spotlessApply spotlessCheck"
+
 [tasks.apidocs]
 description = "Generate OpenAPI Schema from controllers"
 run = "./gradlew generateOpenApiDocs"
@@ -22,3 +26,7 @@ run = "./gradlew generateOpenApiDocs"
 [tasks.zap]
 description = "Run Zap security scanning"
 run = "./deploy/scripts/zap/zap-run-local.sh"
+
+[tasks.check-deps]
+description = "Check for outdated dependencies"
+run = "./gradlew dependencyUpdates"

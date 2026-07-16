@@ -4,7 +4,8 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
     id("com.diffplug.spotless") version "7.2.1"
-    id("com.adarshr.test-logger") version "4.0.0" // 🔗 Added for beautiful, clean Mocha-style logs
+    id("com.adarshr.test-logger") version "4.0.0"
+    id("com.github.ben-manes.versions") version "0.54.0"
 }
 
 group = "uk.gov.justice"
@@ -35,6 +36,13 @@ repositories {
     mavenCentral()
 }
 
+dependencyManagement {
+    dependencies {
+        dependency("com.fasterxml.jackson.core:jackson-databind:2.21.5")
+        dependency("tools.jackson.core:jackson-databind:3.1.5")
+    }
+}
+
 dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 
@@ -50,15 +58,12 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    testImplementation("io.rest-assured:spring-mock-mvc:6.0.0")
+    testImplementation("io.rest-assured:spring-mock-mvc:6.0.1")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("com.fasterxml.jackson.core:jackson-databind")
 }
 
 openApi {
@@ -74,7 +79,6 @@ openApi {
             listOf(
                 "--spring.security.oauth2.client.registration.ads-api.client-id=openapi-doc-gen",
                 "--spring.security.oauth2.client.registration.ads-api.client-secret=openapi-doc-gen",
-                // 🔗 Fixed: Swapped out old JWK string for structural variables required by application.yaml
                 "--AZURE_ENTRA_TENANT_ID=openapi-doc-gen-tenant",
                 "--ADS_TENANT_DOMAIN=devlexternal.onmicrosoft.com",
                 "--ADS_CLIENT_ID=openapi-doc-gen-ads",

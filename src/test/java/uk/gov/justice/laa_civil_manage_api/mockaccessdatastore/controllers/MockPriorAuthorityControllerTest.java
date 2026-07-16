@@ -1,5 +1,6 @@
 package uk.gov.justice.laa_civil_manage_api.mockaccessdatastore.controllers;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,7 +39,8 @@ class MockPriorAuthorityControllerTest {
         .perform(
             post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                .content(body)
+                .with(jwt()))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.submissionId").exists())
         .andExpect(jsonPath("$.status").value("ACCEPTED"));
@@ -59,13 +61,13 @@ class MockPriorAuthorityControllerTest {
                   "justification": "Required expert evidence."
                 }
                 """;
-
     MvcResult first =
         mockMvc
             .perform(
                 post("/mock-access-data-store/applications/{id}/prior-authority", applicationId)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(body))
+                    .content(body)
+                    .with(jwt()))
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -73,7 +75,8 @@ class MockPriorAuthorityControllerTest {
         .perform(
             post("/mock-access-data-store/applications/{id}/prior-authority", applicationId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                .content(body)
+                .with(jwt()))
         .andExpect(status().isCreated())
         .andExpect(
             result -> {
@@ -96,12 +99,12 @@ class MockPriorAuthorityControllerTest {
                   "totalAmount": 100.00
                 }
                 """;
-
     mockMvc
         .perform(
             post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                .content(body)
+                .with(jwt()))
         .andExpect(status().isBadRequest());
   }
 
@@ -120,12 +123,12 @@ class MockPriorAuthorityControllerTest {
                   "justification": "Specialist evidence is required."
                 }
                 """;
-
     mockMvc
         .perform(
             post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
+                .content(body)
+                .with(jwt()))
         .andExpect(status().isBadRequest());
   }
 }

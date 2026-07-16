@@ -2,6 +2,7 @@ package uk.gov.justice.laa_civil_manage_api.services;
 
 import java.util.Locale;
 import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,64 +20,65 @@ import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataSt
 @RequiredArgsConstructor
 public class PriorAuthorityService {
 
-  private static final long MAX_FILE_SIZE_BYTES = 10L * 1024 * 1024;
-  private static final Set<String> ALLOWED_FILE_EXTENSIONS =
-      Set.of("doc", "docx", "rtf", "odt", "jpg", "bmp", "png", "tif", "pdf");
+    private static final long MAX_FILE_SIZE_BYTES = 10L * 1024 * 1024;
+    private static final Set<String> ALLOWED_FILE_EXTENSIONS =
+            Set.of("doc", "docx", "rtf", "odt", "jpg", "bmp", "png", "tif", "pdf");
 
-  private final AccessDataStoreClient accessDataStoreClient;
+    private final AccessDataStoreClient accessDataStoreClient;
 
-  public PriorAuthorityApplicationResponse submit(PriorAuthority priorAuthority) {
-    int documentCount =
-        priorAuthority.uploadedDocuments() == null ? 0 : priorAuthority.uploadedDocuments().size();
-    log.info(
-        "Submitting prior authority: applicationId={}, priorAuthorityType={}, expertType={}, billingType={}, documentCount={}",
-        priorAuthority.applicationId(),
-        priorAuthority.priorAuthorityType(),
-        priorAuthority.expertType(),
-        priorAuthority.billingType(),
-        documentCount);
+    public PriorAuthorityApplicationResponse submit(PriorAuthority priorAuthority) {
+        int documentCount =
+                priorAuthority.uploadedDocuments() == null ? 0 : priorAuthority.uploadedDocuments().size();
+        log.info(
+                "Submitting prior authority: applicationId={}, priorAuthorityType={}, expertType={}, billingType={}, documentCount={}",
+                priorAuthority.applicationId(),
+                priorAuthority.priorAuthorityType(),
+                priorAuthority.expertType(),
+                priorAuthority.billingType(),
+                documentCount);
 
-    PriorAuthorityApplicationResponse response =
-        accessDataStoreClient.submitPriorAuthority(priorAuthority);
+        PriorAuthorityApplicationResponse response =
+                accessDataStoreClient.submitPriorAuthority(priorAuthority);
 
-    log.info("Prior authority submitted: applicationId={}", priorAuthority.applicationId());
-    return response;
-  }
-
-  public UploadedDocument uploadDocument(MultipartFile file) {
-    if (file == null || file.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file must not be empty");
+        log.info("Prior authority submitted: applicationId={}", priorAuthority.applicationId());
+        return response;
     }
 
-    if (file.getSize() > MAX_FILE_SIZE_BYTES) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file size must not exceed 10MB");
+    public UploadedDocument uploadDocument(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file must not be empty");
+        }
+
+        if (file.getSize() > MAX_FILE_SIZE_BYTES) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONTENT_TOO_LARGE, "file size must not exceed 10MB");
+        }
+
+        String originalFilename =
+                StringUtils.hasText(file.getOriginalFilename())
+                        ? file.getOriginalFilename()
+                        : "uploaded-file";
+
+        Long originalFileSize = file.getSize();
+
+        String extension = StringUtils.getFilenameExtension(originalFilename);
+        String normalizedExtension = extension == null ? "" : extension.toLowerCase(Locale.ROOT);
+        if (!ALLOWED_FILE_EXTENSIONS.contains(normalizedExtension)) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                    "unsupported file type; allowed: DOC, DOCX, RTF, ODT, JPG, BMP, PNG, TIF, PDF");
+        }
+
+        log.info(
+                "Received document upload: filename={}, sizeBytes={}, contentType={}",
+                originalFilename,
+                file.getSize(),
+                file.getContentType());
+
+        return UploadedDocument.builder()
+                .fileName(originalFilename)
+                .fileSize(originalFileSize)
+                .hostedUrl("https://example.com/" + originalFilename)
+                .build();
     }
-
-    String originalFilename =
-        StringUtils.hasText(file.getOriginalFilename())
-            ? file.getOriginalFilename()
-            : "uploaded-file";
-
-    Long originalFileSize = file.getSize();
-
-    String extension = StringUtils.getFilenameExtension(originalFilename);
-    String normalizedExtension = extension == null ? "" : extension.toLowerCase(Locale.ROOT);
-    if (!ALLOWED_FILE_EXTENSIONS.contains(normalizedExtension)) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST,
-          "unsupported file type; allowed: DOC, DOCX, RTF, ODT, JPG, BMP, PNG, TIF, PDF");
-    }
-
-    log.info(
-        "Received document upload: filename={}, sizeBytes={}, contentType={}",
-        originalFilename,
-        file.getSize(),
-        file.getContentType());
-
-    return UploadedDocument.builder()
-        .fileName(originalFilename)
-        .fileSize(originalFileSize)
-        .hostedUrl("https://example.com/" + originalFilename)
-        .build();
-  }
 }

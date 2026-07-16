@@ -68,7 +68,15 @@ public class PriorAuthorityController {
         responseCode = "200",
         description = "File accepted.",
         content = @Content(schema = @Schema(implementation = UploadedDocument.class))),
-    @ApiResponse(responseCode = "400", description = "No file supplied or file is empty.")
+    @ApiResponse(
+        responseCode = "400",
+        description = "No file supplied or file is empty.",
+        content = @Content),
+    @ApiResponse(
+        responseCode = "413",
+        description = "File exceeds the configured maximum size.",
+        content = @Content),
+    @ApiResponse(responseCode = "415", description = "Unsupported file type.", content = @Content)
   })
   @PostMapping(value = "/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UploadedDocument> uploadDocument(

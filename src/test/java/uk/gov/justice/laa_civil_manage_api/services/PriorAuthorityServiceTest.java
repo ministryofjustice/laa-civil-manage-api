@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
@@ -25,89 +24,89 @@ import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataSt
 
 class PriorAuthorityServiceTest {
 
-    private final AccessDataStoreClient client = mock(AccessDataStoreClient.class);
-    private final PriorAuthorityService service = new PriorAuthorityService(client);
+  private final AccessDataStoreClient client = mock(AccessDataStoreClient.class);
+  private final PriorAuthorityService service = new PriorAuthorityService(client);
 
-    @Test
-    void delegatesToAccessDataStoreClient() {
-        PriorAuthority pa =
-                PriorAuthority.builder()
-                        .applicationId(UUID.randomUUID())
-                        .priorAuthorityType(PriorAuthorityType.EXPERT)
-                        .expertType("Psychologist")
-                        .expertFullName("John Doe")
-                        .expertBasedInLondon(false)
-                        .billingType(BillingType.FIXED_RATE)
-                        .totalAmount(new BigDecimal("249.99"))
-                        .justification("Required expert evidence.")
-                        .build();
-        PriorAuthorityApplicationResponse expected =
-                PriorAuthorityApplicationResponse.builder()
-                        .submissionId(UUID.randomUUID())
-                        .status(SubmissionStatus.ACCEPTED)
-                        .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
-                        .build();
-        when(client.submitPriorAuthority(pa)).thenReturn(expected);
+  @Test
+  void delegatesToAccessDataStoreClient() {
+    PriorAuthority pa =
+        PriorAuthority.builder()
+            .applicationId(UUID.randomUUID())
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
+            .expertType("Psychologist")
+            .expertFullName("John Doe")
+            .expertBasedInLondon(false)
+            .billingType(BillingType.FIXED_RATE)
+            .totalAmount(new BigDecimal("249.99"))
+            .justification("Required expert evidence.")
+            .build();
+    PriorAuthorityApplicationResponse expected =
+        PriorAuthorityApplicationResponse.builder()
+            .submissionId(UUID.randomUUID())
+            .status(SubmissionStatus.ACCEPTED)
+            .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
+            .build();
+    when(client.submitPriorAuthority(pa)).thenReturn(expected);
 
-        PriorAuthorityApplicationResponse actual = service.submit(pa);
+    PriorAuthorityApplicationResponse actual = service.submit(pa);
 
-        assertSame(expected, actual);
-        verify(client).submitPriorAuthority(pa);
-    }
+    assertSame(expected, actual);
+    verify(client).submitPriorAuthority(pa);
+  }
 
-    @Test
-    void uploadDocumentReturnsUploadedFilename() {
-        MockMultipartFile file =
-                new MockMultipartFile("file", "evidence.pdf", "application/pdf", "content".getBytes());
+  @Test
+  void uploadDocumentReturnsUploadedFilename() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "evidence.pdf", "application/pdf", "content".getBytes());
 
-        UploadedDocument uploadedDocument = service.uploadDocument(file);
+    UploadedDocument uploadedDocument = service.uploadDocument(file);
 
-        assertEquals("evidence.pdf", uploadedDocument.fileName());
-    }
+    assertEquals("evidence.pdf", uploadedDocument.fileName());
+  }
 
-    @Test
-    void uploadDocumentThrowsWhenFileIsEmpty() {
-        MockMultipartFile file =
-                new MockMultipartFile("file", "empty.pdf", "application/pdf", new byte[0]);
+  @Test
+  void uploadDocumentThrowsWhenFileIsEmpty() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "empty.pdf", "application/pdf", new byte[0]);
 
-        ResponseStatusException ex =
-                assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
 
-        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-    }
+    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+  }
 
-    @Test
-    void uploadDocumentThrowsWhenFileIsGreaterThan10Mb() {
-        MockMultipartFile file =
-                new MockMultipartFile(
-                        "file", "large.pdf", "application/pdf", new byte[(10 * 1024 * 1024) + 1]);
+  @Test
+  void uploadDocumentThrowsWhenFileIsGreaterThan10Mb() {
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "large.pdf", "application/pdf", new byte[(10 * 1024 * 1024) + 1]);
 
-        ResponseStatusException ex =
-                assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
 
-        assertEquals(HttpStatus.CONTENT_TOO_LARGE, ex.getStatusCode());
-    }
+    assertEquals(HttpStatus.CONTENT_TOO_LARGE, ex.getStatusCode());
+  }
 
-    @Test
-    void uploadDocumentThrowsWhenFilenameIsMissing() {
-        MockMultipartFile file =
-                new MockMultipartFile("file", null, "application/pdf", "content".getBytes());
+  @Test
+  void uploadDocumentThrowsWhenFilenameIsMissing() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", null, "application/pdf", "content".getBytes());
 
-        ResponseStatusException ex =
-                assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
 
-        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-        assertEquals("file name must not be empty", ex.getReason());
-    }
+    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+    assertEquals("file name must not be empty", ex.getReason());
+  }
 
-    @Test
-    void uploadDocumentThrowsWhenFileTypeIsNotAllowed() {
-        MockMultipartFile file =
-                new MockMultipartFile("file", "malware.exe", "application/octet-stream", "x".getBytes());
+  @Test
+  void uploadDocumentThrowsWhenFileTypeIsNotAllowed() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "malware.exe", "application/octet-stream", "x".getBytes());
 
-        ResponseStatusException ex =
-                assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
 
-        assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
-    }
+    assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
+  }
 }

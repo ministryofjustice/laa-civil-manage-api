@@ -413,14 +413,11 @@
             "format": "int64"
           },
           "hostedUrl": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
           }
         },
         "required": [
-          "fileName",
-          "fileSize",
-          "hostedUrl"
+          "fileName"
         ]
       },
       "PriorAuthorityApplicationResponse": {

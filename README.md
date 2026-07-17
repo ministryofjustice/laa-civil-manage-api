@@ -17,6 +17,7 @@ mise exec -- lefthook install
 ```
 
 Configured hooks:
+
 - pre-commit: `env -u JAVA_HOME ./gradlew spotlessApply spotlessCheck`
 - pre-push: `env -u JAVA_HOME ./gradlew test`
 
@@ -38,7 +39,9 @@ cp .env.example .env             # then fill in the values; never commit .env
 ./gradlew spotlessApply          # auto-format code/config/docs
 ./gradlew spotlessCheck          # verify formatting
 ```
-> While running locally, you can view the API docs at [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html).
+
+> While running locally, you can view the API docs
+> at [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html).
 
 Run a single test class:
 
@@ -56,6 +59,7 @@ report locally to check your coverage before raising a PR:
 ```
 
 The report is written under `build/reports/jacoco/`:
+
 - `jacoco.xml` — machine-readable report (consumed by CI)
 - `html/index.html` — open in a browser for a line-by-line breakdown
 
@@ -67,14 +71,19 @@ will be flagged there.
 
 This API is fully secured using Microsoft Entra ID via OAuth 2.0.
 
-* **Frontend API Calls:** All incoming requests must be authenticated using the **Authorization Code flow**. The frontend application attaches a valid user JWT (Bearer token) to the `Authorization` header of every request.
-* **Downstream API Calls:** Any request that needs to interact with the downstream Access Data Store utilizes the **On-Behalf-Of (OBO) flow**. The backend exchanges the user's incoming Entra token for a new token scoped specifically for the Data Store, ensuring strict, end-to-end user identity propagation.
+* **Frontend API Calls:** All incoming requests must be authenticated using the **Authorization Code flow**. The
+  frontend application attaches a valid user JWT (Bearer token) to the `Authorization` header of every request.
+* **Downstream API Calls:** Any request that needs to interact with the downstream Access Data Store utilizes the *
+  *On-Behalf-Of (OBO) flow**. The backend exchanges the user's incoming Entra token for a new token scoped specifically
+  for the Data Store, ensuring strict, end-to-end user identity propagation.
 
-*(Note: If you need to test endpoints locally without a token, you can temporarily set `SKIP_AUTH=true` in your `.env` file).*
+*(Note: If you need to test endpoints locally without a token, you can temporarily set `SKIP_AUTH=true` in your `.env`
+file).*
 
 ## Example requests
 
-All examples assume a local instance running at `http://localhost:8080`. Unless `SKIP_AUTH=true` is set locally, all requests require a valid Entra ID token in the `Authorization` header.
+All examples assume a local instance running at `http://localhost:8080`. Unless `SKIP_AUTH=true` is set locally, all
+requests require a valid Entra ID token in the `Authorization` header.
 
 ### Submit a prior-authority request
 
@@ -94,6 +103,14 @@ curl -i -X POST http://localhost:8080/prior-authority \
     "justification": "Specialist evidence is required to progress the case."
   }'
 ```
+
+### Upload a document
+
+```bash
+curl -X POST http://localhost:8080/prior-authority/documents \
+  -F "file=@./temp.jpg"
+```
+
 ### Prior-authority drafts
 
 Drafts let users save a partially-completed prior-authority form and come back later.

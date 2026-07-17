@@ -452,10 +452,6 @@
             "example": "abc123.pdf",
             "minLength": 1
           },
-          "fileSize": {
-            "type": "integer",
-            "format": "int64"
-          },
           "hostedUrl": {
             "type": "string"
           }

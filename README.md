@@ -108,7 +108,7 @@ curl -i -X POST http://localhost:8080/prior-authority \
 
 ```bash
 curl -X POST http://localhost:8080/prior-authority/documents \
-  -F "file=@./temp.jpg"
+  -F "file=@./example.jpg"
 ```
 
 ### Prior-authority drafts

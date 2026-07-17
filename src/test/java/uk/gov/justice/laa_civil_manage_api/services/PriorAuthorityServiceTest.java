@@ -66,6 +66,30 @@ class PriorAuthorityServiceTest {
   }
 
   @Test
+  void uploadDocumentStripsUnixPathSegmentsFromClientSuppliedFilename() {
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "../../sneaky/evidence.pdf", "application/pdf", "content".getBytes());
+
+    UploadedDocument uploadedDocument = service.uploadDocument(file);
+
+    assertEquals("evidence.pdf", uploadedDocument.fileName());
+    assertEquals("https://example.com/evidence.pdf", uploadedDocument.hostedUrl());
+  }
+
+  @Test
+  void uploadDocumentStripsWindowsPathSegmentsFromClientSuppliedFilename() {
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "..\\..\\temp\\evidence.pdf", "application/pdf", "content".getBytes());
+
+    UploadedDocument uploadedDocument = service.uploadDocument(file);
+
+    assertEquals("evidence.pdf", uploadedDocument.fileName());
+    assertEquals("https://example.com/evidence.pdf", uploadedDocument.hostedUrl());
+  }
+
+  @Test
   void uploadDocumentThrowsWhenFileIsEmpty() {
     MockMultipartFile file =
         new MockMultipartFile("file", "empty.pdf", "application/pdf", new byte[0]);

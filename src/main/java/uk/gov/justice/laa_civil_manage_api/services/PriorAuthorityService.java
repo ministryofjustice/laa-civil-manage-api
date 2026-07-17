@@ -60,7 +60,12 @@ public class PriorAuthorityService {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file name must not be empty");
     }
 
-    String extension = StringUtils.getFilenameExtension(originalFilename);
+    String sanitizedFilename = StringUtils.getFilename(StringUtils.cleanPath(originalFilename));
+    if (!StringUtils.hasText(sanitizedFilename)) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file name must not be empty");
+    }
+
+    String extension = StringUtils.getFilenameExtension(sanitizedFilename);
     String normalizedExtension = extension == null ? "" : extension.toLowerCase(Locale.ROOT);
     if (!ALLOWED_FILE_EXTENSIONS.contains(normalizedExtension)) {
       throw new ResponseStatusException(
@@ -71,14 +76,14 @@ public class PriorAuthorityService {
 
     log.info(
         "Received document upload: filename={}, sizeBytes={}, contentType={}",
-        originalFilename,
+        sanitizedFilename,
         originalFileSize,
         file.getContentType());
 
     return UploadedDocument.builder()
-        .fileName(originalFilename)
+        .fileName(sanitizedFilename)
         .fileSize(originalFileSize)
-        .hostedUrl("https://example.com/" + originalFilename)
+        .hostedUrl("https://example.com/" + sanitizedFilename)
         .build();
   }
 }

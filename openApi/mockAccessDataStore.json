@@ -407,6 +407,9 @@
             "description": "Filename of the uploaded document.",
             "example": "abc123.pdf",
             "minLength": 1
+          },
+          "hostedUrl": {
+            "type": "string"
           }
         },
         "required": [

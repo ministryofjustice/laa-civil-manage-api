@@ -19,6 +19,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -26,6 +27,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import uk.gov.justice.laa_civil_manage_api.mockaccessdatastore.models.PriorAuthoritySubmission;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
@@ -168,5 +171,36 @@ class PriorAuthorityIntegrationTest {
             .getStatusCode();
 
     assertEquals(HttpStatus.UNAUTHORIZED, status);
+  }
+
+  @Test
+  void uploadDocumentLargerThanConfiguredMultipartLimitReturns413() {
+    RestClient restClient =
+        RestClient.builder().defaultHeader("Authorization", "Bearer test-token").build();
+
+    byte[] oversizedFile = new byte[(10 * 1024 * 1024) + 1];
+    ByteArrayResource fileResource =
+        new ByteArrayResource(oversizedFile) {
+          @Override
+          public String getFilename() {
+            return "large.pdf";
+          }
+        };
+
+    MultiValueMap<String, Object> multipartBody = new LinkedMultiValueMap<>();
+    multipartBody.add("file", fileResource);
+
+    HttpStatusCode status =
+        restClient
+            .post()
+            .uri("http://localhost:" + port + "/prior-authority/documents")
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(multipartBody)
+            .retrieve()
+            .onStatus(_ -> true, (_, _) -> {})
+            .toBodilessEntity()
+            .getStatusCode();
+
+    assertEquals(HttpStatus.CONTENT_TOO_LARGE, status);
   }
 }

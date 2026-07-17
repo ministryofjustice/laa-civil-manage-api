@@ -25,7 +25,7 @@ logging:
     format:
       console: ""
   pattern:
-    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr([%X{traceId:-},%X{spanId:-}]){yellow} %clr(%-35logger{35}){cyan} : %m%n"
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr([%X{correlationId:-},%X{traceId:-},%X{spanId:-}]){yellow} %clr(%-35logger{35}){cyan} : %m%n"
 
 laa-civil-manage-api:
   access-data-store:

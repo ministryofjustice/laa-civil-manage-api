@@ -18,8 +18,6 @@ import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataSt
 @Service
 @RequiredArgsConstructor
 public class PriorAuthorityService {
-
-  private static final long MAX_FILE_SIZE_BYTES = 10L * 1024 * 1024;
   private static final List<String> ALLOWED_FILE_EXTENSIONS =
       List.of("pdf", "doc", "docx", "odt", "rtf", "jpeg", "jpg", "png", "bmp", "tiff", "tif");
 
@@ -48,13 +46,6 @@ public class PriorAuthorityService {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file must not be empty");
     }
 
-    long originalFileSize = file.getSize();
-
-    if (originalFileSize > MAX_FILE_SIZE_BYTES) {
-      throw new ResponseStatusException(
-          HttpStatus.CONTENT_TOO_LARGE, "file size must not exceed 10MB");
-    }
-
     String originalFilename = file.getOriginalFilename();
     if (!StringUtils.hasText(originalFilename)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file name must not be empty");
@@ -75,14 +66,12 @@ public class PriorAuthorityService {
     }
 
     log.info(
-        "Received document upload: filename={}, sizeBytes={}, contentType={}",
+        "Received document upload: filename={}, contentType={}",
         sanitizedFilename,
-        originalFileSize,
         file.getContentType());
 
     return UploadedDocument.builder()
         .fileName(sanitizedFilename)
-        .fileSize(originalFileSize)
         .hostedUrl("https://example.com/" + sanitizedFilename)
         .build();
   }

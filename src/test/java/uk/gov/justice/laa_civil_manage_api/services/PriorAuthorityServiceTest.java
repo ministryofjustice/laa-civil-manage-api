@@ -101,18 +101,6 @@ class PriorAuthorityServiceTest {
   }
 
   @Test
-  void uploadDocumentThrowsWhenFileIsGreaterThan10Mb() {
-    MockMultipartFile file =
-        new MockMultipartFile(
-            "file", "large.pdf", "application/pdf", new byte[(10 * 1024 * 1024) + 1]);
-
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
-
-    assertEquals(HttpStatus.CONTENT_TOO_LARGE, ex.getStatusCode());
-  }
-
-  @Test
   void uploadDocumentThrowsWhenFilenameIsMissing() {
     MockMultipartFile file =
         new MockMultipartFile("file", null, "application/pdf", "content".getBytes());

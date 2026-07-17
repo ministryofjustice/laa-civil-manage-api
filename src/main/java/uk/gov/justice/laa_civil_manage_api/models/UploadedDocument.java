@@ -2,7 +2,6 @@ package uk.gov.justice.laa_civil_manage_api.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 
 @Schema(description = "A document uploaded as supporting evidence for a prior-authority request.")
@@ -14,5 +13,4 @@ public record UploadedDocument(
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotBlank
         String fileName,
-    @Positive Long fileSize,
     String hostedUrl) {}

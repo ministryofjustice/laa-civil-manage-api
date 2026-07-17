@@ -51,7 +51,8 @@ public class PriorAuthorityService {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file name must not be empty");
     }
 
-    // TODO - cleanPath is not adequate protection against path-traversal attacks - we must save the file with a different name to that provided by the user
+    // TODO - cleanPath is not adequate protection against path-traversal attacks - we must save the
+    // file with a different name to that provided by the user
     String sanitizedFilename = StringUtils.getFilename(StringUtils.cleanPath(originalFilename));
     if (!StringUtils.hasText(sanitizedFilename)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file name must not be empty");

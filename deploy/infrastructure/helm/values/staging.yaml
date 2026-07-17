@@ -97,6 +97,13 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+env:
+  azureEntraTenantId: "ff260a8b-cb92-4cfe-8ae9-d48bb0fd9851"
+  azureEntraApiClientId: "e50ffd82-d524-45f3-88d8-509498266adc"
+  adsTenantDomain: "TestJusticeUKExternal.onmicrosoft.com"
+  adsClientId: "efb49b90-5365-456f-bc87-c5a613e0d08d"
+  accessDataStoreBaseUrl: "https://laa-data-access-api-staging.internal-non-prod.cloud-platform.service.justice.gov.uk/"
+
 # Additional volumes on the output Deployment definition.
 volumes: []
 # - name: foo

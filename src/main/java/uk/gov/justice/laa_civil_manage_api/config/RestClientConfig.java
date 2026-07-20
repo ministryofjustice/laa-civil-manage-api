@@ -20,6 +20,7 @@ import org.springframework.security.oauth2.client.web.client.OAuth2ClientHttpReq
 import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
+import uk.gov.justice.laa_civil_manage_api.logging.CorrelationIdPropagationInterceptor;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreProperties;
 
 @Configuration
@@ -95,6 +96,7 @@ public class RestClientConfig {
     return RestClient.builder()
         .requestFactory(requestFactory(properties))
         .requestInterceptor(interceptor)
+        .requestInterceptor(new CorrelationIdPropagationInterceptor())
         .build();
   }
 

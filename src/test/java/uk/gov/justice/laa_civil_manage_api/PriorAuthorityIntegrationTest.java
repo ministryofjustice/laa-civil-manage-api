@@ -2,7 +2,6 @@ package uk.gov.justice.laa_civil_manage_api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -24,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -61,7 +61,9 @@ class PriorAuthorityIntegrationTest {
         @Override
         public PriorAuthorityApplicationResponse submitPriorAuthority(
             PriorAuthority priorAuthority) {
-          return RestClient.create()
+          return RestClient.builder()
+              .defaultHeader("Authorization", "Bearer fake-downstream-obo-token")
+              .build()
               .post()
               .uri(
                   url() + "/applications/{applicationId}/prior-authority",
@@ -115,7 +117,10 @@ class PriorAuthorityIntegrationTest {
     Jwt mockJwt =
         Jwt.withTokenValue("test-token").header("alg", "none").claim("sub", "test-user").build();
 
-    when(jwtDecoder.decode(anyString())).thenReturn(mockJwt);
+    when(jwtDecoder.decode("test-token")).thenReturn(mockJwt);
+
+    when(jwtDecoder.decode("fake-downstream-obo-token"))
+        .thenThrow(new BadJwtException("The aud claim is not valid"));
   }
 
   @Test

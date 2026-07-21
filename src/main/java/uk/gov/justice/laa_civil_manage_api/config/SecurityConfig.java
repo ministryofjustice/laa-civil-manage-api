@@ -14,6 +14,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
@@ -70,8 +71,7 @@ public class SecurityConfig {
                         "/error",
                         "/metrics",
                         "/v3/api-docs/**",
-                        "/swagger-ui/**",
-                        "/mock-access-data-store/**")
+                        "/swagger-ui/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
@@ -121,5 +121,10 @@ public class SecurityConfig {
               JwtClaimNames.AUD, aud -> aud.stream().anyMatch(audiences::contains)));
     }
     return new DelegatingOAuth2TokenValidator<>(validators);
+  }
+
+  @Bean
+  public WebSecurityCustomizer webSecurityCustomizer() {
+    return (web) -> web.ignoring().requestMatchers("/mock-access-data-store/**");
   }
 }

@@ -98,11 +98,11 @@ autoscaling:
   # targetMemoryUtilizationPercentage: 80
 
 env:
-  azureEntraTenantId: "ff260a8b-cb92-4cfe-8ae9-d48bb0fd9851"
-  azureEntraApiClientId: "e50ffd82-d524-45f3-88d8-509498266adc"
-  adsTenantDomain: "TestJusticeUKExternal.onmicrosoft.com"
-  adsClientId: "6a51c394-5918-42ae-b0ff-eafe0b29a032"
-  accessDataStoreBaseUrl: "https://laa-data-access-api-staging.internal-non-prod.cloud-platform.service.justice.gov.uk/"
+  azureEntraTenantId: "11111111-1111-1111-1111-111111111111"
+  azureEntraApiClientId: "22222222-2222-2222-2222-222222222222"
+  adsTenantDomain: "testjusticeukexternal.onmicrosoft.com"
+  adsClientId: "33333333-3333-3333-3333-333333333333"
+  accessDataStoreBaseUrl: "https://laa-data-access-api-staging.internal-non-prod.cloud-platform.service.justice.gov.uk"
 
 # Additional volumes on the output Deployment definition.
 volumes: []

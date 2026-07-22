@@ -64,7 +64,7 @@ class PriorAuthorityDraftIntegrationTest {
         }
 
         @Override
-        public String getApplications() {
+        public ApplicationSummaryResponse getApplications() {
           throw new UnsupportedOperationException("Not used in this test");
         }
 

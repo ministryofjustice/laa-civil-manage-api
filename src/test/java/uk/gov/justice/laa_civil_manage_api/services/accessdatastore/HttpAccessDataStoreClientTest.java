@@ -1,6 +1,7 @@
 package uk.gov.justice.laa_civil_manage_api.services.accessdatastore;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
@@ -21,14 +22,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
-import uk.gov.justice.laa_civil_manage_api.models.BillingType;
-import uk.gov.justice.laa_civil_manage_api.models.Draft;
-import uk.gov.justice.laa_civil_manage_api.models.DraftCreatedResponse;
-import uk.gov.justice.laa_civil_manage_api.models.DraftSummary;
-import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
-import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
-import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
-import uk.gov.justice.laa_civil_manage_api.models.SubmissionStatus;
+import uk.gov.justice.laa_civil_manage_api.models.*;
 
 class HttpAccessDataStoreClientTest {
 
@@ -257,11 +251,29 @@ class HttpAccessDataStoreClientTest {
         .expect(requestTo(BASE_URL + "/api/v0/applications"))
         .andExpect(method(HttpMethod.GET))
         .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
-        .andRespond(withSuccess("[{\"id\":\"APP-1\"}]", MediaType.APPLICATION_JSON));
+        .andRespond(
+            withSuccess(
+                """
+                {
+                  "applications": [
+                    {
+                      "applicationId": "11111111-2222-3333-4444-555555555555",
+                      "laaReference": "APP-1",
+                      "status": "APPLICATION_SUBMITTED",
+                      "submittedAt": "2026-07-22T10:00:00Z",
+                      "clientFirstName": "John",
+                      "clientLastName": "Doe"
+                    }
+                  ]
+                }
+                """,
+                MediaType.APPLICATION_JSON));
 
-    String result = client.getApplications();
+    ApplicationSummaryResponse result = client.getApplications();
 
-    assertEquals("[{\"id\":\"APP-1\"}]", result);
+    assertNotNull(result);
+    assertEquals(1, result.applications().size());
+    assertEquals("APP-1", result.applications().get(0).laaReference());
     server.verify();
   }
 }

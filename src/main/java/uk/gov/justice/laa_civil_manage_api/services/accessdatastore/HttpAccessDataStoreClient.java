@@ -9,11 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.justice.laa_civil_manage_api.mockaccessdatastore.models.PriorAuthoritySubmission;
-import uk.gov.justice.laa_civil_manage_api.models.Draft;
-import uk.gov.justice.laa_civil_manage_api.models.DraftCreatedResponse;
-import uk.gov.justice.laa_civil_manage_api.models.DraftSummary;
-import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
-import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
+import uk.gov.justice.laa_civil_manage_api.models.*;
 
 @Component
 public class HttpAccessDataStoreClient implements AccessDataStoreClient {
@@ -103,7 +99,7 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
   }
 
   @Override
-  public String getApplications() {
+  public ApplicationSummaryResponse getApplications() {
     String baseUrl = properties.urlFor(AccessDataStoreOperations.GET_APPLICATIONS);
 
     return restClient
@@ -111,6 +107,6 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
         .uri(baseUrl + "/api/v0/applications")
         .header("X-Service-Name", "CIVIL_APPLY")
         .retrieve()
-        .body(String.class);
+        .body(ApplicationSummaryResponse.class);
   }
 }

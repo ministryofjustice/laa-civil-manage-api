@@ -3,11 +3,7 @@ package uk.gov.justice.laa_civil_manage_api.services.accessdatastore;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import uk.gov.justice.laa_civil_manage_api.models.Draft;
-import uk.gov.justice.laa_civil_manage_api.models.DraftCreatedResponse;
-import uk.gov.justice.laa_civil_manage_api.models.DraftSummary;
-import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
-import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
+import uk.gov.justice.laa_civil_manage_api.models.*;
 
 public interface AccessDataStoreClient {
 
@@ -24,5 +20,5 @@ public interface AccessDataStoreClient {
 
   void deleteDraft(UUID draftId);
 
-  String getApplications();
+  ApplicationSummaryResponse getApplications();
 }

@@ -309,6 +309,16 @@
               "format": "int32",
               "default": 1
             }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
           }
         ],
         "responses": {
@@ -641,7 +651,7 @@
           },
           "status": {
             "type": "string",
-            "description": "The current overall status of the applications\u0027 decision.",
+            "description": "The current overall status of the application decision.",
             "example": "APPLICATION_SUBMITTED"
           },
           "submittedAt": {

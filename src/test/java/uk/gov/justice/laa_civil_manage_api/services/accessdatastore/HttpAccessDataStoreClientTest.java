@@ -59,12 +59,12 @@ class HttpAccessDataStoreClientTest {
         .andRespond(
             withSuccess(
                 """
-                                {
-                                  "submissionId": "%s",
-                                  "status": "ACCEPTED",
-                                  "submittedAt": "2026-05-22T10:00:00Z"
-                                }
-                                """
+                    {
+                      "submissionId": "%s",
+                      "status": "ACCEPTED",
+                      "submittedAt": "2026-05-22T10:00:00Z"
+                    }
+                    """
                     .formatted(submissionId),
                 MediaType.APPLICATION_JSON));
 
@@ -109,12 +109,12 @@ class HttpAccessDataStoreClientTest {
         .andRespond(
             withSuccess(
                 """
-                                {
-                                  "submissionId": "11111111-1111-1111-1111-111111111111",
-                                  "status": "ACCEPTED",
-                                  "submittedAt": "2026-05-22T10:00:00Z"
-                                }
-                                """,
+                    {
+                      "submissionId": "11111111-1111-1111-1111-111111111111",
+                      "status": "ACCEPTED",
+                      "submittedAt": "2026-05-22T10:00:00Z"
+                    }
+                    """,
                 MediaType.APPLICATION_JSON));
 
     client.submitPriorAuthority(
@@ -200,15 +200,15 @@ class HttpAccessDataStoreClientTest {
         .andRespond(
             withSuccess(
                 """
-                                [
-                                  {
-                                    "draftId": "c3b07e24-d92b-410a-9d95-88f117a12b43",
-                                    "draftType": "PRIOR_AUTHORITY",
-                                    "timestamp": "2026-05-19T12:00:00Z",
-                                    "draftBody": { "totalAmount": 135.00 }
-                                  }
-                                ]
-                                """,
+                    [
+                      {
+                        "draftId": "c3b07e24-d92b-410a-9d95-88f117a12b43",
+                        "draftType": "PRIOR_AUTHORITY",
+                        "timestamp": "2026-05-19T12:00:00Z",
+                        "draftBody": { "totalAmount": 135.00 }
+                      }
+                    ]
+                    """,
                 MediaType.APPLICATION_JSON));
 
     List<DraftSummary> drafts =
@@ -254,28 +254,28 @@ class HttpAccessDataStoreClientTest {
         .andRespond(
             withSuccess(
                 """
-                {
-                  "paging": {
-                    "page": 1,
-                    "pageSize": 10,
-                    "itemsReturned": 1,
-                    "totalRecords": 1
-                  },
-                  "applications": [
                     {
-                      "applicationId": "11111111-2222-3333-4444-555555555555",
-                      "laaReference": "APP-1",
-                      "status": "APPLICATION_SUBMITTED",
-                      "submittedAt": "2026-07-22T10:00:00Z",
-                      "clientFirstName": "John",
-                      "clientLastName": "Doe"
+                      "paging": {
+                        "page": 1,
+                        "pageSize": 10,
+                        "itemsReturned": 1,
+                        "totalRecords": 1
+                      },
+                      "applications": [
+                        {
+                          "applicationId": "11111111-2222-3333-4444-555555555555",
+                          "laaReference": "APP-1",
+                          "status": "APPLICATION_SUBMITTED",
+                          "submittedAt": "2026-07-22T10:00:00Z",
+                          "clientFirstName": "John",
+                          "clientLastName": "Doe"
+                        }
+                      ]
                     }
-                  ]
-                }
-                """,
+                    """,
                 MediaType.APPLICATION_JSON));
 
-    ApplicationSummaryResponse result = client.getApplications(1);
+    ApplicationSummaryResponse result = client.getApplications(1, 10);
 
     assertNotNull(result);
     assertEquals(1, result.applications().size());

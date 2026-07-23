@@ -13,15 +13,16 @@ public class ApplicationsService {
 
   private final AccessDataStoreClient accessDataStoreClient;
 
-  public ApplicationSummaryResponse getApplicationsData(int page) {
-    ApplicationSummaryResponse response = accessDataStoreClient.getApplications(page);
+  public ApplicationSummaryResponse getApplicationsData(int page, int pageSize) {
+    ApplicationSummaryResponse response = accessDataStoreClient.getApplications(page, pageSize);
 
     if (response != null) {
       return response;
     }
 
     return ApplicationSummaryResponse.builder()
-        .paging(Paging.builder().page(page).pageSize(10).itemsReturned(0).totalRecords(0).build())
+        .paging(
+            Paging.builder().page(page).pageSize(pageSize).itemsReturned(0).totalRecords(0).build())
         .applications(Collections.emptyList())
         .build();
   }

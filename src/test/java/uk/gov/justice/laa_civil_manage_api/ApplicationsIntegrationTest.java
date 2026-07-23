@@ -40,7 +40,7 @@ class ApplicationsIntegrationTest {
             .clientLastName("Doe")
             .build();
 
-    when(accessDataStoreClient.getApplications(1))
+    when(accessDataStoreClient.getApplications(1, 10))
         .thenReturn(
             ApplicationSummaryResponse.builder()
                 .paging(

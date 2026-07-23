@@ -16,7 +16,7 @@ public record ApplicationSummary(
     @Schema(description = "The LAA reference number of the application.", example = "LAA-123456")
         String laaReference,
     @Schema(
-            description = "The current overall status of the applications' decision.",
+            description = "The current overall status of the application decision.",
             example = "APPLICATION_SUBMITTED")
         String status,
     @Schema(

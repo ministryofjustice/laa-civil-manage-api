@@ -20,9 +20,9 @@ public class ApplicationsController {
 
   @GetMapping
   public ResponseEntity<ApplicationSummaryResponse> getApplications(
-      @RequestParam(defaultValue = "1") int page) {
+      @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int pageSize) {
     log.info("Received request to fetch applications page {}", page);
-    ApplicationSummaryResponse data = applicationsService.getApplicationsData(page);
+    ApplicationSummaryResponse data = applicationsService.getApplicationsData(page, pageSize);
     return ResponseEntity.ok(data);
   }
 }

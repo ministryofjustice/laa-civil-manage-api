@@ -31,14 +31,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import uk.gov.justice.laa_civil_manage_api.mockaccessdatastore.models.PriorAuthoritySubmission;
-import uk.gov.justice.laa_civil_manage_api.models.BillingType;
-import uk.gov.justice.laa_civil_manage_api.models.Draft;
-import uk.gov.justice.laa_civil_manage_api.models.DraftCreatedResponse;
-import uk.gov.justice.laa_civil_manage_api.models.DraftSummary;
-import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
-import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
-import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
-import uk.gov.justice.laa_civil_manage_api.models.SubmissionStatus;
+import uk.gov.justice.laa_civil_manage_api.models.*;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -80,7 +73,7 @@ class PriorAuthorityIntegrationTest {
         }
 
         @Override
-        public String getApplications() {
+        public ApplicationSummaryResponse getApplications(int page) {
           throw new UnsupportedOperationException("Not used in this test");
         }
 

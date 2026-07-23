@@ -20,5 +20,5 @@ public interface AccessDataStoreClient {
 
   void deleteDraft(UUID draftId);
 
-  ApplicationSummaryResponse getApplications();
+  ApplicationSummaryResponse getApplications(int page);
 }

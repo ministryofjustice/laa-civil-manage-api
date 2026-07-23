@@ -73,7 +73,7 @@ class PriorAuthorityIntegrationTest {
         }
 
         @Override
-        public ApplicationSummaryResponse getApplications() {
+        public ApplicationSummaryResponse getApplications(int page) {
           throw new UnsupportedOperationException("Not used in this test");
         }
 

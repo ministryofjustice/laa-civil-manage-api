@@ -7,5 +7,6 @@ import lombok.Builder;
 @Schema(description = "Response containing a list of application summaries.")
 @Builder
 public record ApplicationSummaryResponse(
+    @Schema(description = "Pagination metadata for the response.") Paging paging,
     @Schema(description = "List of application summaries matching the requested criteria.")
         List<ApplicationSummary> applications) {}

@@ -40,15 +40,28 @@ class ApplicationsIntegrationTest {
             .clientLastName("Doe")
             .build();
 
-    when(accessDataStoreClient.getApplications())
+    when(accessDataStoreClient.getApplications(1))
         .thenReturn(
-            ApplicationSummaryResponse.builder().applications(List.of(application)).build());
+            ApplicationSummaryResponse.builder()
+                .paging(
+                    uk.gov.justice.laa_civil_manage_api.models.Paging.builder()
+                        .page(1)
+                        .pageSize(10)
+                        .itemsReturned(1)
+                        .totalRecords(1)
+                        .build())
+                .applications(List.of(application))
+                .build());
 
     mockMvc
         .perform(get("/applications").with(jwt()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].laaReference").value("APP-1"));
+        .andExpect(jsonPath("$.paging.page").value(1))
+        .andExpect(jsonPath("$.paging.pageSize").value(10))
+        .andExpect(jsonPath("$.paging.itemsReturned").value(1))
+        .andExpect(jsonPath("$.paging.totalRecords").value(1))
+        .andExpect(jsonPath("$.applications.length()").value(1))
+        .andExpect(jsonPath("$.applications[0].laaReference").value("APP-1"));
   }
 
   @Test

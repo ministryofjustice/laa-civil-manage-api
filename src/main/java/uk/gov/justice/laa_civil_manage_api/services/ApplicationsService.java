@@ -1,12 +1,11 @@
 package uk.gov.justice.laa_civil_manage_api.services;
 
 import java.util.Collections;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary;
 import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummaryResponse;
+import uk.gov.justice.laa_civil_manage_api.models.Paging;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
 
 @Service
@@ -16,14 +15,17 @@ public class ApplicationsService {
 
   private final AccessDataStoreClient accessDataStoreClient;
 
-  public List<ApplicationSummary> getApplicationsData() {
+  public ApplicationSummaryResponse getApplicationsData(int page) {
     log.info("Fetching applications from Data Store via OBO token exchange...");
-    ApplicationSummaryResponse response = accessDataStoreClient.getApplications();
+    ApplicationSummaryResponse response = accessDataStoreClient.getApplications(page);
 
-    if (response != null && response.applications() != null) {
-      return response.applications();
+    if (response != null) {
+      return response;
     }
 
-    return Collections.emptyList();
+    return ApplicationSummaryResponse.builder()
+        .paging(Paging.builder().page(page).pageSize(10).itemsReturned(0).totalRecords(0).build())
+        .applications(Collections.emptyList())
+        .build();
   }
 }

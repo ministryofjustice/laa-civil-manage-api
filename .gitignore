@@ -40,4 +40,4 @@ deploy/scripts/zap/zap_backup.tar
 # Zap report 
 zap-results/
 
-.env
+.env*

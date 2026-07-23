@@ -98,8 +98,8 @@ autoscaling:
 env:
   azureEntraTenantId: "8352c342-da15-413a-8b5b-d89545766f0c"
   azureEntraApiClientId: "024c9bb4-b5fd-434b-abff-1d7d7c8776f4"
-  adsTenantDomain: "devlexternal.onmicrosoft.com"
-  adsClientId: "efb49b90-5365-456f-bc87-c5a613e0d08d"
+  azureEntraApiAudience: "efb49b90-5365-456f-bc87-c5a613e0d08d"
+  accessDataStoreOboScope: "api://devlexternal.onmicrosoft.com/efb49b90-5365-456f-bc87-c5a613e0d08d/access_as_user"
   accessDataStoreBaseUrl: "https://dev-token-enabled-internal-laa-data-access-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk"
 
 # Additional volumes on the output Deployment definition.

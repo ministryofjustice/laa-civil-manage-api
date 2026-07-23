@@ -58,10 +58,6 @@ spec:
               value: {{ .Values.env.azureEntraTenantId | quote }}
             - name: AZURE_ENTRA_API_CLIENT_ID
               value: {{ .Values.env.azureEntraApiClientId | quote }}
-            - name: ADS_TENANT_DOMAIN
-              value: {{ .Values.env.adsTenantDomain | quote }}
-            - name: ADS_CLIENT_ID
-              value: {{ .Values.env.adsClientId | quote }}
             - name: ACCESS_DATA_STORE_BASE_URL
               value: {{ .Values.env.accessDataStoreBaseUrl | quote }}
             - name: AZURE_ENTRA_API_CLIENT_SECRET
@@ -69,6 +65,10 @@ spec:
                 secretKeyRef:
                   name: azure-entra-api-client-secret
                   key: azure-entra-api-client-secret
+            - name: AZURE_ENTRA_API_AUDIENCE
+              value: {{ .Values.env.azureEntraApiAudience | quote }}
+            - name: ACCESS_DATA_STORE_OBO_SCOPE
+              value: {{ .Values.env.accessDataStoreOboScope | quote }}
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}

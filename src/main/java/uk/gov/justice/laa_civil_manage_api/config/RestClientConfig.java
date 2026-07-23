@@ -26,7 +26,7 @@ import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataSt
 @Configuration
 public class RestClientConfig {
 
-  private static final String CLIENT_REGISTRATION_ID = "ads-api";
+  private static final String ADS_CLIENT_REGISTRATION_ID = "entra-obo-access-data-store";
 
   @Value("${custom.proxy.host:}")
   private String proxyHost;
@@ -89,7 +89,7 @@ public class RestClientConfig {
 
     OAuth2ClientHttpRequestInterceptor interceptor =
         new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
-    interceptor.setClientRegistrationIdResolver(request -> CLIENT_REGISTRATION_ID);
+    interceptor.setClientRegistrationIdResolver(request -> ADS_CLIENT_REGISTRATION_ID);
     interceptor.setAuthorizationFailureHandler(
         OAuth2ClientHttpRequestInterceptor.authorizationFailureHandler(authorizedClientRepository));
 

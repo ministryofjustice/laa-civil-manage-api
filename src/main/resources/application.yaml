@@ -14,16 +14,17 @@ spring:
           issuer-uri: https://login.microsoftonline.com/${AZURE_ENTRA_TENANT_ID:}/v2.0
           jwk-set-uri: https://login.microsoftonline.com/${AZURE_ENTRA_TENANT_ID:}/discovery/v2.0/keys
           audiences:
+            - ${AZURE_ENTRA_API_AUDIENCE:}
             - ${AZURE_ENTRA_API_CLIENT_ID:}
       client:
         registration:
-          ads-api:
+          entra-obo-access-data-store:
             provider: azure-entra
             client-id: ${AZURE_ENTRA_API_CLIENT_ID:}
             client-secret: ${AZURE_ENTRA_API_CLIENT_SECRET:}
             authorization-grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
             scope:
-              - api://${ADS_TENANT_DOMAIN:}/${ADS_CLIENT_ID:}/access_as_user
+              - ${ACCESS_DATA_STORE_OBO_SCOPE:}
         provider:
           azure-entra:
             token-uri: https://login.microsoftonline.com/${AZURE_ENTRA_TENANT_ID:}/oauth2/v2.0/token

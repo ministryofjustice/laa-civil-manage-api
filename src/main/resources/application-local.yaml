@@ -3,13 +3,22 @@ spring:
     import: "optional:file:.env[.properties]"
   security:
     oauth2:
-      # --- Inbound Security (Validates tokens from the Node UI) ---
       resourceserver:
         jwt:
+          issuer-uri: https://login.microsoftonline.com/8352c342-da15-413a-8b5b-d89545766f0c/v2.0
+          jwk-set-uri: https://login.microsoftonline.com/8352c342-da15-413a-8b5b-d89545766f0c/discovery/v2.0/keys
           audiences:
-            - ${AZURE_ENTRA_API_CLIENT_ID}
-            - api://devlexternal.onmicrosoft.com/${AZURE_ENTRA_API_CLIENT_ID}
-            - 770fe17c-7942-4c3d-8608-4f7f367d95ce
+            - efb49b90-5365-456f-bc87-c5a613e0d08d
+            - 024c9bb4-b5fd-434b-abff-1d7d7c8776f4
+      client:
+        registration:
+          entra-obo-access-data-store:
+            client-id: 024c9bb4-b5fd-434b-abff-1d7d7c8776f4
+            scope:
+              - api://devlexternal.onmicrosoft.com/efb49b90-5365-456f-bc87-c5a613e0d08d/access_as_user
+        provider:
+          azure-entra:
+            token-uri: https://login.microsoftonline.com/8352c342-da15-413a-8b5b-d89545766f0c/oauth2/v2.0/token
 
 custom:
   proxy:

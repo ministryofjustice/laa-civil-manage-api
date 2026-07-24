@@ -78,11 +78,8 @@ openApi {
     customBootRun {
         args.set(
             listOf(
-                "--spring.security.oauth2.client.registration.ads-api.client-id=openapi-doc-gen",
-                "--spring.security.oauth2.client.registration.ads-api.client-secret=openapi-doc-gen",
-                "--AZURE_ENTRA_TENANT_ID=openapi-doc-gen-tenant",
-                "--ADS_TENANT_DOMAIN=devlexternal.onmicrosoft.com",
-                "--ADS_CLIENT_ID=openapi-doc-gen-ads",
+                "--spring.security.oauth2.client.registration.entra-obo-access-data-store.client-id=openapi-doc-gen",
+                "--spring.security.oauth2.client.registration.entra-obo-access-data-store.client-secret=openapi-doc-gen",
             ),
         )
     }

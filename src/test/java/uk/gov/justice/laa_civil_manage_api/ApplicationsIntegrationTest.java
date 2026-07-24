@@ -51,7 +51,7 @@ class ApplicationsIntegrationTest {
             .applications(List.of(application))
             .build();
 
-    when(accessDataStoreClient.getApplications(1)).thenReturn(expected);
+    when(accessDataStoreClient.getApplications(1, 10)).thenReturn(expected);
 
     String body =
         mockMvc

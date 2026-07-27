@@ -8,5 +8,12 @@
   "vulnerabilityAlerts": {
     "schedule": [],
     "labels": ["security", "urgent"]
-  }
+  },
+  "packageRules": [
+    {
+      "matchFiles": ["mise.toml"],
+      "matchPackageNames": ["java"],
+      "enabled": false
+    }
+  ]
 }

@@ -11,7 +11,9 @@
   },
   "packageRules": [
     {
-      "matchFiles": ["mise.toml"],
+      "matchFileNames": [
+        "mise.toml"
+      ],
       "matchPackageNames": ["java"],
       "enabled": false
     }

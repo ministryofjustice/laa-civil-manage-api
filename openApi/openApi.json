@@ -334,6 +334,36 @@
           }
         }
       }
+    },
+    "/applications/{applicationId}": {
+      "get": {
+        "tags": [
+          "applications-controller"
+        ],
+        "operationId": "getApplicationById",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationSummary"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -669,6 +699,11 @@
             "type": "string",
             "description": "The client last name.",
             "example": "Doe"
+          },
+          "matterType": {
+            "type": "string",
+            "description": "The matter type of the application.",
+            "example": "SPECIAL_CHILDREN_ACT"
           }
         }
       },

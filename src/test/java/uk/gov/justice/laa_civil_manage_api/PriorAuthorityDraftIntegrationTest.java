@@ -137,6 +137,12 @@ class PriorAuthorityDraftIntegrationTest {
               .retrieve()
               .toBodilessEntity();
         }
+
+        @Override
+        public uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary getApplicationById(
+            UUID applicationId) {
+          throw new UnsupportedOperationException("Not used in this test");
+        }
       };
     }
   }

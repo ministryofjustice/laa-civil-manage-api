@@ -282,4 +282,35 @@ class HttpAccessDataStoreClientTest {
     assertEquals("APP-1", result.applications().get(0).laaReference());
     server.verify();
   }
+
+  @Test
+  void getApplicationByIdGetsFromAdsWithServiceNameHeader() {
+    UUID applicationId = UUID.fromString("11111111-2222-3333-4444-555555555555");
+
+    server
+        .expect(requestTo(BASE_URL + "/api/v0/applications/" + applicationId))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
+        .andRespond(
+            withSuccess(
+                """
+                    {
+                      "applicationId": "11111111-2222-3333-4444-555555555555",
+                      "laaReference": "APP-1",
+                      "status": "APPLICATION_SUBMITTED",
+                      "submittedAt": "2026-07-22T10:00:00Z",
+                      "clientFirstName": "John",
+                      "clientLastName": "Doe"
+                    }
+                    """,
+                MediaType.APPLICATION_JSON));
+
+    ApplicationSummary result = client.getApplicationById(applicationId);
+
+    assertNotNull(result);
+    assertEquals(applicationId, result.applicationId());
+    assertEquals("APP-1", result.laaReference());
+    assertEquals("APPLICATION_SUBMITTED", result.status());
+    server.verify();
+  }
 }

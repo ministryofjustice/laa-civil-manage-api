@@ -87,13 +87,7 @@ class ApplicationsIntegrationTest {
             .clientLastName("Doe")
             .build();
 
-    ApplicationSummaryResponse allApplications =
-        ApplicationSummaryResponse.builder()
-            .paging(Paging.builder().page(1).pageSize(100).itemsReturned(1).totalRecords(1).build())
-            .applications(List.of(expected))
-            .build();
-
-    when(accessDataStoreClient.getApplications(1, 100)).thenReturn(allApplications);
+    when(accessDataStoreClient.getApplicationById(applicationId)).thenReturn(expected);
 
     String body =
         mockMvc

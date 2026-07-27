@@ -2,6 +2,7 @@ package uk.gov.justice.laa_civil_manage_api.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -27,6 +28,11 @@ public record PriorAuthority(
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull
         PriorAuthorityType priorAuthorityType,
+    @Schema(
+            description =
+                "The counsel type requested. Required when priorAuthorityType is COUNSEL.",
+            example = "KINGS_COUNSEL_ALONE")
+        CounselType counselType,
     @Schema(description = "The expert type.", example = "Psychologist") String expertType,
     @Schema(
             description = "Full name of the expert the prior authority is for.",
@@ -72,4 +78,10 @@ public record PriorAuthority(
             example = "The case requires specialist expert evidence to proceed.",
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull
-        String justification) {}
+        String justification) {
+
+  @AssertTrue(message = "counselType must be provided when priorAuthorityType is COUNSEL")
+  public boolean isCounselTypeValid() {
+    return priorAuthorityType != PriorAuthorityType.COUNSEL || counselType != null;
+  }
+}

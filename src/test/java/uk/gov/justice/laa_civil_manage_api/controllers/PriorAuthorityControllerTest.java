@@ -255,6 +255,53 @@ class PriorAuthorityControllerTest {
   }
 
   @Test
+  void returns201ForCounselSubmissionWhenCounselTypeProvided() throws Exception {
+    when(priorAuthorityService.submit(any(PriorAuthority.class)))
+        .thenReturn(
+            PriorAuthorityApplicationResponse.builder()
+                .submissionId(SUBMISSION_ID)
+                .status(SubmissionStatus.ACCEPTED)
+                .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
+                .build());
+
+    String body =
+        """
+                        {
+                          "applicationId": "%s",
+                          "priorAuthorityType": "COUNSEL",
+                          "counselType": "KINGS_COUNSEL_ALONE",
+                          "billingType": "FIXED_RATE",
+                          "totalAmount": 500.00,
+                          "justification": "Counsel representation is required."
+                        }
+                        """
+            .formatted(APPLICATION_ID);
+
+    mockMvc
+        .perform(post("/prior-authority").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isCreated());
+  }
+
+  @Test
+  void returns400ForCounselSubmissionWhenCounselTypeMissing() throws Exception {
+    String body =
+        """
+                        {
+                          "applicationId": "%s",
+                          "priorAuthorityType": "COUNSEL",
+                          "billingType": "FIXED_RATE",
+                          "totalAmount": 500.00,
+                          "justification": "Counsel representation is required."
+                        }
+                        """
+            .formatted(APPLICATION_ID);
+
+    mockMvc
+        .perform(post("/prior-authority").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void returns400WhenTimeMinutesIsGreaterThan59() throws Exception {
     String body =
         """

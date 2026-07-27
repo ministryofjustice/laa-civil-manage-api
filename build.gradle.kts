@@ -38,9 +38,9 @@ repositories {
 }
 
 dependencyManagement {
-    dependencies {
-        dependency("com.fasterxml.jackson.core:jackson-databind:2.21.5")
-        dependency("tools.jackson.core:jackson-databind:3.1.5")
+    imports {
+        mavenBom("com.fasterxml.jackson:jackson-bom:2.22.1")
+        mavenBom("tools.jackson:jackson-bom:3.2.1")
     }
 }
 

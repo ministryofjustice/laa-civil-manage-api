@@ -73,4 +73,47 @@ class ApplicationsIntegrationTest {
 
     verifyNoInteractions(accessDataStoreClient);
   }
+
+  @Test
+  void returnsApplicationByIdFromDataStoreForAuthenticatedRequest() throws Exception {
+    UUID applicationId = UUID.fromString("11111111-2222-3333-4444-555555555555");
+    ApplicationSummary expected =
+        ApplicationSummary.builder()
+            .applicationId(applicationId)
+            .laaReference("APP-1")
+            .status("APPLICATION_SUBMITTED")
+            .startDate(OffsetDateTime.parse("2026-07-22T10:00:00Z"))
+            .clientFirstName("John")
+            .clientLastName("Doe")
+            .build();
+
+    ApplicationSummaryResponse allApplications =
+        ApplicationSummaryResponse.builder()
+            .paging(Paging.builder().page(1).pageSize(100).itemsReturned(1).totalRecords(1).build())
+            .applications(List.of(expected))
+            .build();
+
+    when(accessDataStoreClient.getApplications(1, 100)).thenReturn(allApplications);
+
+    String body =
+        mockMvc
+            .perform(get("/applications/{id}", applicationId).with(jwt()))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    ApplicationSummary result = objectMapper.readValue(body, ApplicationSummary.class);
+
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void returnsUnauthorizedForGetApplicationByIdWhenNoTokenPresent() throws Exception {
+    mockMvc
+        .perform(get("/applications/{id}", UUID.randomUUID()))
+        .andExpect(status().isUnauthorized());
+
+    verifyNoInteractions(accessDataStoreClient);
+  }
 }

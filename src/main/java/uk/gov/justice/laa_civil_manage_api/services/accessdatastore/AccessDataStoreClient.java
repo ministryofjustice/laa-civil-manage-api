@@ -21,8 +21,4 @@ public interface AccessDataStoreClient {
   void deleteDraft(UUID draftId);
 
   ApplicationSummaryResponse getApplications(int page, int pageSize);
-
-  default ApplicationSummaryResponse getApplications(int page) {
-    return getApplications(page, 10);
-  }
 }

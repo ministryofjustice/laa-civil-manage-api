@@ -2,7 +2,7 @@ name: Build and Push Image
 description: Build Image and Push to a Container Registry (with caching)
 inputs:
   image_registry:
-    required: true
+    required: false
     description: "Image Registry URL"
   image_repo:
     required: true
@@ -44,16 +44,21 @@ runs:
     - name: Docker Build (optionally push) with Cache
       id: build_and_push
       run: |
+        IMAGE_NAME="${{ inputs.image_repo }}"
+        if [[ -n "${{ inputs.image_registry }}" ]]; then
+          IMAGE_NAME="${{ inputs.image_registry }}/${{ inputs.image_repo }}"
+        fi
+
         ADDITIONAL_TAG_ARG=""
         if [[ -n "${{ inputs.additional_tag }}" ]]; then
-          ADDITIONAL_TAG_ARG="-t ${{ inputs.image_registry }}/${{ inputs.image_repo }}:${{ inputs.additional_tag }}"
+          ADDITIONAL_TAG_ARG="-t ${IMAGE_NAME}:${{ inputs.additional_tag }}"
         fi
         if [[ "${{ inputs.push_image }}" == "true" ]]; then
           docker buildx build \
             --push \
             --cache-from=type=local,src=/tmp/.buildx-cache \
             --cache-to=type=local,dest=/tmp/.buildx-cache \
-            -t ${{ inputs.image_registry }}/${{ inputs.image_repo }}:${{ inputs.image_tag }} \
+            -t ${IMAGE_NAME}:${{ inputs.image_tag }} \
             $ADDITIONAL_TAG_ARG \
             -f ${{ inputs.dockerfile_path }} .
         else
@@ -61,7 +66,7 @@ runs:
             --load \
             --cache-from=type=local,src=/tmp/.buildx-cache \
             --cache-to=type=local,dest=/tmp/.buildx-cache \
-            -t ${{ inputs.image_registry }}/${{ inputs.image_repo }}:${{ inputs.image_tag }} \
+            -t ${IMAGE_NAME}:${{ inputs.image_tag }} \
             $ADDITIONAL_TAG_ARG \
             -f ${{ inputs.dockerfile_path }} .
         fi
@@ -71,8 +76,13 @@ runs:
     - name: Output
       id: output
       run: |
+        IMAGE_NAME="${{ inputs.image_repo }}"
+        if [[ -n "${{ inputs.image_registry }}" ]]; then
+          IMAGE_NAME="${{ inputs.image_registry }}/${{ inputs.image_repo }}"
+        fi
+
         echo image_registry=${{ inputs.image_registry }} >> "$GITHUB_OUTPUT"
         echo image_repo=${{ inputs.image_repo }} >> "$GITHUB_OUTPUT"
         echo image_tag=${{ inputs.image_tag }} >> "$GITHUB_OUTPUT"
-        echo image_uri="${{ inputs.image_registry }}/${{ inputs.image_repo }}:${{ inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+        echo image_uri="${IMAGE_NAME}:${{ inputs.image_tag }}" >> "$GITHUB_OUTPUT"
       shell: bash

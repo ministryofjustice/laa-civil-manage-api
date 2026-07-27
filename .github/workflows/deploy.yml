@@ -141,7 +141,7 @@ jobs:
         id: build_and_push
         uses: ./.github/actions/docker_build_and_push
         with:
-          image_registry: ${{ steps.login-ecr.outputs.registry }}
+          image_registry: ${{ steps.login-ecr.outputs.registry || 'localhost' }}
           image_repo: ${{ vars.API_ECR_REPOSITORY }}
           dockerfile_path: Dockerfile
           image_tag: ${{ github.sha }}

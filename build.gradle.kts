@@ -39,8 +39,8 @@ repositories {
 
 dependencyManagement {
     dependencies {
-        dependency("com.fasterxml.jackson.core:jackson-databind:2.21.5")
-        dependency("tools.jackson.core:jackson-databind:3.1.5")
+        dependency("com.fasterxml.jackson.core:jackson-databind:2.22.1")
+        dependency("tools.jackson.core:jackson-databind:3.2.1")
     }
 }
 

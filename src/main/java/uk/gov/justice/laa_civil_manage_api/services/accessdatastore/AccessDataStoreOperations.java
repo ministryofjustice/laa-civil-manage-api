@@ -9,6 +9,7 @@ public final class AccessDataStoreOperations {
   public static final String GET_DRAFTS = "get-drafts";
   public static final String DELETE_DRAFT = "delete-draft";
   public static final String GET_APPLICATIONS = "get-applications";
+  public static final String GET_APPLICATION_BY_ID = "get-application-by-id";
 
   private AccessDataStoreOperations() {}
 }

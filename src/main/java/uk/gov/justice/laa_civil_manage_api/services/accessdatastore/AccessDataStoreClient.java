@@ -22,7 +22,5 @@ public interface AccessDataStoreClient {
 
   ApplicationSummaryResponse getApplications(int page, int pageSize);
 
-  default ApplicationSummaryResponse getApplications(int page) {
-    return getApplications(page, 10);
-  }
+  ApplicationSummary getApplicationById(UUID applicationId);
 }

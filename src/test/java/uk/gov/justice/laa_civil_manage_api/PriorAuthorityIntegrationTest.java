@@ -97,6 +97,12 @@ class PriorAuthorityIntegrationTest {
         public void deleteDraft(java.util.UUID draftId) {
           throw new UnsupportedOperationException("Not used in this test");
         }
+
+        @Override
+        public uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary getApplicationById(
+            java.util.UUID applicationId) {
+          throw new UnsupportedOperationException("Not used in this test");
+        }
       };
     }
   }

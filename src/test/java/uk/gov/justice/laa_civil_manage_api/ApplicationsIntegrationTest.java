@@ -54,7 +54,7 @@ class ApplicationsIntegrationTest {
             .applications(List.of(application))
             .build();
 
-    when(accessDataStoreClient.getApplications(1, 10, ApplicationStatus.GRANTED))
+    when(accessDataStoreClient.getApplications(1, 10, ApplicationStatus.APPLICATION_SUBMITTED))
         .thenReturn(expected);
 
     String body =

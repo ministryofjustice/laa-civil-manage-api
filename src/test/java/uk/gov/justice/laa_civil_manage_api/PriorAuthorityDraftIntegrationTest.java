@@ -64,7 +64,13 @@ class PriorAuthorityDraftIntegrationTest {
         }
 
         @Override
-        public ApplicationSummaryResponse getApplications(int page, int pageSize) {
+        public ApplicationSummaryResponse getApplications(
+            int page, int pageSize, ApplicationStatus status) {
+          throw new UnsupportedOperationException("Not used in this test");
+        }
+
+        @Override
+        public IndividualsResponse getIndividuals(UUID applicationId) {
           throw new UnsupportedOperationException("Not used in this test");
         }
 

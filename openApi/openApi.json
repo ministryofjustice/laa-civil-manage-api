@@ -293,6 +293,36 @@
         }
       }
     },
+    "/client/{applicationId}": {
+      "get": {
+        "tags": [
+          "client-controller"
+        ],
+        "operationId": "getClientByApplicationId",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/applications": {
       "get": {
         "tags": [
@@ -318,6 +348,23 @@
               "type": "integer",
               "format": "int32",
               "default": 10
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "APPLICATION_SUBMITTED",
+              "description": "The status of an application",
+              "enum": [
+                "APPLICATION_SUBMITTED",
+                "READY",
+                "APPLICATION_IN_PROGRESS",
+                "GRANTED",
+                "REFUSED"
+              ]
             }
           }
         ],

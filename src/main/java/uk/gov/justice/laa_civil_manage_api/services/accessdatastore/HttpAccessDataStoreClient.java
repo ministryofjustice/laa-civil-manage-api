@@ -99,12 +99,17 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
   }
 
   @Override
-  public ApplicationSummaryResponse getApplications(int page, int pageSize) {
+  public ApplicationSummaryResponse getApplications(
+      int page, int pageSize, ApplicationStatus status) {
     String baseUrl = properties.urlFor(AccessDataStoreOperations.GET_APPLICATIONS);
 
     return restClient
         .get()
-        .uri(baseUrl + "/api/v0/applications?page={page}&pageSize={pageSize}", page, pageSize)
+        .uri(
+            baseUrl + "/api/v0/applications?page={page}&pageSize={pageSize}&status={status}",
+            page,
+            pageSize,
+            status)
         .header("X-Service-Name", "CIVIL_APPLY")
         .retrieve()
         .body(ApplicationSummaryResponse.class);
@@ -120,5 +125,17 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
         .header("X-Service-Name", "CIVIL_APPLY")
         .retrieve()
         .body(ApplicationSummary.class);
+  }
+
+  @Override
+  public IndividualsResponse getIndividuals(UUID applicationId) {
+    String baseUrl = properties.urlFor(AccessDataStoreOperations.GET_INDIVIDUALS);
+
+    return restClient
+        .get()
+        .uri(baseUrl + "/api/v0/individuals?applicationId={applicationId}", applicationId)
+        .header("X-Service-Name", "CIVIL_APPLY")
+        .retrieve()
+        .body(IndividualsResponse.class);
   }
 }

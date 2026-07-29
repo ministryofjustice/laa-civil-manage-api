@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import uk.gov.justice.laa_civil_manage_api.models.ApplicationStatus;
 import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary;
 import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummaryResponse;
 import uk.gov.justice.laa_civil_manage_api.models.Paging;
@@ -51,7 +52,8 @@ class ApplicationsIntegrationTest {
             .applications(List.of(application))
             .build();
 
-    when(accessDataStoreClient.getApplications(1, 10)).thenReturn(expected);
+    when(accessDataStoreClient.getApplications(1, 10, ApplicationStatus.GRANTED))
+        .thenReturn(expected);
 
     String body =
         mockMvc

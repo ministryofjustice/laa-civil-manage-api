@@ -20,7 +20,7 @@ public interface AccessDataStoreClient {
 
   void deleteDraft(UUID draftId);
 
-  ApplicationSummaryResponse getApplications(int page, int pageSize);
+  ApplicationSummaryResponse getApplications(int page, int pageSize, ApplicationStatus status);
 
   ApplicationSummary getApplicationById(UUID applicationId);
 }

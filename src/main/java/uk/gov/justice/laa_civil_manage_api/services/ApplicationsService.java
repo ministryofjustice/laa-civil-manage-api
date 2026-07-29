@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uk.gov.justice.laa_civil_manage_api.models.ApplicationStatus;
 import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary;
 import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummaryResponse;
 import uk.gov.justice.laa_civil_manage_api.models.Paging;
@@ -15,8 +16,10 @@ public class ApplicationsService {
 
   private final AccessDataStoreClient accessDataStoreClient;
 
-  public ApplicationSummaryResponse getApplicationsData(int page, int pageSize) {
-    ApplicationSummaryResponse response = accessDataStoreClient.getApplications(page, pageSize);
+  public ApplicationSummaryResponse getApplicationsData(
+      int page, int pageSize, ApplicationStatus status) {
+    ApplicationSummaryResponse response =
+        accessDataStoreClient.getApplications(page, pageSize, status);
 
     if (response != null) {
       return response;

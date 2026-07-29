@@ -126,4 +126,16 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
         .retrieve()
         .body(ApplicationSummary.class);
   }
+
+  @Override
+  public IndividualsResponse getIndividuals(UUID applicationId) {
+    String baseUrl = properties.urlFor(AccessDataStoreOperations.GET_INDIVIDUALS);
+
+    return restClient
+        .get()
+        .uri(baseUrl + "/api/v0/individuals?applicationId={applicationId}", applicationId)
+        .header("X-Service-Name", "CIVIL_APPLY")
+        .retrieve()
+        .body(IndividualsResponse.class);
+  }
 }

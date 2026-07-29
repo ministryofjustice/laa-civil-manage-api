@@ -66,6 +66,7 @@ laa-civil-manage-api:
       delete-draft: http://localhost:8080/mock-access-data-store
       get-applications: ${ACCESS_DATA_STORE_BASE_URL}
       get-application-by-id: ${ACCESS_DATA_STORE_BASE_URL}
+      get-individuals: ${ACCESS_DATA_STORE_BASE_URL}
   expert-types:
     - A & E Consultant
     - Aboriculturist

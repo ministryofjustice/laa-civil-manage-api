@@ -21,6 +21,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.justice.laa_civil_manage_api.models.ApplicationStatus;
 import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary;
 import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummaryResponse;
+import uk.gov.justice.laa_civil_manage_api.models.Client;
+import uk.gov.justice.laa_civil_manage_api.models.IndividualsResponse;
 import uk.gov.justice.laa_civil_manage_api.models.Paging;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
 
@@ -79,17 +81,22 @@ class ApplicationsIntegrationTest {
   @Test
   void returnsApplicationByIdFromDataStoreForAuthenticatedRequest() throws Exception {
     UUID applicationId = UUID.fromString("11111111-2222-3333-4444-555555555555");
-    ApplicationSummary expected =
+    ApplicationSummary stored =
         ApplicationSummary.builder()
             .applicationId(applicationId)
             .laaReference("APP-1")
             .status("APPLICATION_SUBMITTED")
             .startDate(OffsetDateTime.parse("2026-07-22T10:00:00Z"))
-            .clientFirstName("John")
-            .clientLastName("Doe")
             .build();
+    ApplicationSummary expected =
+        stored.toBuilder().clientFirstName("John").clientLastName("Doe").build();
 
-    when(accessDataStoreClient.getApplicationById(applicationId)).thenReturn(expected);
+    Client client = Client.builder().firstName("John").lastName("Doe").build();
+    IndividualsResponse individualsResponse =
+        IndividualsResponse.builder().individuals(List.of(client)).build();
+
+    when(accessDataStoreClient.getApplicationById(applicationId)).thenReturn(stored);
+    when(accessDataStoreClient.getIndividuals(applicationId)).thenReturn(individualsResponse);
 
     String body =
         mockMvc

@@ -23,4 +23,6 @@ public interface AccessDataStoreClient {
   ApplicationSummaryResponse getApplications(int page, int pageSize, ApplicationStatus status);
 
   ApplicationSummary getApplicationById(UUID applicationId);
+
+  IndividualsResponse getIndividuals(UUID applicationId);
 }

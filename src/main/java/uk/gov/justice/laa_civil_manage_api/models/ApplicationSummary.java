@@ -7,7 +7,7 @@ import java.util.UUID;
 import lombok.Builder;
 
 @Schema(description = "Summary of a civil application containing key details.")
-@Builder
+@Builder(toBuilder = true)
 public record ApplicationSummary(
     @Schema(
             description = "The unique reference used to identify the application.",

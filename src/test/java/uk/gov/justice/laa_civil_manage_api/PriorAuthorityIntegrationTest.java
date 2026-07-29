@@ -79,6 +79,11 @@ class PriorAuthorityIntegrationTest {
         }
 
         @Override
+        public IndividualsResponse getIndividuals(UUID applicationId) {
+          throw new UnsupportedOperationException("Not used in this test");
+        }
+
+        @Override
         public void updateDraft(java.util.UUID draftId, Draft draft) {
           throw new UnsupportedOperationException("Not used in this test");
         }

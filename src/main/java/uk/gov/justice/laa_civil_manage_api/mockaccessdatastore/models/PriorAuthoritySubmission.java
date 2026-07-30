@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import lombok.Builder;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
+import uk.gov.justice.laa_civil_manage_api.models.CounselType;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
@@ -40,10 +41,8 @@ public record PriorAuthoritySubmission(
     @Schema(description = "Supporting documents uploaded with the request.") @Valid
         List<UploadedDocument> uploadedDocuments,
     @Schema(
-            description = "How the work will be billed.",
-            example = "HOURLY",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull
+            description = "How the work will be billed. Required unless priorAuthorityType is COUNSEL.",
+            example = "HOURLY")
         BillingType billingType,
     @Schema(
             description = "Hourly rate in GBP. Required when billingType is HOURLY.",
@@ -59,14 +58,18 @@ public record PriorAuthoritySubmission(
         @Min(0)
         @Max(59)
         Integer timeMinutes,
-    @Schema(description = "Total amount in GBP.", example = "125.00") @NotNull
+    @Schema(description = "Total amount in GBP. Required unless priorAuthorityType is COUNSEL.", example = "125.00")
         BigDecimal totalAmount,
     @Schema(
             description = "Detailed rationale explaining why funding is necessary.",
             example = "Expert evidence is needed to support the claim.",
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull
-        String justification) {
+        String justification,
+    @Schema(
+            description = "The type of counsel being requested.",
+            example = "KINGS_COUNSEL_ALONE")
+        CounselType counselType) {
 
   public static PriorAuthoritySubmission from(PriorAuthority priorAuthority) {
     return PriorAuthoritySubmission.builder()
@@ -82,6 +85,7 @@ public record PriorAuthoritySubmission(
         .timeMinutes(priorAuthority.timeMinutes())
         .totalAmount(priorAuthority.totalAmount())
         .justification(priorAuthority.justification())
+        .counselType(priorAuthority.counselType())
         .build();
   }
 }

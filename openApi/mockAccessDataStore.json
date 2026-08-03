@@ -365,7 +365,7 @@
           },
           "billingType": {
             "type": "string",
-            "description": "How the work will be billed.",
+            "description": "How the work will be billed. Required when priorAuthorityType is EXPERT.",
             "enum": [
               "HOURLY",
               "FIXED_RATE"
@@ -400,16 +400,11 @@
             "type": "string",
             "description": "Detailed rationale explaining why funding is necessary.",
             "example": "Expert evidence is needed to support the claim."
-          },
-          "counselTypeValid": {
-            "type": "boolean"
           }
         },
         "required": [
-          "billingType",
           "justification",
-          "priorAuthorityType",
-          "totalAmount"
+          "priorAuthorityType"
         ]
       },
       "UploadedDocument": {

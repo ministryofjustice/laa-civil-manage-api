@@ -73,7 +73,6 @@ class HttpAccessDataStoreClientTest {
         PriorAuthority.builder()
             .applicationId(applicationId)
             .priorAuthorityType(PriorAuthorityType.EXPERT)
-            .counselType(CounselType.KINGS_COUNSEL_ALONE)
             .expertType("Psychologist")
             .expertFullName("John Doe")
             .expertBasedInLondon(true)

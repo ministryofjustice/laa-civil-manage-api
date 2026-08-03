@@ -51,7 +51,7 @@ public class ApplicationsService {
       return summary;
     }
 
-    Client client = individuals.get(0);
+    Client client = individuals.getFirst();
     return summary.toBuilder()
         .clientFirstName(client.firstName())
         .clientLastName(client.lastName())

@@ -1,5 +1,6 @@
 package uk.gov.justice.laa_civil_manage_api.mockaccessdatastore.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
@@ -44,13 +45,12 @@ public record PriorAuthoritySubmission(
                 "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
             example = "true")
         Boolean expertBasedInLondon,
-    @Schema(description = "Supporting documents uploaded with the request.") @Valid
-        List<UploadedDocument> uploadedDocuments,
+    @Schema(description = "Supporting documents uploaded with the request.")
+        List<@Valid UploadedDocument> uploadedDocuments,
     @Schema(
-            description = "How the work will be billed.",
-            example = "HOURLY",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull
+            description =
+                "How the work will be billed. Required when priorAuthorityType is EXPERT.",
+            example = "HOURLY")
         BillingType billingType,
     @Schema(
             description = "Hourly rate in GBP. Required when billingType is HOURLY.",
@@ -66,8 +66,7 @@ public record PriorAuthoritySubmission(
         @Min(0)
         @Max(59)
         Integer timeMinutes,
-    @Schema(description = "Total amount in GBP.", example = "125.00") @NotNull
-        BigDecimal totalAmount,
+    @Schema(description = "Total amount in GBP.", example = "125.00") BigDecimal totalAmount,
     @Schema(
             description = "Detailed rationale explaining why funding is necessary.",
             example = "Expert evidence is needed to support the claim.",
@@ -75,9 +74,18 @@ public record PriorAuthoritySubmission(
         @NotNull
         String justification) {
 
+  @Schema(hidden = true)
+  @JsonIgnore
   @AssertTrue(message = "counselType must be provided when priorAuthorityType is COUNSEL")
   public boolean isCounselTypeValid() {
     return priorAuthorityType != PriorAuthorityType.COUNSEL || counselType != null;
+  }
+
+  @Schema(hidden = true)
+  @JsonIgnore
+  @AssertTrue(message = "billingType must be provided when priorAuthorityType is EXPERT")
+  public boolean isBillingTypeValid() {
+    return priorAuthorityType != PriorAuthorityType.EXPERT || billingType != null;
   }
 
   public static PriorAuthoritySubmission from(PriorAuthority priorAuthority) {

@@ -47,6 +47,31 @@ class MockPriorAuthorityControllerTest {
   }
 
   @Test
+  void returns201ForCounselSubmissionWithoutBillingOrTotal() throws Exception {
+    String body =
+        """
+                {
+                  "priorAuthorityType": "COUNSEL",
+                  "counselType": "KINGS_COUNSEL_ALONE",
+                  "uploadedDocuments": [
+                    { "fileName": "instructions.pdf" }
+                  ],
+                  "justification": "Counsel is required to advise on complex points of law."
+                }
+                """;
+
+    mockMvc
+        .perform(
+            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+                .with(jwt()))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.submissionId").exists())
+        .andExpect(jsonPath("$.status").value("ACCEPTED"));
+  }
+
+  @Test
   void repeatedSubmissionsForSameApplicationIdAreIdempotent() throws Exception {
     UUID applicationId = UUID.randomUUID();
     String body =

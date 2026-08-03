@@ -127,6 +127,38 @@ class PriorAuthorityControllerTest {
   }
 
   @Test
+  void returns201ForCounselSubmissionWithoutBillingOrTotal() throws Exception {
+    when(priorAuthorityService.submit(any(PriorAuthority.class)))
+        .thenReturn(
+            PriorAuthorityApplicationResponse.builder()
+                .submissionId(SUBMISSION_ID)
+                .status(SubmissionStatus.ACCEPTED)
+                .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
+                .build());
+
+    String body =
+        """
+                        {
+                          "applicationId": "%s",
+                          "priorAuthorityType": "COUNSEL",
+                          "counselType": "KINGS_COUNSEL_ALONE",
+                          "uploadedDocuments": [
+                            { "fileName": "instructions.pdf" }
+                          ],
+                          "justification": "Counsel is required to advise on complex points of law."
+                        }
+                        """
+            .formatted(APPLICATION_ID);
+
+    mockMvc
+        .perform(post("/prior-authority").contentType(MediaType.APPLICATION_JSON).content(body))
+        .andExpect(status().isCreated())
+        .andExpect(header().string("Location", "/prior-authority/" + SUBMISSION_ID))
+        .andExpect(jsonPath("$.submissionId").value(SUBMISSION_ID.toString()))
+        .andExpect(jsonPath("$.status").value("ACCEPTED"));
+  }
+
+  @Test
   void returns400WhenApplicationIdMissing() throws Exception {
     String body =
         """

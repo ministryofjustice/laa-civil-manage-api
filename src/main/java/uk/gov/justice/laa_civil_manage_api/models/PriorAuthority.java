@@ -1,10 +1,12 @@
 package uk.gov.justice.laa_civil_manage_api.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,11 +30,6 @@ public record PriorAuthority(
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull
         PriorAuthorityType priorAuthorityType,
-    @Schema(
-            description =
-                "The counsel type requested. Required when priorAuthorityType is COUNSEL.",
-            example = "KINGS_COUNSEL_ALONE")
-        CounselType counselType,
     @Schema(description = "The expert type.", example = "Psychologist") String expertType,
     @Schema(
             description = "Full name of the expert the prior authority is for.",
@@ -45,13 +42,12 @@ public record PriorAuthority(
                 "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
             example = "true")
         Boolean expertBasedInLondon,
-    @Schema(description = "Supporting documents uploaded with the request.") @Valid
-        List<UploadedDocument> uploadedDocuments,
+    @Schema(description = "Supporting documents uploaded with the request.")
+        List<@Valid UploadedDocument> uploadedDocuments,
     @Schema(
-            description = "How the work will be billed.",
-            example = "HOURLY",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull
+            description =
+                "How the work will be billed. Required unless priorAuthorityType is COUNSEL.",
+            example = "HOURLY")
         BillingType billingType,
     @Schema(
             description = "Hourly rate in GBP. Required when billingType is HOURLY.",
@@ -68,20 +64,32 @@ public record PriorAuthority(
         @Max(59)
         Integer timeMinutes,
     @Schema(
-            description = "Total amount in GBP.",
-            example = "125.00",
-            requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull
+            description = "Total amount in GBP. Required unless priorAuthorityType is COUNSEL.",
+            example = "125.00")
         BigDecimal totalAmount,
     @Schema(
             description = "Detailed rationale explaining why funding is necessary.",
             example = "The case requires specialist expert evidence to proceed.",
             requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotNull
-        String justification) {
+        @NotBlank
+        String justification,
+    @Schema(
+            description =
+                "Type of Counsel being applied for. Required when priorAuthorityType is COUNSEL.",
+            example = "KINGS_COUNSEL_ALONE.")
+        CounselType counselType) {
 
+  @Schema(hidden = true)
+  @JsonIgnore
   @AssertTrue(message = "counselType must be provided when priorAuthorityType is COUNSEL")
   public boolean isCounselTypeValid() {
     return priorAuthorityType != PriorAuthorityType.COUNSEL || counselType != null;
+  }
+
+  @Schema(hidden = true)
+  @JsonIgnore
+  @AssertTrue(message = "billingType must be provided when priorAuthorityType is EXPERT")
+  public boolean isBillingTypeValid() {
+    return priorAuthorityType != PriorAuthorityType.EXPERT || billingType != null;
   }
 }

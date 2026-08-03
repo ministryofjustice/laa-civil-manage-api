@@ -71,11 +71,7 @@ public record PriorAuthoritySubmission(
             example = "Expert evidence is needed to support the claim.",
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull
-        String justification,
-    @Schema(
-            description = "The type of counsel being requested.",
-            example = "KINGS_COUNSEL_ALONE")
-        CounselType counselType) {
+        String justification) {
 
   @AssertTrue(message = "counselType must be provided when priorAuthorityType is COUNSEL")
   public boolean isCounselTypeValid() {

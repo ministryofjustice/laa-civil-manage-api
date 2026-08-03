@@ -669,12 +669,6 @@
               "KINGS_COUNSEL_AND_TWO_JUNIOR_COUNSEL"
             ],
             "example": "KINGS_COUNSEL_ALONE."
-          },
-          "counselTypeValid": {
-            "type": "boolean"
-          },
-          "billingTypeValid": {
-            "type": "boolean"
           }
         },
         "required": [

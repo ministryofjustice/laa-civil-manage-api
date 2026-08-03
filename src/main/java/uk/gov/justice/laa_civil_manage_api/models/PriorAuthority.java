@@ -1,5 +1,6 @@
 package uk.gov.justice.laa_civil_manage_api.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
@@ -78,11 +79,15 @@ public record PriorAuthority(
             example = "KINGS_COUNSEL_ALONE.")
         CounselType counselType) {
 
+  @Schema(hidden = true)
+  @JsonIgnore
   @AssertTrue(message = "counselType must be provided when priorAuthorityType is COUNSEL")
   public boolean isCounselTypeValid() {
     return priorAuthorityType != PriorAuthorityType.COUNSEL || counselType != null;
   }
 
+  @Schema(hidden = true)
+  @JsonIgnore
   @AssertTrue(message = "billingType must be provided when priorAuthorityType is EXPERT")
   public boolean isBillingTypeValid() {
     return priorAuthorityType != PriorAuthorityType.EXPERT || billingType != null;

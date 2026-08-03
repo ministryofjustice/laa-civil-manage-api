@@ -400,12 +400,6 @@
             "type": "string",
             "description": "Detailed rationale explaining why funding is necessary.",
             "example": "Expert evidence is needed to support the claim."
-          },
-          "counselTypeValid": {
-            "type": "boolean"
-          },
-          "billingTypeValid": {
-            "type": "boolean"
           }
         },
         "required": [

@@ -325,6 +325,17 @@
             ],
             "example": "EXPERT"
           },
+          "counselType": {
+            "type": "string",
+            "description": "The counsel type requested. Required when priorAuthorityType is COUNSEL.",
+            "enum": [
+              "KINGS_COUNSEL_ALONE",
+              "TWO_JUNIOR_COUNSEL",
+              "KINGS_COUNSEL_AND_JUNIOR_COUNSEL",
+              "KINGS_COUNSEL_AND_TWO_JUNIOR_COUNSEL"
+            ],
+            "example": "KINGS_COUNSEL_ALONE"
+          },
           "expertType": {
             "type": "string",
             "description": "The expert type.",
@@ -389,6 +400,9 @@
             "type": "string",
             "description": "Detailed rationale explaining why funding is necessary.",
             "example": "Expert evidence is needed to support the claim."
+          },
+          "counselTypeValid": {
+            "type": "boolean"
           }
         },
         "required": [

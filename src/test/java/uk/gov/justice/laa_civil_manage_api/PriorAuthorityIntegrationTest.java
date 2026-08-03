@@ -160,6 +160,35 @@ class PriorAuthorityIntegrationTest {
   }
 
   @Test
+  void postingACounselPriorAuthorityRequestFlowsThroughToTheMockAccessDataStore() {
+    RestClient restClient =
+        RestClient.builder().defaultHeader("Authorization", "Bearer test-token").build();
+
+    PriorAuthority body =
+        PriorAuthority.builder()
+            .applicationId(UUID.randomUUID())
+            .priorAuthorityType(PriorAuthorityType.COUNSEL)
+            .counselType(CounselType.KINGS_COUNSEL_ALONE)
+            .billingType(BillingType.FIXED_RATE)
+            .totalAmount(new BigDecimal("500.00"))
+            .justification("Counsel representation is required.")
+            .build();
+
+    ResponseEntity<PriorAuthorityApplicationResponse> response =
+        restClient
+            .post()
+            .uri("http://localhost:" + port + "/prior-authority")
+            .body(body)
+            .retrieve()
+            .toEntity(PriorAuthorityApplicationResponse.class);
+
+    assertEquals(HttpStatusCode.valueOf(201), response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertNotNull(response.getBody().submissionId());
+    assertEquals(SubmissionStatus.ACCEPTED, response.getBody().status());
+  }
+
+  @Test
   void requestWithoutTokenReturns401Unauthorized() {
     RestClient unauthenticatedClient = RestClient.create();
 

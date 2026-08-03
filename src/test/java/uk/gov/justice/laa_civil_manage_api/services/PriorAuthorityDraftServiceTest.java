@@ -18,6 +18,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
+import uk.gov.justice.laa_civil_manage_api.models.CounselType;
 import uk.gov.justice.laa_civil_manage_api.models.Draft;
 import uk.gov.justice.laa_civil_manage_api.models.DraftCreatedResponse;
 import uk.gov.justice.laa_civil_manage_api.models.DraftSummary;
@@ -42,8 +43,10 @@ class PriorAuthorityDraftServiceTest {
         PriorAuthorityDraft.builder()
             .applicationId(applicationId)
             .priorAuthorityType(PriorAuthorityType.EXPERT)
+            .counselType(CounselType.KINGS_COUNSEL_ALONE)
             .expertType("Child psychologist")
             .expertFullName("Dr Joe Bloggs")
+            .expertBasedInLondon(true)
             .billingType(BillingType.HOURLY)
             .hourlyRate(new BigDecimal("45.00"))
             .totalAmount(new BigDecimal("135.00"))
@@ -62,8 +65,10 @@ class PriorAuthorityDraftServiceTest {
     assertNotNull(sent.userId());
     assertFalse(sent.userId().isBlank());
     assertEquals(applicationId.toString(), sent.draftBody().get("applicationId"));
+    assertEquals("KINGS_COUNSEL_ALONE", sent.draftBody().get("counselType"));
     assertEquals("Child psychologist", sent.draftBody().get("expertType"));
     assertEquals("Dr Joe Bloggs", sent.draftBody().get("expertFullName"));
+    assertEquals(true, sent.draftBody().get("expertBasedInLondon"));
     assertEquals("HOURLY", sent.draftBody().get("billingType"));
   }
 

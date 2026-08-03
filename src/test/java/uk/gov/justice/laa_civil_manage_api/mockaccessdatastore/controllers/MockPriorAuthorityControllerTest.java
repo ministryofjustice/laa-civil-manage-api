@@ -156,4 +156,45 @@ class MockPriorAuthorityControllerTest {
                 .with(jwt()))
         .andExpect(status().isBadRequest());
   }
+
+  @Test
+  void returns400WhenCounselTypeMissingForCounselSubmission() throws Exception {
+    String body =
+        """
+                {
+                  "priorAuthorityType": "COUNSEL",
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 249.99,
+                  "justification": "Counsel representation required."
+                }
+                """;
+    mockMvc
+        .perform(
+            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+                .with(jwt()))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void returns201WhenCounselTypeProvidedForCounselSubmission() throws Exception {
+    String body =
+        """
+                {
+                  "priorAuthorityType": "COUNSEL",
+                  "counselType": "KINGS_COUNSEL_AND_TWO_JUNIOR_COUNSEL",
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 249.99,
+                  "justification": "Counsel representation required."
+                }
+                """;
+    mockMvc
+        .perform(
+            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+                .with(jwt()))
+        .andExpect(status().isCreated());
+  }
 }

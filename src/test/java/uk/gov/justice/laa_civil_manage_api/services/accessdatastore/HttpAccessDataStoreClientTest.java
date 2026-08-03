@@ -52,6 +52,7 @@ class HttpAccessDataStoreClientTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.applicationId").doesNotExist())
         .andExpect(jsonPath("$.priorAuthorityType").value("EXPERT"))
+        .andExpect(jsonPath("$.counselType").doesNotExist())
         .andExpect(jsonPath("$.expertFullName").value("John Doe"))
         .andExpect(jsonPath("$.expertBasedInLondon").value(true))
         .andExpect(jsonPath("$.totalAmount").value(249.99))
@@ -72,6 +73,7 @@ class HttpAccessDataStoreClientTest {
         PriorAuthority.builder()
             .applicationId(applicationId)
             .priorAuthorityType(PriorAuthorityType.EXPERT)
+            .counselType(CounselType.KINGS_COUNSEL_ALONE)
             .expertType("Psychologist")
             .expertFullName("John Doe")
             .expertBasedInLondon(true)
@@ -127,6 +129,40 @@ class HttpAccessDataStoreClientTest {
             .billingType(BillingType.FIXED_RATE)
             .totalAmount(new BigDecimal("249.99"))
             .justification("Required expert evidence.")
+            .build());
+
+    server.verify();
+  }
+
+  @Test
+  void submitPriorAuthorityIncludesCounselTypeForCounselRequests() {
+    UUID applicationId = UUID.randomUUID();
+
+    server
+        .expect(requestTo(BASE_URL + "/applications/" + applicationId + "/prior-authority"))
+        .andExpect(method(HttpMethod.POST))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.priorAuthorityType").value("COUNSEL"))
+        .andExpect(jsonPath("$.counselType").value("KINGS_COUNSEL_AND_JUNIOR_COUNSEL"))
+        .andRespond(
+            withSuccess(
+                """
+                    {
+                      "submissionId": "11111111-1111-1111-1111-111111111111",
+                      "status": "ACCEPTED",
+                      "submittedAt": "2026-05-22T10:00:00Z"
+                    }
+                    """,
+                MediaType.APPLICATION_JSON));
+
+    client.submitPriorAuthority(
+        PriorAuthority.builder()
+            .applicationId(applicationId)
+            .priorAuthorityType(PriorAuthorityType.COUNSEL)
+            .counselType(CounselType.KINGS_COUNSEL_AND_JUNIOR_COUNSEL)
+            .billingType(BillingType.FIXED_RATE)
+            .totalAmount(new BigDecimal("249.99"))
+            .justification("Counsel is required.")
             .build());
 
     server.verify();

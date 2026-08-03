@@ -2,6 +2,7 @@ package uk.gov.justice.laa_civil_manage_api.mockaccessdatastore.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -26,6 +27,11 @@ public record PriorAuthoritySubmission(
             requiredMode = Schema.RequiredMode.REQUIRED)
         @NotNull
         PriorAuthorityType priorAuthorityType,
+    @Schema(
+            description =
+                "The counsel type requested. Required when priorAuthorityType is COUNSEL.",
+            example = "KINGS_COUNSEL_ALONE")
+        CounselType counselType,
     @Schema(description = "The expert type.", example = "Psychologist") String expertType,
     @Schema(
             description = "Full name of the expert the prior authority is for.",
@@ -71,9 +77,18 @@ public record PriorAuthoritySubmission(
             example = "KINGS_COUNSEL_ALONE")
         CounselType counselType) {
 
+  @AssertTrue(message = "counselType must be provided when priorAuthorityType is COUNSEL")
+  public boolean isCounselTypeValid() {
+    return priorAuthorityType != PriorAuthorityType.COUNSEL || counselType != null;
+  }
+
   public static PriorAuthoritySubmission from(PriorAuthority priorAuthority) {
     return PriorAuthoritySubmission.builder()
         .priorAuthorityType(priorAuthority.priorAuthorityType())
+        .counselType(
+            priorAuthority.priorAuthorityType() == PriorAuthorityType.COUNSEL
+                ? priorAuthority.counselType()
+                : null)
         .expertType(priorAuthority.expertType())
         .expertFullName(priorAuthority.expertFullName())
         .expertPostcode(priorAuthority.expertPostcode())

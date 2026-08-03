@@ -23,6 +23,11 @@ public record PriorAuthorityDraft(
             example = "EXPERT",
             nullable = true)
         PriorAuthorityType priorAuthorityType,
+    @Schema(
+            description = "The counsel type requested.",
+            example = "KINGS_COUNSEL_ALONE",
+            nullable = true)
+        CounselType counselType,
     @Schema(description = "The expert type.", example = "Child psychologist", nullable = true)
         String expertType,
     @Schema(

@@ -2,6 +2,7 @@ package uk.gov.justice.laa_civil_manage_api.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -105,4 +106,10 @@ public record PriorAuthority(
     )
     CounselType counselType
 
-) {}
+) {
+
+  @AssertTrue(message = "counselType must be provided when priorAuthorityType is COUNSEL")
+  public boolean isCounselTypeValid() {
+    return priorAuthorityType != PriorAuthorityType.COUNSEL || counselType != null;
+  }
+}

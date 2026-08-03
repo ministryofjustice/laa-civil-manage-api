@@ -365,7 +365,7 @@
           },
           "billingType": {
             "type": "string",
-            "description": "How the work will be billed.",
+            "description": "How the work will be billed. Required when priorAuthorityType is EXPERT.",
             "enum": [
               "HOURLY",
               "FIXED_RATE"
@@ -403,13 +403,14 @@
           },
           "counselTypeValid": {
             "type": "boolean"
+          },
+          "billingTypeValid": {
+            "type": "boolean"
           }
         },
         "required": [
-          "billingType",
           "justification",
-          "priorAuthorityType",
-          "totalAmount"
+          "priorAuthorityType"
         ]
       },
       "UploadedDocument": {

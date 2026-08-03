@@ -593,17 +593,6 @@
             ],
             "example": "EXPERT"
           },
-          "counselType": {
-            "type": "string",
-            "description": "The counsel type requested. Required when priorAuthorityType is COUNSEL.",
-            "enum": [
-              "KINGS_COUNSEL_ALONE",
-              "TWO_JUNIOR_COUNSEL",
-              "KINGS_COUNSEL_AND_JUNIOR_COUNSEL",
-              "KINGS_COUNSEL_AND_TWO_JUNIOR_COUNSEL"
-            ],
-            "example": "KINGS_COUNSEL_ALONE"
-          },
           "expertType": {
             "type": "string",
             "description": "The expert type.",
@@ -633,7 +622,7 @@
           },
           "billingType": {
             "type": "string",
-            "description": "How the work will be billed.",
+            "description": "How the work will be billed. Required unless priorAuthorityType is COUNSEL.",
             "enum": [
               "HOURLY",
               "FIXED_RATE"
@@ -661,24 +650,37 @@
           },
           "totalAmount": {
             "type": "number",
-            "description": "Total amount in GBP.",
+            "description": "Total amount in GBP. Required unless priorAuthorityType is COUNSEL.",
             "example": 125.0
           },
           "justification": {
             "type": "string",
             "description": "Detailed rationale explaining why funding is necessary.",
-            "example": "The case requires specialist expert evidence to proceed."
+            "example": "The case requires specialist expert evidence to proceed.",
+            "minLength": 1
+          },
+          "counselType": {
+            "type": "string",
+            "description": "Type of Counsel being applied for. Required when priorAuthorityType is COUNSEL.",
+            "enum": [
+              "KINGS_COUNSEL_ALONE",
+              "TWO_JUNIOR_COUNSEL",
+              "KINGS_COUNSEL_AND_JUNIOR_COUNSEL",
+              "KINGS_COUNSEL_AND_TWO_JUNIOR_COUNSEL"
+            ],
+            "example": "KINGS_COUNSEL_ALONE."
           },
           "counselTypeValid": {
+            "type": "boolean"
+          },
+          "billingTypeValid": {
             "type": "boolean"
           }
         },
         "required": [
           "applicationId",
-          "billingType",
           "justification",
-          "priorAuthorityType",
-          "totalAmount"
+          "priorAuthorityType"
         ]
       },
       "PriorAuthorityApplicationResponse": {

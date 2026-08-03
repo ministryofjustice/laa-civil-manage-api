@@ -44,10 +44,11 @@ public record PriorAuthoritySubmission(
                 "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
             example = "true")
         Boolean expertBasedInLondon,
-    @Schema(description = "Supporting documents uploaded with the request.") @Valid
-        List<UploadedDocument> uploadedDocuments,
+    @Schema(description = "Supporting documents uploaded with the request.")
+        List<@Valid UploadedDocument> uploadedDocuments,
     @Schema(
-            description = "How the work will be billed. Required unless priorAuthorityType is COUNSEL.",
+            description =
+                "How the work will be billed. Required when priorAuthorityType is EXPERT.",
             example = "HOURLY")
         BillingType billingType,
     @Schema(
@@ -64,8 +65,7 @@ public record PriorAuthoritySubmission(
         @Min(0)
         @Max(59)
         Integer timeMinutes,
-    @Schema(description = "Total amount in GBP. Required unless priorAuthorityType is COUNSEL.", example = "125.00")
-        BigDecimal totalAmount,
+    @Schema(description = "Total amount in GBP.", example = "125.00") BigDecimal totalAmount,
     @Schema(
             description = "Detailed rationale explaining why funding is necessary.",
             example = "Expert evidence is needed to support the claim.",
@@ -76,6 +76,11 @@ public record PriorAuthoritySubmission(
   @AssertTrue(message = "counselType must be provided when priorAuthorityType is COUNSEL")
   public boolean isCounselTypeValid() {
     return priorAuthorityType != PriorAuthorityType.COUNSEL || counselType != null;
+  }
+
+  @AssertTrue(message = "billingType must be provided when priorAuthorityType is EXPERT")
+  public boolean isBillingTypeValid() {
+    return priorAuthorityType != PriorAuthorityType.EXPERT || billingType != null;
   }
 
   public static PriorAuthoritySubmission from(PriorAuthority priorAuthority) {
@@ -96,7 +101,6 @@ public record PriorAuthoritySubmission(
         .timeMinutes(priorAuthority.timeMinutes())
         .totalAmount(priorAuthority.totalAmount())
         .justification(priorAuthority.justification())
-        .counselType(priorAuthority.counselType())
         .build();
   }
 }

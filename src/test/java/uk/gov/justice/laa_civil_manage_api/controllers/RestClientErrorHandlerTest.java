@@ -10,9 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
-class AccessDataStoreErrorHandlerTest {
+class RestClientErrorHandlerTest {
 
-  private final AccessDataStoreErrorHandler handler = new AccessDataStoreErrorHandler();
+  private final RestClientErrorHandler handler = new RestClientErrorHandler();
 
   @Test
   void forwards404FromAccessDataStoreAs404() {

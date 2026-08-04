@@ -9,13 +9,13 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
 @RestControllerAdvice
-public class AccessDataStoreErrorHandler {
+public class RestClientErrorHandler {
 
   @ExceptionHandler(HttpClientErrorException.class)
   public ResponseEntity<ProblemDetail> handleClientError(HttpClientErrorException ex) {
     ProblemDetail body =
         ProblemDetail.forStatusAndDetail(
-            ex.getStatusCode(), "Access Data Store returned " + ex.getStatusCode().value());
+            ex.getStatusCode(), "Upstream API returned " + ex.getStatusCode().value());
     return ResponseEntity.status(ex.getStatusCode()).body(body);
   }
 
@@ -23,7 +23,7 @@ public class AccessDataStoreErrorHandler {
   public ResponseEntity<ProblemDetail> handleServerError(HttpServerErrorException ex) {
     ProblemDetail body =
         ProblemDetail.forStatusAndDetail(
-            HttpStatus.BAD_GATEWAY, "Access Data Store returned " + ex.getStatusCode().value());
+            HttpStatus.BAD_GATEWAY, "Upstream API returned " + ex.getStatusCode().value());
     return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(body);
   }
 }

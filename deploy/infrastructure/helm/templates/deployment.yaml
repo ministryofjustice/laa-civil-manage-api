@@ -60,6 +60,8 @@ spec:
               value: {{ .Values.env.azureEntraApiClientId | quote }}
             - name: ACCESS_DATA_STORE_BASE_URL
               value: {{ .Values.env.accessDataStoreBaseUrl | quote }}
+            - name: LEGAL_FRAMEWORK_API_BASE_URL
+              value: {{ .Values.env.legalFrameworkApiBaseUrl | quote }}
             - name: AZURE_ENTRA_API_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:

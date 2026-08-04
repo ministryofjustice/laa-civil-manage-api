@@ -1,29 +1,26 @@
 package uk.gov.justice.laa_civil_manage_api;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import uk.gov.justice.laa_civil_manage_api.config.LaaCivilManageApiConfig;
 import uk.gov.justice.laa_civil_manage_api.config.SecurityConfig;
 import uk.gov.justice.laa_civil_manage_api.controllers.ExpertController;
+import uk.gov.justice.laa_civil_manage_api.services.ExpertService;
 
-@EnableConfigurationProperties(LaaCivilManageApiConfig.class)
 @WebMvcTest(ExpertController.class)
 @Import(SecurityConfig.class)
 public class ExpertControllerTest {
@@ -32,18 +29,45 @@ public class ExpertControllerTest {
 
   @MockitoBean private JwtDecoder jwtDecoder;
 
-  private static final ObjectMapper mapper =
-      JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES).build();
+  @MockitoBean private ExpertService expertService;
 
   @Test
-  void shouldReturnExpertTypes() throws Exception {
-    MvcResult result =
-        mockMvc.perform(get("/expertTypes").with(jwt())).andExpect(status().isOk()).andReturn();
+  void shouldReturnExpertTypesForTheRequestedMatterType() throws Exception {
+    when(expertService.getExpertTypeDescriptions("KMAAA"))
+        .thenReturn(List.of("Psychologist", "Interpreter"));
 
-    List<String> expertTypes =
-        mapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {});
+    mockMvc
+        .perform(get("/expertTypes").param("matterType", "KMAAA").with(jwt()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0]").value("Psychologist"))
+        .andExpect(jsonPath("$[1]").value("Interpreter"));
+  }
 
-    assertEquals(112, expertTypes.size());
-    assertEquals("A & E Consultant", expertTypes.getFirst());
+  @Test
+  void shouldDefaultToKpblwWhenNoMatterTypeIsSupplied() throws Exception {
+    when(expertService.getExpertTypeDescriptions("KPBLW")).thenReturn(List.of("Psychologist"));
+
+    mockMvc
+        .perform(get("/expertTypes").with(jwt()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0]").value("Psychologist"));
+
+    verify(expertService).getExpertTypeDescriptions("KPBLW");
+  }
+
+  @Test
+  void shouldReturnEmptyArrayWhenTheMatterTypeHasNoExpertTypes() throws Exception {
+    when(expertService.getExpertTypeDescriptions(any())).thenReturn(List.of());
+
+    mockMvc
+        .perform(get("/expertTypes").param("matterType", "NOPE").with(jwt()))
+        .andExpect(status().isOk())
+        .andExpect(content().json("[]"));
+  }
+
+  @Test
+  void shouldRequireAuthentication() throws Exception {
+    mockMvc.perform(get("/expertTypes")).andExpect(status().isUnauthorized());
   }
 }

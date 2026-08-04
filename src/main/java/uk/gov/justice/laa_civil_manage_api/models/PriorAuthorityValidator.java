@@ -4,7 +4,8 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.util.List;
 
-public class PriorAuthorityValidator implements ConstraintValidator<ValidPriorAuthority, PriorAuthority> {
+public class PriorAuthorityValidator
+    implements ConstraintValidator<ValidPriorAuthority, PriorAuthority> {
 
   @Override
   public boolean isValid(PriorAuthority value, ConstraintValidatorContext context) {

@@ -121,8 +121,7 @@ class PriorAuthorityValidatorTest {
   void hourlyExpertRequiresTimeAndRateFields() {
     PriorAuthority priorAuthority = validExpert().billingType(BillingType.HOURLY).build();
 
-    assertThat(invalidFields(priorAuthority))
-        .contains("hourlyRate", "timeHours", "timeMinutes");
+    assertThat(invalidFields(priorAuthority)).contains("hourlyRate", "timeHours", "timeMinutes");
   }
 
   @Test

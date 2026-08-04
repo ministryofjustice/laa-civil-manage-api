@@ -140,6 +140,7 @@ class PriorAuthorityIntegrationTest {
             .expertType("Psychologist")
             .expertFullName("John Doe")
             .expertBasedInLondon(true)
+            .uploadedDocuments(List.of(UploadedDocument.builder().fileName("report.pdf").build()))
             .billingType(BillingType.FIXED_RATE)
             .totalAmount(new BigDecimal("249.99"))
             .justification("Required expert evidence.")

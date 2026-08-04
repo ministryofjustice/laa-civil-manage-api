@@ -114,6 +114,9 @@ class PriorAuthorityControllerTest {
                           "expertType": "Psychologist",
                           "expertFullName": "John Doe",
                           "expertBasedInLondon": false,
+                          "uploadedDocuments": [
+                            { "fileName": "report.pdf" }
+                          ],
                           "billingType": "FIXED_RATE",
                           "totalAmount": 249.99,
                           "justification": "A fixed fee is appropriate for this work."
@@ -199,15 +202,7 @@ class PriorAuthorityControllerTest {
   }
 
   @Test
-  void returns201WhenHourlyBillingMissesTimeFields() throws Exception {
-    when(priorAuthorityService.submit(any(PriorAuthority.class)))
-        .thenReturn(
-            PriorAuthorityApplicationResponse.builder()
-                .submissionId(SUBMISSION_ID)
-                .status(SubmissionStatus.ACCEPTED)
-                .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
-                .build());
-
+  void returns400WhenHourlyBillingMissesTimeFields() throws Exception {
     String body =
         """
                         {
@@ -216,6 +211,9 @@ class PriorAuthorityControllerTest {
                           "expertType": "Psychologist",
                           "expertFullName": "John Doe",
                           "expertBasedInLondon": true,
+                          "uploadedDocuments": [
+                            { "fileName": "report.pdf" }
+                          ],
                           "billingType": "HOURLY",
                           "totalAmount": 120.00,
                           "justification": "Interim submission without time breakdown."
@@ -225,19 +223,11 @@ class PriorAuthorityControllerTest {
 
     mockMvc
         .perform(post("/prior-authority").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isCreated());
+        .andExpect(status().isBadRequest());
   }
 
   @Test
-  void returns201WhenPriorAuthorityTypeIsExpertButExpertTypeMissing() throws Exception {
-    when(priorAuthorityService.submit(any(PriorAuthority.class)))
-        .thenReturn(
-            PriorAuthorityApplicationResponse.builder()
-                .submissionId(SUBMISSION_ID)
-                .status(SubmissionStatus.ACCEPTED)
-                .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
-                .build());
-
+  void returns400WhenExpertTypeMissingForExpert() throws Exception {
     String body =
         """
                         {
@@ -245,16 +235,19 @@ class PriorAuthorityControllerTest {
                           "priorAuthorityType": "EXPERT",
                           "expertFullName": "John Doe",
                           "expertBasedInLondon": false,
+                          "uploadedDocuments": [
+                            { "fileName": "report.pdf" }
+                          ],
                           "billingType": "FIXED_RATE",
                           "totalAmount": 100.00,
-                          "justification": "Expert type to be confirmed later."
+                          "justification": "Expert type is mandatory."
                         }
                         """
             .formatted(APPLICATION_ID);
 
     mockMvc
         .perform(post("/prior-authority").contentType(MediaType.APPLICATION_JSON).content(body))
-        .andExpect(status().isCreated());
+        .andExpect(status().isBadRequest());
   }
 
   @Test
@@ -274,6 +267,9 @@ class PriorAuthorityControllerTest {
                           "priorAuthorityType": "EXPERT",
                           "expertType": "Psychologist",
                           "expertFullName": "John Doe",
+                          "uploadedDocuments": [
+                            { "fileName": "report.pdf" }
+                          ],
                           "billingType": "FIXED_RATE",
                           "totalAmount": 100.00,
                           "justification": "Location flag supplied later."
@@ -302,6 +298,9 @@ class PriorAuthorityControllerTest {
                           "applicationId": "%s",
                           "priorAuthorityType": "COUNSEL",
                           "counselType": "KINGS_COUNSEL_ALONE",
+                          "uploadedDocuments": [
+                            { "fileName": "instructions.pdf" }
+                          ],
                           "billingType": "FIXED_RATE",
                           "totalAmount": 500.00,
                           "justification": "Counsel representation is required."

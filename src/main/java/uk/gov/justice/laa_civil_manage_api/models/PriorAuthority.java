@@ -1,9 +1,7 @@
 package uk.gov.justice.laa_civil_manage_api.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -17,6 +15,7 @@ import lombok.Builder;
     description =
         "A prior-authority request submitted by a legal aid provider against an existing application.")
 @Builder
+@ValidPriorAuthority
 public record PriorAuthority(
     @Schema(
             description = "ID of the application this prior-authority request is associated with.",
@@ -77,19 +76,4 @@ public record PriorAuthority(
             description =
                 "Type of Counsel being applied for. Required when priorAuthorityType is COUNSEL.",
             example = "KINGS_COUNSEL_ALONE.")
-        CounselType counselType) {
-
-  @Schema(hidden = true)
-  @JsonIgnore
-  @AssertTrue(message = "counselType must be provided when priorAuthorityType is COUNSEL")
-  public boolean isCounselTypeValid() {
-    return priorAuthorityType != PriorAuthorityType.COUNSEL || counselType != null;
-  }
-
-  @Schema(hidden = true)
-  @JsonIgnore
-  @AssertTrue(message = "billingType must be provided when priorAuthorityType is EXPERT")
-  public boolean isBillingTypeValid() {
-    return priorAuthorityType != PriorAuthorityType.EXPERT || billingType != null;
-  }
-}
+        CounselType counselType) {}

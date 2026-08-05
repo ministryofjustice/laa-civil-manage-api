@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
+import uk.gov.justice.laa_civil_manage_api.models.ExpertCosts;
+import uk.gov.justice.laa_civil_manage_api.models.ExpertDetails;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
@@ -34,11 +36,18 @@ class PriorAuthorityServiceTest {
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
             .priorAuthorityType(PriorAuthorityType.EXPERT)
-            .expertType("Psychologist")
-            .expertFullName("John Doe")
-            .expertBasedInLondon(false)
-            .billingType(BillingType.FIXED_RATE)
-            .totalAmount(new BigDecimal("249.99"))
+            .expertDetails(
+                ExpertDetails.builder()
+                    .expertType("Psychologist")
+                    .expertFullName("Dr John Doe")
+                    .expertPostcode("M1 1AA")
+                    .expertCosts(
+                        ExpertCosts.builder()
+                            .billingType(BillingType.FIXED_RATE)
+                            .totalAmount(new BigDecimal("249.99"))
+                            .costsSharedWithOtherParties(false)
+                            .build())
+                    .build())
             .justification("Required expert evidence.")
             .build();
     PriorAuthorityApplicationResponse expected =
@@ -148,8 +157,18 @@ class PriorAuthorityServiceTest {
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
             .priorAuthorityType(PriorAuthorityType.EXPERT)
-            .billingType(BillingType.FIXED_RATE)
-            .totalAmount(new BigDecimal("100.00"))
+            .expertDetails(
+                ExpertDetails.builder()
+                    .expertType("Psychologist")
+                    .expertFullName("Dr John Doe")
+                    .expertPostcode("SW1H 9AJ")
+                    .expertCosts(
+                        ExpertCosts.builder()
+                            .billingType(BillingType.FIXED_RATE)
+                            .totalAmount(new BigDecimal("100.00"))
+                            .costsSharedWithOtherParties(false)
+                            .build())
+                    .build())
             .justification("Test.")
             .uploadedDocuments(List.of())
             .build();

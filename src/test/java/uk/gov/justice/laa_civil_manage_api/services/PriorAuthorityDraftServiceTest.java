@@ -46,7 +46,6 @@ class PriorAuthorityDraftServiceTest {
             .counselType(CounselType.KINGS_COUNSEL_ALONE)
             .expertType("Child psychologist")
             .expertFullName("Dr Joe Bloggs")
-            .expertBasedInLondon(true)
             .billingType(BillingType.HOURLY)
             .hourlyRate(new BigDecimal("45.00"))
             .totalAmount(new BigDecimal("135.00"))
@@ -68,7 +67,6 @@ class PriorAuthorityDraftServiceTest {
     assertEquals("KINGS_COUNSEL_ALONE", sent.draftBody().get("counselType"));
     assertEquals("Child psychologist", sent.draftBody().get("expertType"));
     assertEquals("Dr Joe Bloggs", sent.draftBody().get("expertFullName"));
-    assertEquals(true, sent.draftBody().get("expertBasedInLondon"));
     assertEquals("HOURLY", sent.draftBody().get("billingType"));
   }
 

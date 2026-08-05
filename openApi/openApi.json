@@ -491,14 +491,6 @@
             "description": "Primary business postcode of the expert.",
             "example": "SW1H 9AJ"
           },
-          "expertBasedInLondon": {
-            "type": [
-              "boolean",
-              "null"
-            ],
-            "description": "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
-            "example": true
-          },
           "uploadedDocuments": {
             "type": [
               "array",
@@ -588,9 +580,148 @@
           "fileName"
         ]
       },
+      "Apportionment": {
+        "type": "object",
+        "description": "How the expert\u0027s costs are shared with other parties. Present when costsSharedWithOtherParties is true; omitted when it is false.",
+        "properties": {
+          "partiesSharingCosts": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Total number of parties sharing the costs, including the client.",
+            "example": 4,
+            "minimum": 2
+          },
+          "clientShareAmount": {
+            "type": "number",
+            "description": "The client\u0027s share of the costs, in GBP.",
+            "example": 31.25
+          }
+        },
+        "required": [
+          "clientShareAmount",
+          "partiesSharingCosts"
+        ]
+      },
+      "CounselDetails": {
+        "type": "object",
+        "description": "The counsel requested. Required when priorAuthorityType is COUNSEL.",
+        "properties": {
+          "counselType": {
+            "type": "string",
+            "description": "Type of counsel being applied for.",
+            "enum": [
+              "KINGS_COUNSEL_ALONE",
+              "TWO_JUNIOR_COUNSEL",
+              "KINGS_COUNSEL_AND_JUNIOR_COUNSEL",
+              "KINGS_COUNSEL_AND_TWO_JUNIOR_COUNSEL"
+            ],
+            "example": "KINGS_COUNSEL_ALONE"
+          }
+        },
+        "required": [
+          "counselType"
+        ]
+      },
+      "DisbursementDetails": {
+        "type": "object",
+        "description": "The disbursement requested. Required when priorAuthorityType is DISBURSEMENT.",
+        "properties": {
+          "disbursementPurpose": {
+            "type": "string",
+            "description": "What the disbursement is for.",
+            "example": "Travel",
+            "minLength": 1
+          },
+          "disbursementAmount": {
+            "type": "number",
+            "description": "Cost of the disbursement in GBP, exclusive of VAT.",
+            "example": 125.5
+          }
+        },
+        "required": [
+          "disbursementAmount",
+          "disbursementPurpose"
+        ]
+      },
+      "ExpertCosts": {
+        "type": "object",
+        "description": "What the expert will cost, how they will be billed, and how the costs are shared.",
+        "properties": {
+          "billingType": {
+            "type": "string",
+            "description": "Whether the expert is billed hourly or at a flat rate.",
+            "enum": [
+              "HOURLY",
+              "FIXED_RATE"
+            ],
+            "example": "HOURLY"
+          },
+          "hourlyRate": {
+            "type": "number",
+            "description": "Hourly rate in GBP. Required when billingType is HOURLY.",
+            "example": 50.0
+          },
+          "timeRequested": {
+            "$ref": "#/components/schemas/TimeRequested",
+            "description": "Time requested. Required when billingType is HOURLY."
+          },
+          "totalAmount": {
+            "type": "number",
+            "description": "Amount requested in GBP. For HOURLY billing this is hourlyRate x (hours + minutes / 60); for FIXED_RATE it is the flat fee entered by the provider.",
+            "example": 125.0
+          },
+          "costsSharedWithOtherParties": {
+            "type": "boolean",
+            "description": "Whether the expert\u0027s costs are shared with other parties.",
+            "example": true
+          },
+          "apportionment": {
+            "$ref": "#/components/schemas/Apportionment",
+            "description": "How the costs are split. Required when costsSharedWithOtherParties is true; omitted when false."
+          }
+        },
+        "required": [
+          "billingType",
+          "costsSharedWithOtherParties",
+          "totalAmount"
+        ]
+      },
+      "ExpertDetails": {
+        "type": "object",
+        "description": "The expert and what they will cost.",
+        "properties": {
+          "expertType": {
+            "type": "string",
+            "description": "The expert type.",
+            "example": "Psychologist",
+            "minLength": 1
+          },
+          "expertFullName": {
+            "type": "string",
+            "description": "Full name of the expert the prior authority is for.",
+            "example": "Dr John Doe",
+            "minLength": 1
+          },
+          "expertPostcode": {
+            "type": "string",
+            "description": "Primary business postcode of the expert, for regional rate mapping.",
+            "example": "SW1H 9AJ",
+            "minLength": 1
+          },
+          "expertCosts": {
+            "$ref": "#/components/schemas/ExpertCosts"
+          }
+        },
+        "required": [
+          "expertCosts",
+          "expertFullName",
+          "expertPostcode",
+          "expertType"
+        ]
+      },
       "PriorAuthority": {
         "type": "object",
-        "description": "A prior-authority request submitted by a legal aid provider against an existing application.",
+        "description": "A prior-authority request submitted by a legal aid provider against an existing application. Exactly one of expertDetails, counselDetails or disbursementDetails is present, matching priorAuthorityType.",
         "properties": {
           "applicationId": {
             "type": "string",
@@ -608,88 +739,61 @@
             ],
             "example": "EXPERT"
           },
-          "expertType": {
-            "type": "string",
-            "description": "The expert type.",
-            "example": "Psychologist"
-          },
-          "expertFullName": {
-            "type": "string",
-            "description": "Full name of the expert the prior authority is for.",
-            "example": "John Doe"
-          },
-          "expertPostcode": {
-            "type": "string",
-            "description": "Primary business postcode of the expert.",
-            "example": "SW1H 9AJ"
-          },
-          "expertBasedInLondon": {
-            "type": "boolean",
-            "description": "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
-            "example": true
-          },
-          "uploadedDocuments": {
-            "type": "array",
-            "description": "Supporting documents uploaded with the request.",
-            "items": {
-              "$ref": "#/components/schemas/UploadedDocument"
-            }
-          },
-          "billingType": {
-            "type": "string",
-            "description": "How the work will be billed. Required unless priorAuthorityType is COUNSEL.",
-            "enum": [
-              "HOURLY",
-              "FIXED_RATE"
-            ],
-            "example": "HOURLY"
-          },
-          "hourlyRate": {
-            "type": "number",
-            "description": "Hourly rate in GBP. Required when billingType is HOURLY.",
-            "example": 50.0
-          },
-          "timeHours": {
-            "type": "integer",
-            "format": "int32",
-            "description": "Estimated whole hours. Required when billingType is HOURLY.",
-            "example": 2
-          },
-          "timeMinutes": {
-            "type": "integer",
-            "format": "int32",
-            "description": "Estimated additional minutes. Required when billingType is HOURLY.",
-            "example": 30,
-            "maximum": 59,
-            "minimum": 0
-          },
-          "totalAmount": {
-            "type": "number",
-            "description": "Total amount in GBP. Required unless priorAuthorityType is COUNSEL.",
-            "example": 125.0
-          },
           "justification": {
             "type": "string",
             "description": "Detailed rationale explaining why funding is necessary.",
             "example": "The case requires specialist expert evidence to proceed.",
             "minLength": 1
           },
-          "counselType": {
-            "type": "string",
-            "description": "Type of Counsel being applied for. Required when priorAuthorityType is COUNSEL.",
-            "enum": [
-              "KINGS_COUNSEL_ALONE",
-              "TWO_JUNIOR_COUNSEL",
-              "KINGS_COUNSEL_AND_JUNIOR_COUNSEL",
-              "KINGS_COUNSEL_AND_TWO_JUNIOR_COUNSEL"
-            ],
-            "example": "KINGS_COUNSEL_ALONE."
+          "uploadedDocuments": {
+            "type": "array",
+            "description": "Supporting documents uploaded with the request. Optional for all types.",
+            "items": {
+              "$ref": "#/components/schemas/UploadedDocument"
+            }
+          },
+          "expertDetails": {
+            "$ref": "#/components/schemas/ExpertDetails",
+            "description": "Required when priorAuthorityType is EXPERT; omitted otherwise."
+          },
+          "counselDetails": {
+            "$ref": "#/components/schemas/CounselDetails",
+            "description": "Required when priorAuthorityType is COUNSEL; omitted otherwise."
+          },
+          "disbursementDetails": {
+            "$ref": "#/components/schemas/DisbursementDetails",
+            "description": "Required when priorAuthorityType is DISBURSEMENT; omitted otherwise."
           }
         },
         "required": [
           "applicationId",
           "justification",
           "priorAuthorityType"
+        ]
+      },
+      "TimeRequested": {
+        "type": "object",
+        "description": "The amount of the expert\u0027s time being requested.",
+        "properties": {
+          "hours": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Whole hours requested.",
+            "example": 2,
+            "minimum": 0
+          },
+          "minutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Additional minutes requested.",
+            "example": 30,
+            "maximum": 59,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "hours",
+          "minutes"
         ]
       },
       "PriorAuthorityApplicationResponse": {

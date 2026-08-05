@@ -181,7 +181,6 @@ class PriorAuthorityDraftIntegrationTest {
             .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertType("Child psychologist")
             .expertFullName("Dr Joe Bloggs")
-            .expertBasedInLondon(true)
             .billingType(BillingType.HOURLY)
             .hourlyRate(new BigDecimal("45.00"))
             .totalAmount(new BigDecimal("135.00"))

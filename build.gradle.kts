@@ -73,7 +73,8 @@ openApi {
     groupedApiMappings.set(
         mapOf(
             "http://localhost:8080/v3/api-docs/laa-civil-manage-api" to "openApi.json",
-            "http://localhost:8080/v3/api-docs/mock-access-data-store" to "mockAccessDataStore.json",
+            "http://localhost:8080/v3/api-docs/mock-access-data-store-submit-pa" to "mockAccessDataStoreSubmitPa.json",
+            "http://localhost:8080/v3/api-docs/mock-access-data-store-drafts" to "mockAccessDataStoreDrafts.json",
         ),
     )
     customBootRun {

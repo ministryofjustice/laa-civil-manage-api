@@ -273,7 +273,7 @@
     "/expertTypes": {
       "get": {
         "tags": [
-          "expert-controller"
+          "expert-type-controller"
         ],
         "summary": "List the expert types available for a matter type",
         "description": "Sourced from the Legal Framework API. Returns an empty list when the matter type has no associated expert types, including when it is not a recognised matter type code.",

@@ -100,7 +100,7 @@ env:
   azureEntraApiClientId: "024c9bb4-b5fd-434b-abff-1d7d7c8776f4"
   azureEntraApiAudience: "efb49b90-5365-456f-bc87-c5a613e0d08d"
   accessDataStoreOboScope: "api://devlexternal.onmicrosoft.com/efb49b90-5365-456f-bc87-c5a613e0d08d/access_as_user"
-  legalFrameworkApiBaseUrl: "https://ap-6915-add-expert-types-to-le-legal-framework-uat.cloud-platform.service.justice.gov.uk"
+  legalFrameworkApiBaseUrl: "https://main-legal-framework-uat.cloud-platform.service.justice.gov.uk"
   accessDataStoreBaseUrl: "https://dev-token-enabled-internal-laa-data-access-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk"
 
 # Additional volumes on the output Deployment definition.

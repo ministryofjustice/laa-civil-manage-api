@@ -43,4 +43,4 @@ laa-civil-manage-api:
       get-application-by-id: https://dev-token-enabled-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk
       get-individuals: https://dev-token-enabled-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk
   legal-framework:
-    base-url: https://ap-6915-add-expert-types-to-le-legal-framework-uat.cloud-platform.service.justice.gov.uk
+    base-url: https://main-legal-framework-uat.cloud-platform.service.justice.gov.uk

@@ -71,7 +71,7 @@ class HttpLegalFrameworkClientTest {
   }
 
   @Test
-  void getExpertTypesReturnsEmptyListForAnUnknownMatterType() {
+  void getExpertTypesReturnsEmptyListForAMatterTypeWithNoExpertTypes() {
     server
         .expect(requestTo(BASE_URL + "/expert_types/NOT_A_MATTER_TYPE"))
         .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));

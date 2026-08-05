@@ -18,22 +18,22 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.justice.laa_civil_manage_api.config.SecurityConfig;
-import uk.gov.justice.laa_civil_manage_api.controllers.ExpertController;
-import uk.gov.justice.laa_civil_manage_api.services.ExpertService;
+import uk.gov.justice.laa_civil_manage_api.controllers.ExpertTypeController;
+import uk.gov.justice.laa_civil_manage_api.services.ExpertTypeService;
 
-@WebMvcTest(ExpertController.class)
+@WebMvcTest(ExpertTypeController.class)
 @Import(SecurityConfig.class)
-public class ExpertControllerTest {
+public class ExpertTypeControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private JwtDecoder jwtDecoder;
 
-  @MockitoBean private ExpertService expertService;
+  @MockitoBean private ExpertTypeService expertTypeService;
 
   @Test
   void shouldReturnExpertTypesForTheRequestedMatterType() throws Exception {
-    when(expertService.getExpertTypeDescriptions("KMAAA"))
+    when(expertTypeService.getExpertTypeDescriptions("KMAAA"))
         .thenReturn(List.of("Psychologist", "Interpreter"));
 
     mockMvc
@@ -46,19 +46,19 @@ public class ExpertControllerTest {
 
   @Test
   void shouldDefaultToKpblwWhenNoMatterTypeIsSupplied() throws Exception {
-    when(expertService.getExpertTypeDescriptions("KPBLW")).thenReturn(List.of("Psychologist"));
+    when(expertTypeService.getExpertTypeDescriptions("KPBLW")).thenReturn(List.of("Psychologist"));
 
     mockMvc
         .perform(get("/expertTypes").with(jwt()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0]").value("Psychologist"));
 
-    verify(expertService).getExpertTypeDescriptions("KPBLW");
+    verify(expertTypeService).getExpertTypeDescriptions("KPBLW");
   }
 
   @Test
   void shouldReturnEmptyArrayWhenTheMatterTypeHasNoExpertTypes() throws Exception {
-    when(expertService.getExpertTypeDescriptions(any())).thenReturn(List.of());
+    when(expertTypeService.getExpertTypeDescriptions(any())).thenReturn(List.of());
 
     mockMvc
         .perform(get("/expertTypes").param("matterType", "NOPE").with(jwt()))

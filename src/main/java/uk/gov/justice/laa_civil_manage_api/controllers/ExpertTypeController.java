@@ -8,16 +8,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.justice.laa_civil_manage_api.services.ExpertService;
+import uk.gov.justice.laa_civil_manage_api.services.ExpertTypeService;
 
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-public class ExpertController {
+public class ExpertTypeController {
 
   static final String DEFAULT_MATTER_TYPE = "KPBLW";
 
-  private final ExpertService expertService;
+  private final ExpertTypeService expertTypeService;
 
   @Operation(
       summary = "List the expert types available for a matter type",
@@ -30,6 +30,6 @@ public class ExpertController {
           @RequestParam(defaultValue = DEFAULT_MATTER_TYPE)
           String matterType) {
     log.info("Received request to fetch expert types for matter type {}", matterType);
-    return expertService.getExpertTypeDescriptions(matterType);
+    return expertTypeService.getExpertTypeDescriptions(matterType);
   }
 }

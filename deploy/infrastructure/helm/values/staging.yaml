@@ -78,14 +78,14 @@ resources:
 
 livenessProbe:
   httpGet:
-    path: /actuator/health
+    path: /actuator/health/liveness
     port: http
   initialDelaySeconds: 30
   periodSeconds: 60
 
 readinessProbe:
   httpGet:
-    path: /actuator/health
+    path: /actuator/health/readiness
     port: http
   initialDelaySeconds: 30
   periodSeconds: 60
@@ -102,6 +102,7 @@ env:
   azureEntraApiClientId: "e50ffd82-d524-45f3-88d8-509498266adc"
   azureEntraApiAudience: "laa-civil-manage-api"
   accessDataStoreOboScope: "api://nleexternal.onmicrosoft.com/access-data-stewardship-api/access_as_user"
+  legalFrameworkApiBaseUrl: "https://legal-framework-api-staging.cloud-platform.service.justice.gov.uk"
   accessDataStoreBaseUrl: "https://laa-data-access-api-staging.internal-non-prod.cloud-platform.service.justice.gov.uk"
 
 # Additional volumes on the output Deployment definition.

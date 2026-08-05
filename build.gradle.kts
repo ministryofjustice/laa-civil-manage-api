@@ -63,6 +63,7 @@ dependencies {
     testImplementation("io.rest-assured:spring-mock-mvc:6.0.1")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.wiremock:wiremock-standalone:3.13.1")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
 }

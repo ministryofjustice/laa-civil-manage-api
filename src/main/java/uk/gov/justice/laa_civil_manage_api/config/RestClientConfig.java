@@ -2,6 +2,7 @@ package uk.gov.justice.laa_civil_manage_api.config;
 
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
 import uk.gov.justice.laa_civil_manage_api.logging.CorrelationIdPropagationInterceptor;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreProperties;
+import uk.gov.justice.laa_civil_manage_api.services.legalframework.LegalFrameworkProperties;
 
 @Configuration
 public class RestClientConfig {
@@ -56,7 +58,7 @@ public class RestClientConfig {
 
     tokenResponseClient.setRestClient(
         RestClient.builder()
-            .requestFactory(requestFactory(properties))
+            .requestFactory(requestFactory(properties.connectTimeout(), properties.readTimeout()))
             .configureMessageConverters(
                 builder -> {
                   builder.registerDefaults();
@@ -94,16 +96,28 @@ public class RestClientConfig {
         OAuth2ClientHttpRequestInterceptor.authorizationFailureHandler(authorizedClientRepository));
 
     return RestClient.builder()
-        .requestFactory(requestFactory(properties))
+        .requestFactory(requestFactory(properties.connectTimeout(), properties.readTimeout()))
         .requestInterceptor(interceptor)
         .requestInterceptor(new CorrelationIdPropagationInterceptor())
         .build();
   }
 
-  private ClientHttpRequestFactory requestFactory(AccessDataStoreProperties properties) {
+  /**
+   * The Legal Framework API is unauthenticated, so this client carries no OAuth2 interceptor - only
+   * correlation-id propagation.
+   */
+  @Bean
+  public RestClient legalFrameworkRestClient(LegalFrameworkProperties properties) {
+    return RestClient.builder()
+        .requestFactory(requestFactory(properties.connectTimeout(), properties.readTimeout()))
+        .requestInterceptor(new CorrelationIdPropagationInterceptor())
+        .build();
+  }
+
+  private ClientHttpRequestFactory requestFactory(Duration connectTimeout, Duration readTimeout) {
     SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-    factory.setConnectTimeout((int) properties.connectTimeout().toMillis());
-    factory.setReadTimeout((int) properties.readTimeout().toMillis());
+    factory.setConnectTimeout((int) connectTimeout.toMillis());
+    factory.setReadTimeout((int) readTimeout.toMillis());
     if (proxyHost != null && !proxyHost.isEmpty() && proxyPort > 0) {
       factory.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort)));
     }

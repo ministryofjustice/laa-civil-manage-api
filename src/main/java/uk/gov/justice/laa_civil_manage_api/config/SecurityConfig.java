@@ -67,6 +67,7 @@ public class SecurityConfig {
                 authz
                     .requestMatchers(
                         "/actuator/health",
+                        "/actuator/health/**",
                         "/info",
                         "/error",
                         "/metrics",

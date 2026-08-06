@@ -9,7 +9,7 @@ run = "./gradlew build"
 
 [tasks.dev]
 description = "Run app in dev mode"
-run = "./gradlew bootRun"
+run = "./gradlew bootRun --args='--spring.profiles.active=local'"
 
 [tasks.test]
 description = "Run unit tests"

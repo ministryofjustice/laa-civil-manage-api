@@ -40,12 +40,6 @@ public record PriorAuthorityDraft(
             example = "SW1H 9AJ",
             nullable = true)
         String expertPostcode,
-    @Schema(
-            description =
-                "Boolean flag to indicate whether the expert is based inside (true) or outside (false) London",
-            example = "true",
-            nullable = true)
-        Boolean expertBasedInLondon,
     @Schema(description = "Supporting documents uploaded so far.", nullable = true)
         List<UploadedDocument> uploadedDocuments,
     @Schema(description = "How the work will be billed.", example = "HOURLY", nullable = true)

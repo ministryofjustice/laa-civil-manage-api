@@ -52,10 +52,12 @@ class HttpAccessDataStoreClientTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.applicationId").doesNotExist())
         .andExpect(jsonPath("$.priorAuthorityType").value("EXPERT"))
-        .andExpect(jsonPath("$.counselType").doesNotExist())
-        .andExpect(jsonPath("$.expertFullName").value("John Doe"))
-        .andExpect(jsonPath("$.expertBasedInLondon").value(true))
-        .andExpect(jsonPath("$.totalAmount").value(249.99))
+        .andExpect(jsonPath("$.counselDetails").doesNotExist())
+        .andExpect(jsonPath("$.disbursementDetails").doesNotExist())
+        .andExpect(jsonPath("$.expertDetails.expertFullName").value("Dr John Doe"))
+        .andExpect(jsonPath("$.expertDetails.expertCosts.billingType").value("FIXED_RATE"))
+        .andExpect(jsonPath("$.expertDetails.expertCosts.totalAmount").value(249.99))
+        .andExpect(jsonPath("$.expertDetails.expertCosts.hourlyRate").doesNotExist())
         .andExpect(jsonPath("$.justification").value("Required expert evidence."))
         .andRespond(
             withSuccess(
@@ -73,11 +75,18 @@ class HttpAccessDataStoreClientTest {
         PriorAuthority.builder()
             .applicationId(applicationId)
             .priorAuthorityType(PriorAuthorityType.EXPERT)
-            .expertType("Psychologist")
-            .expertFullName("John Doe")
-            .expertBasedInLondon(true)
-            .billingType(BillingType.FIXED_RATE)
-            .totalAmount(new BigDecimal("249.99"))
+            .expertDetails(
+                ExpertDetails.builder()
+                    .expertType("Psychologist")
+                    .expertFullName("Dr John Doe")
+                    .expertPostcode("SW1H 9AJ")
+                    .expertCosts(
+                        ExpertCosts.builder()
+                            .billingType(BillingType.FIXED_RATE)
+                            .totalAmount(new BigDecimal("249.99"))
+                            .costsSharedWithOtherParties(false)
+                            .build())
+                    .build())
             .justification("Required expert evidence.")
             .build();
 
@@ -122,11 +131,18 @@ class HttpAccessDataStoreClientTest {
         PriorAuthority.builder()
             .applicationId(applicationId)
             .priorAuthorityType(PriorAuthorityType.EXPERT)
-            .expertType("Psychologist")
-            .expertFullName("John Doe")
-            .expertBasedInLondon(false)
-            .billingType(BillingType.FIXED_RATE)
-            .totalAmount(new BigDecimal("249.99"))
+            .expertDetails(
+                ExpertDetails.builder()
+                    .expertType("Psychologist")
+                    .expertFullName("Dr John Doe")
+                    .expertPostcode("M1 1AA")
+                    .expertCosts(
+                        ExpertCosts.builder()
+                            .billingType(BillingType.FIXED_RATE)
+                            .totalAmount(new BigDecimal("249.99"))
+                            .costsSharedWithOtherParties(false)
+                            .build())
+                    .build())
             .justification("Required expert evidence.")
             .build());
 
@@ -142,7 +158,10 @@ class HttpAccessDataStoreClientTest {
         .andExpect(method(HttpMethod.POST))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.priorAuthorityType").value("COUNSEL"))
-        .andExpect(jsonPath("$.counselType").value("KINGS_COUNSEL_AND_JUNIOR_COUNSEL"))
+        .andExpect(
+            jsonPath("$.counselDetails.counselType").value("KINGS_COUNSEL_AND_JUNIOR_COUNSEL"))
+        .andExpect(jsonPath("$.expertDetails").doesNotExist())
+        .andExpect(jsonPath("$.disbursementDetails").doesNotExist())
         .andRespond(
             withSuccess(
                 """
@@ -158,9 +177,10 @@ class HttpAccessDataStoreClientTest {
         PriorAuthority.builder()
             .applicationId(applicationId)
             .priorAuthorityType(PriorAuthorityType.COUNSEL)
-            .counselType(CounselType.KINGS_COUNSEL_AND_JUNIOR_COUNSEL)
-            .billingType(BillingType.FIXED_RATE)
-            .totalAmount(new BigDecimal("249.99"))
+            .counselDetails(
+                CounselDetails.builder()
+                    .counselType(CounselType.KINGS_COUNSEL_AND_JUNIOR_COUNSEL)
+                    .build())
             .justification("Counsel is required.")
             .build());
 

@@ -87,6 +87,10 @@ requests require a valid Entra ID token in the `Authorization` header.
 
 ### Submit a prior-authority request
 
+Because a Prior Authority request can vary significantly based on its type, the payload relies on specific nested domains (expertDetails, counselDetails, or disbursementDetails) corresponding to the priorAuthorityType.
+
+#### Expert
+
 ```bash
 curl -i -X POST http://localhost:8080/prior-authority \
   -H "Authorization: Bearer <token>" \
@@ -94,13 +98,59 @@ curl -i -X POST http://localhost:8080/prior-authority \
   -d '{
     "applicationId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
     "priorAuthorityType": "EXPERT",
-    "expertType": "Psychologist",
-    "expertFullName": "Dr John Doe",
-    "expertPostcode": "SW1H 9AJ",
-    "expertBasedInLondon": true,
-    "billingType": "FIXED_RATE",
-    "totalAmount": 249.99,
-    "justification": "Specialist evidence is required to progress the case."
+    "justification": "Required for comprehensive child behavioral assessment. Costs split 4 ways.",
+    "expertDetails": {
+      "expertType": "Psychologist",
+      "expertFullName": "Dr John Doe",
+      "expertPostcode": "SW1H 9AJ",
+      "expertCosts": {
+        "billingType": "HOURLY",
+        "hourlyRate": 50.00,
+        "timeRequested": {
+          "hours": 2,
+          "minutes": 30
+        },
+        "totalAmount": 125.00,
+        "costsSharedWithOtherParties": true,
+        "apportionment": {
+          "partiesSharingCosts": 4,
+          "clientShareAmount": 31.25
+        }
+      }
+    }
+  }'
+```
+
+#### Counsel
+
+```bash
+curl -i -X POST http://localhost:8080/prior-authority \
+  -H "Authorization: Bearer <token>" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "applicationId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "priorAuthorityType": "COUNSEL",
+    "justification": "Required highly specialized counsel for complex cross-jurisdictional elements.",
+    "counselDetails": {
+      "counselType": "KINGS_COUNSEL_ALONE"
+    }
+  }'
+```
+
+#### Disbursement
+
+```bash
+curl -i -X POST http://localhost:8080/prior-authority \
+  -H "Authorization: Bearer <token>" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "applicationId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "priorAuthorityType": "DISBURSEMENT",
+    "justification": "Train fare required for expert to attend the client assessment in person.",
+    "disbursementDetails": {
+      "disbursementPurpose": "Travel",
+      "disbursementAmount": 125.50
+    }
   }'
 ```
 

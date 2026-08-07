@@ -15,11 +15,23 @@ public class OpenApiConfig {
         .build();
   }
 
+  /**
+   * The mock Access Data Store split per journey, so the Access Data Store team can generate each
+   * contract independently rather than from one combined document.
+   */
   @Bean
-  public GroupedOpenApi mockAccessDataStoreApi() {
+  public GroupedOpenApi mockAccessDataStoreSubmitPaApi() {
     return GroupedOpenApi.builder()
-        .group("mock-access-data-store")
-        .pathsToMatch("/mock-access-data-store/**")
+        .group("mock-access-data-store-submit-pa")
+        .pathsToMatch("/mock-access-data-store/applications/**")
+        .build();
+  }
+
+  @Bean
+  public GroupedOpenApi mockAccessDataStoreDraftsApi() {
+    return GroupedOpenApi.builder()
+        .group("mock-access-data-store-drafts")
+        .pathsToMatch("/mock-access-data-store/drafts", "/mock-access-data-store/drafts/**")
         .build();
   }
 }

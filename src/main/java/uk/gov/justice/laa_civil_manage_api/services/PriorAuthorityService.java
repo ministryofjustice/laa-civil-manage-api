@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.justice.laa_civil_manage_api.models.ExpertCosts;
+import uk.gov.justice.laa_civil_manage_api.models.ExpertDetails;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
@@ -26,12 +28,14 @@ public class PriorAuthorityService {
   public PriorAuthorityApplicationResponse submit(PriorAuthority priorAuthority) {
     int documentCount =
         priorAuthority.uploadedDocuments() == null ? 0 : priorAuthority.uploadedDocuments().size();
+    ExpertDetails expertDetails = priorAuthority.expertDetails();
+    ExpertCosts expertCosts = expertDetails == null ? null : expertDetails.expertCosts();
     log.info(
         "Submitting prior authority: applicationId={}, priorAuthorityType={}, expertType={}, billingType={}, documentCount={}",
         priorAuthority.applicationId(),
         priorAuthority.priorAuthorityType(),
-        priorAuthority.expertType(),
-        priorAuthority.billingType(),
+        expertDetails == null ? null : expertDetails.expertType(),
+        expertCosts == null ? null : expertCosts.billingType(),
         documentCount);
 
     PriorAuthorityApplicationResponse response =

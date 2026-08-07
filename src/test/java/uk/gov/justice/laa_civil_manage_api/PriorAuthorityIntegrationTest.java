@@ -137,11 +137,18 @@ class PriorAuthorityIntegrationTest {
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
             .priorAuthorityType(PriorAuthorityType.EXPERT)
-            .expertType("Psychologist")
-            .expertFullName("John Doe")
-            .expertBasedInLondon(true)
-            .billingType(BillingType.FIXED_RATE)
-            .totalAmount(new BigDecimal("249.99"))
+            .expertDetails(
+                ExpertDetails.builder()
+                    .expertType("Psychologist")
+                    .expertFullName("Dr John Doe")
+                    .expertPostcode("SW1H 9AJ")
+                    .expertCosts(
+                        ExpertCosts.builder()
+                            .billingType(BillingType.FIXED_RATE)
+                            .totalAmount(new BigDecimal("249.99"))
+                            .costsSharedWithOtherParties(false)
+                            .build())
+                    .build())
             .justification("Required expert evidence.")
             .build();
 

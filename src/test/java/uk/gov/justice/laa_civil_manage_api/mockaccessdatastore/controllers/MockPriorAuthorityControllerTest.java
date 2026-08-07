@@ -13,95 +13,111 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 class MockPriorAuthorityControllerTest {
 
+  private static final String EXPERT_FIXED_RATE =
+      """
+      {
+        "priorAuthorityType": "EXPERT",
+        "justification": "Required expert evidence.",
+        "expertDetails": {
+          "expertType": "Psychologist",
+          "expertFullName": "Dr John Doe",
+          "expertPostcode": "SW1H 9AJ",
+          "expertCosts": { "billingType": "FIXED_RATE", "totalAmount": 249.99, "costsSharedWithOtherParties": false }
+        }
+      }
+      """;
+
   @Autowired private MockMvc mockMvc;
 
-  @Test
-  void returns201ForValidSubmission() throws Exception {
-    String body =
-        """
-                {
-                  "priorAuthorityType": "EXPERT",
-                  "expertType": "Psychologist",
-                  "expertFullName": "John Doe",
-                  "expertBasedInLondon": true,
-                  "billingType": "FIXED_RATE",
-                  "totalAmount": 249.99,
-                  "justification": "Required expert evidence."
-                }
-                """;
+  private ResultActions submit(UUID applicationId, String body) throws Exception {
+    return mockMvc.perform(
+        post("/mock-access-data-store/applications/{id}/prior-authority", applicationId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(body)
+            .with(jwt()));
+  }
 
-    mockMvc
-        .perform(
-            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
-                .with(jwt()))
+  @Test
+  void returns201ForValidExpertSubmission() throws Exception {
+    submit(UUID.randomUUID(), EXPERT_FIXED_RATE)
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.submissionId").exists())
         .andExpect(jsonPath("$.status").value("ACCEPTED"));
   }
 
   @Test
-  void returns201ForCounselSubmissionWithoutBillingOrTotal() throws Exception {
+  void returns201ForAnHourlyApportionedExpertSubmission() throws Exception {
     String body =
         """
-                {
-                  "priorAuthorityType": "COUNSEL",
-                  "counselType": "KINGS_COUNSEL_ALONE",
-                  "uploadedDocuments": [
-                    { "fileName": "instructions.pdf" }
-                  ],
-                  "justification": "Counsel is required to advise on complex points of law."
-                }
-                """;
+        {
+          "priorAuthorityType": "EXPERT",
+          "justification": "Costs are shared four ways.",
+          "uploadedDocuments": [ { "fileName": "psych_assessment.pdf" } ],
+          "expertDetails": {
+            "expertType": "Psychologist",
+            "expertFullName": "Dr John Doe",
+            "expertPostcode": "SW1H 9AJ",
+            "expertCosts": {
+              "billingType": "HOURLY",
+              "hourlyRate": 50.00,
+              "timeRequested": { "hours": 2, "minutes": 30 },
+              "totalAmount": 125.00,
+              "costsSharedWithOtherParties": true,
+              "apportionment": { "partiesSharingCosts": 4, "clientShareAmount": 31.25 }
+            }
+          }
+        }
+        """;
 
-    mockMvc
-        .perform(
-            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
-                .with(jwt()))
+    submit(UUID.randomUUID(), body).andExpect(status().isCreated());
+  }
+
+  @Test
+  void returns201ForCounselSubmissionWhichCarriesNoBillingOrAmount() throws Exception {
+    String body =
+        """
+        {
+          "priorAuthorityType": "COUNSEL",
+          "justification": "Counsel is required to advise on complex points of law.",
+          "uploadedDocuments": [ { "fileName": "instructions.pdf" } ],
+          "counselDetails": { "counselType": "KINGS_COUNSEL_ALONE" }
+        }
+        """;
+
+    submit(UUID.randomUUID(), body)
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.submissionId").exists())
         .andExpect(jsonPath("$.status").value("ACCEPTED"));
+  }
+
+  @Test
+  void returns201ForDisbursementSubmission() throws Exception {
+    String body =
+        """
+        {
+          "priorAuthorityType": "DISBURSEMENT",
+          "justification": "Train fare for the expert to attend in person.",
+          "disbursementDetails": { "disbursementPurpose": "Travel", "disbursementAmount": 125.50 }
+        }
+        """;
+
+    submit(UUID.randomUUID(), body).andExpect(status().isCreated());
   }
 
   @Test
   void repeatedSubmissionsForSameApplicationIdAreIdempotent() throws Exception {
     UUID applicationId = UUID.randomUUID();
-    String body =
-        """
-                {
-                  "priorAuthorityType": "EXPERT",
-                  "expertType": "Psychologist",
-                  "expertFullName": "John Doe",
-                  "expertBasedInLondon": false,
-                  "billingType": "FIXED_RATE",
-                  "totalAmount": 249.99,
-                  "justification": "Required expert evidence."
-                }
-                """;
-    MvcResult first =
-        mockMvc
-            .perform(
-                post("/mock-access-data-store/applications/{id}/prior-authority", applicationId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(body)
-                    .with(jwt()))
-            .andExpect(status().isCreated())
-            .andReturn();
 
-    mockMvc
-        .perform(
-            post("/mock-access-data-store/applications/{id}/prior-authority", applicationId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
-                .with(jwt()))
+    MvcResult first =
+        submit(applicationId, EXPERT_FIXED_RATE).andExpect(status().isCreated()).andReturn();
+
+    submit(applicationId, EXPERT_FIXED_RATE)
         .andExpect(status().isCreated())
         .andExpect(
             result -> {
@@ -115,86 +131,105 @@ class MockPriorAuthorityControllerTest {
   }
 
   @Test
-  void returns400ForInvalidSubmission() throws Exception {
+  void returns400WhenExpertDetailsMissingForExpertSubmission() throws Exception {
     String body =
         """
-                {
-                  "priorAuthorityType": "EXPERT",
-                  "billingType": "FIXED_RATE",
-                  "totalAmount": 100.00
-                }
-                """;
-    mockMvc
-        .perform(
-            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
-                .with(jwt()))
-        .andExpect(status().isBadRequest());
+        {
+          "priorAuthorityType": "EXPERT",
+          "justification": "Required expert evidence."
+        }
+        """;
+
+    submit(UUID.randomUUID(), body).andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void returns400WhenJustificationMissing() throws Exception {
+    String body =
+        """
+        {
+          "priorAuthorityType": "EXPERT",
+          "expertDetails": {
+            "expertType": "Psychologist",
+            "expertFullName": "Dr John Doe",
+            "expertPostcode": "SW1H 9AJ",
+            "expertCosts": { "billingType": "FIXED_RATE", "totalAmount": 100.00, "costsSharedWithOtherParties": false }
+          }
+        }
+        """;
+
+    submit(UUID.randomUUID(), body).andExpect(status().isBadRequest());
   }
 
   @Test
   void returns400WhenTimeMinutesIsGreaterThan59() throws Exception {
     String body =
         """
-                {
-                  "priorAuthorityType": "EXPERT",
-                  "expertType": "Psychologist",
-                  "billingType": "HOURLY",
-                  "hourlyRate": 50.00,
-                  "timeHours": 1,
-                  "timeMinutes": 60,
-                  "totalAmount": 50.00,
-                  "justification": "Specialist evidence is required."
-                }
-                """;
-    mockMvc
-        .perform(
-            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
-                .with(jwt()))
-        .andExpect(status().isBadRequest());
+        {
+          "priorAuthorityType": "EXPERT",
+          "justification": "Specialist evidence is required.",
+          "expertDetails": {
+            "expertType": "Psychologist",
+            "expertFullName": "Dr John Doe",
+            "expertPostcode": "SW1H 9AJ",
+            "expertCosts": {
+              "billingType": "HOURLY",
+              "hourlyRate": 50.00,
+              "timeRequested": { "hours": 1, "minutes": 60 },
+              "totalAmount": 50.00,
+              "costsSharedWithOtherParties": false
+            }
+          }
+        }
+        """;
+
+    submit(UUID.randomUUID(), body).andExpect(status().isBadRequest());
   }
 
   @Test
-  void returns400WhenCounselTypeMissingForCounselSubmission() throws Exception {
+  void returns400WhenCounselDetailsMissingForCounselSubmission() throws Exception {
     String body =
         """
-                {
-                  "priorAuthorityType": "COUNSEL",
-                  "billingType": "FIXED_RATE",
-                  "totalAmount": 249.99,
-                  "justification": "Counsel representation required."
-                }
-                """;
-    mockMvc
-        .perform(
-            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
-                .with(jwt()))
-        .andExpect(status().isBadRequest());
+        {
+          "priorAuthorityType": "COUNSEL",
+          "justification": "Counsel representation required."
+        }
+        """;
+
+    submit(UUID.randomUUID(), body).andExpect(status().isBadRequest());
   }
 
   @Test
   void returns201WhenCounselTypeProvidedForCounselSubmission() throws Exception {
     String body =
         """
-                {
-                  "priorAuthorityType": "COUNSEL",
-                  "counselType": "KINGS_COUNSEL_AND_TWO_JUNIOR_COUNSEL",
-                  "billingType": "FIXED_RATE",
-                  "totalAmount": 249.99,
-                  "justification": "Counsel representation required."
-                }
-                """;
-    mockMvc
-        .perform(
-            post("/mock-access-data-store/applications/{id}/prior-authority", UUID.randomUUID())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
-                .with(jwt()))
-        .andExpect(status().isCreated());
+        {
+          "priorAuthorityType": "COUNSEL",
+          "justification": "Counsel representation required.",
+          "counselDetails": { "counselType": "KINGS_COUNSEL_AND_TWO_JUNIOR_COUNSEL" }
+        }
+        """;
+
+    submit(UUID.randomUUID(), body).andExpect(status().isCreated());
+  }
+
+  @Test
+  void returns400WhenABlockForTheWrongTypeIsSupplied() throws Exception {
+    String body =
+        """
+        {
+          "priorAuthorityType": "COUNSEL",
+          "justification": "Counsel representation required.",
+          "counselDetails": { "counselType": "KINGS_COUNSEL_ALONE" },
+          "expertDetails": {
+            "expertType": "Psychologist",
+            "expertFullName": "Dr John Doe",
+            "expertPostcode": "SW1H 9AJ",
+            "expertCosts": { "billingType": "FIXED_RATE", "totalAmount": 100.00, "costsSharedWithOtherParties": false }
+          }
+        }
+        """;
+
+    submit(UUID.randomUUID(), body).andExpect(status().isBadRequest());
   }
 }

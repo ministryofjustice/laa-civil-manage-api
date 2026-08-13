@@ -10,7 +10,7 @@ services:
       AZURE_ENTRA_API_CLIENT_SECRET: zap-scan
 
   zap-scan:
-    image: zaproxy/zap-stable@sha256:8d387b1a63e3425beef4846e39719f5af2a787753af2d8b6558c6257d7a577a2
+    image: zaproxy/zap-stable@sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef
     command: zap.sh -cmd -port 9090 -autorun /zap/wrk/zap.yaml
     volumes:
       - ../../../.:/zap/wrk:rw

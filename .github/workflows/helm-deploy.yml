@@ -1,0 +1,51 @@
+name: Helm deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: "GitHub environment name (dev, staging, production)"
+      image_tag:
+        required: true
+        type: string
+        description: "Docker image tag to deploy"
+      image_registry:
+        required: true
+        type: string
+        description: "ECR registry URL"
+      image_repo:
+        required: true
+        type: string
+        description: "ECR repository path"
+      helm_release_name:
+        required: true
+        type: string
+        description: "Helm release name"
+      k8s_service_account:
+        required: false
+        type: string
+        default: "cd-serviceaccount"
+        description: "Kubernetes service account name"
+      helm_additional_args:
+        required: false
+        type: string
+        description: "Additional arguments appended verbatim to helm upgrade"
+
+jobs:
+  deploy:
+    name: Deploy Helm Chart
+    uses: ministryofjustice/laa-reusable-github-actions/.github/workflows/cp-deploy.yml@932ee576d65d9992ca82955a5823e3d55e888417
+    with:
+      environment: ${{ inputs.environment }}
+      image_registry: ${{ inputs.image_registry }}
+      image_repo: ${{ inputs.image_repo }}
+      image_tag: ${{ inputs.image_tag }}
+      helm_release_name: ${{ inputs.helm_release_name }}
+      helm_chart: ./laa-generic-helm-chart
+      helm_values_path: deploy/infrastructure/helm/values-${{ inputs.environment }}.yaml
+      k8s_service_account: ${{ inputs.k8s_service_account || 'cd-serviceaccount' }}
+      helm_additional_args: ${{ inputs.helm_additional_args }}
+    secrets: inherit
+

@@ -1,0 +1,108 @@
+# Production environment values for laa-civil-manage-api.
+# Uses the laa-generic-helm-chart contract.
+# See: https://github.com/ministryofjustice/laa-generic-helm-chart
+
+environment: prod
+appName: ""
+nameOverride: "laa-civil-manage-api"
+namespace: laa-civil-manage-api-production
+# Increase to 3+ when ready for live users
+replicaCount: 2
+minReplicaCount: 1
+serviceAccountName: cd-serviceaccount
+createServiceAccount: false
+
+image:
+  registry: ""
+  repository: ""
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  port: 8080
+
+ingress:
+  green:
+    enabled: true
+    className: modsec
+    hostname: laa-civil-manage-api.cloud-platform.service.justice.gov.uk
+    path: /
+    pathType: Prefix
+    annotations:
+      external-dns.alpha.kubernetes.io/set-identifier: "laa-civil-manage-api-laa-civil-manage-api-production-green"
+      external-dns.alpha.kubernetes.io/aws-weight: "100"
+  blue:
+    enabled: false
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 60
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 60
+
+autoscaling:
+  enabled: false
+
+# ---------------------------------------------------------------------------
+# Container environment — all env vars and k8s secrets for the pod
+# ---------------------------------------------------------------------------
+containerEnvironment:
+  enabled: true
+  variables:
+    SKIP_AUTH: "false"
+    AZURE_ENTRA_TENANT_ID: "" # TODO: populate with production tenant ID
+    AZURE_ENTRA_API_CLIENT_ID: "" # TODO: populate with production client ID
+    AZURE_ENTRA_API_AUDIENCE: "" # TODO: populate with production audience
+    ACCESS_DATA_STORE_OBO_SCOPE: "" # TODO: populate with production scope
+    LEGAL_FRAMEWORK_API_BASE_URL: "" # TODO: populate with production legal framework API URL
+    ACCESS_DATA_STORE_BASE_URL: "" # TODO: populate with production access data store URL
+  secrets:
+    - name: AZURE_ENTRA_API_CLIENT_SECRET
+      secretName: azure-entra-api-client-secret
+      key: azure-entra-api-client-secret
+
+volumes: []
+volumeMounts: []
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+

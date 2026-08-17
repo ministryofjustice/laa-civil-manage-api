@@ -240,6 +240,27 @@ jobs:
               body: `🚀 Branch deployed to dev: [${url}](${url})`,
             });
 
+  notify_slack_dev:
+    name: Post Slack Notification (Dev)
+    needs: [prepare_dev, deploy-dev]
+    if: always() && !cancelled() && needs.deploy-dev.result != 'skipped' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Send Slack Notification
+        uses: ./.github/actions/slack_deploy_notification
+        with:
+          environment: "dev"
+          deploy_outcome: ${{ needs.deploy-dev.result }}
+          kube_cert: ${{ secrets.KUBE_CERT }}
+          kube_token: ${{ secrets.KUBE_TOKEN }}
+          kube_cluster: ${{ secrets.KUBE_CLUSTER }}
+          kube_namespace: ${{ secrets.KUBE_NAMESPACE }}
+          release_host: ${{ needs.prepare_dev.outputs.release_host }}
+
   # ==========================================
   # STAGING DEPLOYMENT
   # ==========================================
@@ -281,3 +302,24 @@ jobs:
         --set-string ingress.green.hostname="${{ needs.prepare_staging.outputs.release_host }}"
         --set-string ingress.green.annotations."external-dns\.alpha\.kubernetes\.io/set-identifier"="${{ needs.prepare_staging.outputs.identifier }}"
     secrets: inherit
+
+  notify_slack_staging:
+    name: Post Slack Notification (Staging)
+    needs: [prepare_staging, deploy-staging]
+    if: always() && !cancelled() && needs.deploy-staging.result != 'skipped' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Send Slack Notification
+        uses: ./.github/actions/slack_deploy_notification
+        with:
+          environment: "staging"
+          deploy_outcome: ${{ needs.deploy-staging.result }}
+          kube_cert: ${{ secrets.KUBE_CERT }}
+          kube_token: ${{ secrets.KUBE_TOKEN }}
+          kube_cluster: ${{ secrets.KUBE_CLUSTER }}
+          kube_namespace: "laa-civil-manage-api-staging"
+          release_host: ${{ needs.prepare_staging.outputs.release_host }}

@@ -1,0 +1,92 @@
+name: "Slack Deployment Notification"
+description: "Fetches Slack Webhook from Kubernetes and posts deployment status"
+
+inputs:
+  environment:
+    description: "Deployment environment (e.g., dev, staging)"
+    required: true
+  deploy_outcome:
+    description: "Outcome of the deployment (success/failure)"
+    required: true
+  kube_cert:
+    description: "Kubernetes Cluster Cert"
+    required: true
+  kube_token:
+    description: "Kubernetes Cluster Token"
+    required: true
+  kube_cluster:
+    description: "Kubernetes Cluster Host"
+    required: true
+  kube_namespace:
+    description: "Kubernetes Namespace"
+    required: true
+  secret_name:
+    description: "Kubernetes secret name"
+    required: false
+    default: "slack-webhook-url-alerts-non-prod"
+  secret_key:
+    description: "Key inside the Kubernetes secret"
+    required: false
+    default: "LAA_CIVIL_MANAGE_SLACK_WEBHOOK_URL_NON_PROD"
+  release_host:
+    description: "Deployment host URL (optional)"
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Authenticate to cluster
+      uses: ministryofjustice/laa-reusable-github-actions/.github/actions/authenticate_to_cluster@8e0e6bbaa7d9075660c044b2e2c934a966c56570
+      with:
+        kube-cert: ${{ inputs.kube_cert }}
+        kube-token: ${{ inputs.kube_token }}
+        kube-cluster: ${{ inputs.kube_cluster }}
+        kube-namespace: ${{ inputs.kube_namespace }}
+
+    - name: Fetch Slack Webhook URL from K8s
+      id: fetch_webhook
+      shell: bash
+      run: |
+        WEBHOOK_URL=$(kubectl get secret ${{ inputs.secret_name }} \
+          -n ${{ inputs.kube_namespace }} \
+          -o jsonpath="{.data.${{ inputs.secret_key }}}" | base64 --decode)
+
+        echo "::add-mask::$WEBHOOK_URL"
+        echo "url=${WEBHOOK_URL}" >> "$GITHUB_OUTPUT"
+
+    - name: Send Slack Notification
+      uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+      env:
+        STATUS_COLOR: ${{ inputs.deploy_outcome == 'success' && '#2eb886' || '#a00' }}
+        APP_LINK: "${{ inputs.release_host != '' && format(' • <https://{0}|View App>', inputs.release_host) || '' }}"
+        REAL_ACTOR: ${{ github.actor == 'github-merge-queue[bot]' && github.event.head_commit.author.username || github.actor }}
+      with:
+        webhook: ${{ steps.fetch_webhook.outputs.url }}
+        webhook-type: "incoming-webhook"
+        payload: >
+          {
+            "attachments": [
+              {
+                "color": "${{ env.STATUS_COLOR }}",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*${{ github.repository }}* deployment to *${{ inputs.environment }}* ${{ inputs.deploy_outcome == 'success' && 'succeeded' || 'failed' }}"
+                    }
+                  },
+                  {
+                    "type": "context",
+                    "elements": [
+                      {
+                        "type": "mrkdwn",
+                        "text": "${{ inputs.deploy_outcome == 'success' && ':white_check_mark:' || ':x:' }} *Branch:* `${{ github.head_ref || github.ref_name }}` • *By:* <${{ github.server_url }}/${{ env.REAL_ACTOR }}|${{ env.REAL_ACTOR }}> • <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|Commit> • <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>${{ env.APP_LINK }}"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }

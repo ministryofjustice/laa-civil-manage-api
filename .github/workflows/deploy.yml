@@ -205,7 +205,7 @@ jobs:
 
   deploy-dev:
     name: Deploy to Dev
-    needs: [prepare_dev, build-docker-image, image-scan]
+    needs: [prepare_dev, build-docker-image, image-scan, zap-scan]
     uses: ./.github/workflows/helm-deploy.yml
     with:
       environment: dev
@@ -288,7 +288,7 @@ jobs:
 
   deploy-staging:
     name: Deploy to Staging
-    needs: [prepare_staging, build-docker-image, image-scan]
+    needs: [prepare_staging, build-docker-image, image-scan, zap-scan]
     uses: ./.github/workflows/helm-deploy.yml
     with:
       environment: staging

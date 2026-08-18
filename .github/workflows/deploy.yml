@@ -167,11 +167,11 @@ jobs:
       ) }}
 
   # ==========================================
-  # DEV DEPLOYMENT
+  # DEV DEPLOYMENT (Skipped for Renovate)
   # ==========================================
   prepare_dev:
     name: Prepare Dev Environment
-    if: ${{ !failure() && !cancelled() }}
+    if: ${{ github.actor != 'renovate[bot]' && !failure() && !cancelled() }}
     needs: build-docker-image
     runs-on: ubuntu-latest
     outputs:
@@ -224,7 +224,7 @@ jobs:
 
   notify_pr_dev:
     name: Post PR Notification
-    if: github.event_name == 'pull_request' && !failure() && !cancelled()
+    if: ${{ github.actor != 'renovate[bot]' && github.event_name == 'pull_request' && !failure() && !cancelled() }}
     runs-on: ubuntu-latest
     needs: [prepare_dev, deploy-dev]
     permissions:
@@ -268,7 +268,7 @@ jobs:
   # ==========================================
   prepare_staging:
     name: Prepare Staging Environment
-    if: ${{ !failure() && !cancelled() && github.ref == 'refs/heads/main' }}
+    if: ${{ github.actor != 'renovate[bot]' && !failure() && !cancelled() && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     needs: deploy-dev
     outputs:

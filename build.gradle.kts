@@ -21,6 +21,11 @@ extra["logback.version"] = "1.5.36"
 // and SNYK-JAVA-ORGAPACHETOMCATEMBED-17733746. Remove once Spring Boot ships with tomcat-embed-core >= 11.0.23.
 extra["tomcat.version"] = "11.0.23"
 
+extra["commons-lang3.version"] = "3.18.0" // Fixes Uncontrolled Recursion (CVE-2025-48924)
+extra["httpcore5.version"] = "5.4.3" // Fixes Header Parsing & HPACK Decoder DoS (CVE-2026-54428)
+extra["httpclient5.version"] = "5.6.4" // Fixes Connection Leak DoS (CVE-2026-64607)
+extra["log4j2.version"] = "2.25.5" // Fixes MapMessage JSON serialization (CVE-2026-49844)
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)

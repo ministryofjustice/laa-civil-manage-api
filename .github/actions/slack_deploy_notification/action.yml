@@ -59,7 +59,7 @@ runs:
       uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
       env:
         STATUS_COLOR: ${{ inputs.deploy_outcome == 'success' && '#2eb886' || '#a00' }}
-        APP_LINK: "${{ inputs.release_host != '' && format(' • <https://{0}|View App>', inputs.release_host) || '' }}"
+        APP_LINK: "${{ inputs.release_host != '' && format(' • <https://{0}/swagger-ui/index.html|View Swagger>', inputs.release_host) || '' }}"
         REAL_ACTOR: ${{ github.actor == 'github-merge-queue[bot]' && github.event.head_commit.author.username || github.actor }}
       with:
         webhook: ${{ steps.fetch_webhook.outputs.url }}

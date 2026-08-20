@@ -68,18 +68,17 @@ logging:
 
 laa-civil-manage-api:
   access-data-store:
-    default-base-url: http://localhost:8080/mock-access-data-store
+    # Default to the real Access Data Store. Only journeys still backed by the in-process
+    # mock need an explicit override below
+    default-base-url: ${ACCESS_DATA_STORE_BASE_URL}
     connect-timeout: 3s
     read-timeout: 5s
     operation-base-urls:
-      submit-prior-authority: http://localhost:8080/mock-access-data-store
       create-draft: http://localhost:8080/mock-access-data-store
       update-draft: http://localhost:8080/mock-access-data-store
+      get-draft: http://localhost:8080/mock-access-data-store
       get-drafts: http://localhost:8080/mock-access-data-store
       delete-draft: http://localhost:8080/mock-access-data-store
-      get-applications: ${ACCESS_DATA_STORE_BASE_URL}
-      get-application-by-id: ${ACCESS_DATA_STORE_BASE_URL}
-      get-individuals: ${ACCESS_DATA_STORE_BASE_URL}
   legal-framework:
     base-url: ${LEGAL_FRAMEWORK_API_BASE_URL}
     connect-timeout: 3s

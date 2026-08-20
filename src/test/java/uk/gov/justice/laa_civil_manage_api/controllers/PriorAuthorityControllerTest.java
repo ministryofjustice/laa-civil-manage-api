@@ -36,7 +36,6 @@ import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraftSummary;
-import uk.gov.justice.laa_civil_manage_api.models.SubmissionStatus;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.PriorAuthorityDraftService;
 import uk.gov.justice.laa_civil_manage_api.services.PriorAuthorityService;
@@ -62,7 +61,6 @@ class PriorAuthorityControllerTest {
         .thenReturn(
             PriorAuthorityApplicationResponse.builder()
                 .submissionId(SUBMISSION_ID)
-                .status(SubmissionStatus.ACCEPTED)
                 .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
                 .build());
   }
@@ -74,15 +72,15 @@ class PriorAuthorityControllerTest {
 
   private static final String HOURLY_APPORTIONED_COSTS =
       """
-      {
-        "billingType": "HOURLY",
-        "hourlyRate": 50.00,
-        "timeRequested": { "hours": 2, "minutes": 30 },
-        "totalAmount": 125.00,
-        "costsSharedWithOtherParties": true,
-        "apportionment": { "partiesSharingCosts": 4, "clientShareAmount": 31.25 }
-      }
-      """;
+          {
+            "billingType": "HOURLY",
+            "hourlyRate": 50.00,
+            "timeRequested": { "hours": 2, "minutes": 30 },
+            "totalAmount": 125.00,
+            "costsSharedWithOtherParties": true,
+            "apportionment": { "partiesSharingCosts": 4, "clientShareAmount": 31.25 }
+          }
+          """;
 
   private static String fixedRateCosts(String totalAmount) {
     return """
@@ -120,8 +118,7 @@ class PriorAuthorityControllerTest {
     postPriorAuthority(body)
         .andExpect(status().isCreated())
         .andExpect(header().string("Location", "/prior-authority/" + SUBMISSION_ID))
-        .andExpect(jsonPath("$.submissionId").value(SUBMISSION_ID.toString()))
-        .andExpect(jsonPath("$.status").value("ACCEPTED"));
+        .andExpect(jsonPath("$.submissionId").value(SUBMISSION_ID.toString()));
   }
 
   @Test
@@ -130,18 +127,18 @@ class PriorAuthorityControllerTest {
 
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "EXPERT",
-          "justification": "Agreed flat fee for standard psychiatric report.",
-          "expertDetails": {
-            "expertType": "Child Psychiatrist",
-            "expertFullName": "Dr John Doe",
-            "expertPostcode": "M1 1AA",
-            "expertCosts": { "billingType": "FIXED_RATE", "totalAmount": 500.00, "costsSharedWithOtherParties": false }
-          }
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "EXPERT",
+              "justification": "Agreed flat fee for standard psychiatric report.",
+              "expertDetails": {
+                "expertType": "Child Psychiatrist",
+                "expertFullName": "Dr John Doe",
+                "expertPostcode": "M1 1AA",
+                "expertCosts": { "billingType": "FIXED_RATE", "totalAmount": 500.00, "costsSharedWithOtherParties": false }
+              }
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isCreated());
@@ -153,14 +150,14 @@ class PriorAuthorityControllerTest {
 
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "COUNSEL",
-          "justification": "Counsel is required to advise on complex points of law.",
-          "uploadedDocuments": [ { "fileName": "instructions.pdf" } ],
-          "counselDetails": { "counselType": "KINGS_COUNSEL_ALONE" }
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "COUNSEL",
+              "justification": "Counsel is required to advise on complex points of law.",
+              "uploadedDocuments": [ { "fileName": "instructions.pdf" } ],
+              "counselDetails": { "counselType": "KINGS_COUNSEL_ALONE" }
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body)
@@ -175,13 +172,13 @@ class PriorAuthorityControllerTest {
 
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "DISBURSEMENT",
-          "justification": "Train fare required for the expert to attend in person.",
-          "disbursementDetails": { "disbursementPurpose": "Travel", "disbursementAmount": 125.50 }
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "DISBURSEMENT",
+              "justification": "Train fare required for the expert to attend in person.",
+              "disbursementDetails": { "disbursementPurpose": "Travel", "disbursementAmount": 125.50 }
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isCreated());
@@ -193,13 +190,13 @@ class PriorAuthorityControllerTest {
 
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "COUNSEL",
-          "justification": "Counsel is required.",
-          "counselDetails": { "counselType": "TWO_JUNIOR_COUNSEL" }
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "COUNSEL",
+              "justification": "Counsel is required.",
+              "counselDetails": { "counselType": "TWO_JUNIOR_COUNSEL" }
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isCreated());
@@ -209,12 +206,12 @@ class PriorAuthorityControllerTest {
   void returns400WhenApplicationIdMissing() throws Exception {
     String body =
         """
-        {
-          "priorAuthorityType": "COUNSEL",
-          "justification": "Required to progress the case.",
-          "counselDetails": { "counselType": "KINGS_COUNSEL_ALONE" }
-        }
-        """;
+            {
+              "priorAuthorityType": "COUNSEL",
+              "justification": "Required to progress the case.",
+              "counselDetails": { "counselType": "KINGS_COUNSEL_ALONE" }
+            }
+            """;
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
   }
@@ -223,11 +220,11 @@ class PriorAuthorityControllerTest {
   void returns400WhenTypeMissing() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "justification": "Required to progress the case."
-        }
-        """
+            {
+              "applicationId": "%s",
+              "justification": "Required to progress the case."
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -237,12 +234,12 @@ class PriorAuthorityControllerTest {
   void returns400WhenJustificationMissing() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "COUNSEL",
-          "counselDetails": { "counselType": "KINGS_COUNSEL_ALONE" }
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "COUNSEL",
+              "counselDetails": { "counselType": "KINGS_COUNSEL_ALONE" }
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -254,12 +251,12 @@ class PriorAuthorityControllerTest {
   void returns400WhenTypeIsExpertButExpertDetailsMissing() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "EXPERT",
-          "justification": "Expert details to be confirmed later."
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "EXPERT",
+              "justification": "Expert details to be confirmed later."
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -269,12 +266,12 @@ class PriorAuthorityControllerTest {
   void returns400WhenTypeIsCounselButCounselDetailsMissing() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "COUNSEL",
-          "justification": "Counsel representation is required."
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "COUNSEL",
+              "justification": "Counsel representation is required."
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -284,12 +281,12 @@ class PriorAuthorityControllerTest {
   void returns400WhenTypeIsDisbursementButDisbursementDetailsMissing() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "DISBURSEMENT",
-          "justification": "Travel costs required."
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "DISBURSEMENT",
+              "justification": "Travel costs required."
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -299,14 +296,14 @@ class PriorAuthorityControllerTest {
   void returns400WhenABlockForTheWrongTypeIsSupplied() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "COUNSEL",
-          "justification": "Counsel representation is required.",
-          "counselDetails": { "counselType": "KINGS_COUNSEL_ALONE" },
-          "disbursementDetails": { "disbursementPurpose": "Travel", "disbursementAmount": 10.00 }
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "COUNSEL",
+              "justification": "Counsel representation is required.",
+              "counselDetails": { "counselType": "KINGS_COUNSEL_ALONE" },
+              "disbursementDetails": { "disbursementPurpose": "Travel", "disbursementAmount": 10.00 }
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -318,17 +315,17 @@ class PriorAuthorityControllerTest {
   void returns400WhenExpertDetailsIsMissingTheExpertType() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "EXPERT",
-          "justification": "Expert type to be confirmed later.",
-          "expertDetails": {
-            "expertFullName": "Dr John Doe",
-            "expertPostcode": "SW1H 9AJ",
-            "expertCosts": { "billingType": "FIXED_RATE", "totalAmount": 100.00, "costsSharedWithOtherParties": false }
-          }
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "EXPERT",
+              "justification": "Expert type to be confirmed later.",
+              "expertDetails": {
+                "expertFullName": "Dr John Doe",
+                "expertPostcode": "SW1H 9AJ",
+                "expertCosts": { "billingType": "FIXED_RATE", "totalAmount": 100.00, "costsSharedWithOtherParties": false }
+              }
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -338,13 +335,13 @@ class PriorAuthorityControllerTest {
   void returns400WhenCounselDetailsIsMissingCounselType() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "COUNSEL",
-          "justification": "Counsel representation is required.",
-          "counselDetails": {}
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "COUNSEL",
+              "justification": "Counsel representation is required.",
+              "counselDetails": {}
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -354,13 +351,13 @@ class PriorAuthorityControllerTest {
   void returns400WhenDisbursementDetailsIsMissingTheAmount() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "DISBURSEMENT",
-          "justification": "Travel costs required.",
-          "disbursementDetails": { "disbursementPurpose": "Travel" }
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "DISBURSEMENT",
+              "justification": "Travel costs required.",
+              "disbursementDetails": { "disbursementPurpose": "Travel" }
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -372,18 +369,18 @@ class PriorAuthorityControllerTest {
   void returns400WhenHourlyBillingMissesTheTimeFields() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "EXPERT",
-          "justification": "Interim submission without time breakdown.",
-          "expertDetails": {
-            "expertType": "Psychologist",
-            "expertFullName": "Dr John Doe",
-            "expertPostcode": "SW1H 9AJ",
-            "expertCosts": { "billingType": "HOURLY", "totalAmount": 120.00, "costsSharedWithOtherParties": false }
-          }
-        }
-        """
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "EXPERT",
+              "justification": "Interim submission without time breakdown.",
+              "expertDetails": {
+                "expertType": "Psychologist",
+                "expertFullName": "Dr John Doe",
+                "expertPostcode": "SW1H 9AJ",
+                "expertCosts": { "billingType": "HOURLY", "totalAmount": 120.00, "costsSharedWithOtherParties": false }
+              }
+            }
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -393,23 +390,23 @@ class PriorAuthorityControllerTest {
   void returns400WhenFixedRateBillingCarriesHourlyFields() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "EXPERT",
-          "justification": "Flat fee agreed.",
-          "expertDetails": {
-            "expertType": "Psychologist",
-            "expertFullName": "Dr John Doe",
-            "expertPostcode": "SW1H 9AJ",
-            "expertCosts": {
-              "billingType": "FIXED_RATE",
-              "hourlyRate": 50.00,
-              "totalAmount": 100.00,
-              "costsSharedWithOtherParties": false
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "EXPERT",
+              "justification": "Flat fee agreed.",
+              "expertDetails": {
+                "expertType": "Psychologist",
+                "expertFullName": "Dr John Doe",
+                "expertPostcode": "SW1H 9AJ",
+                "expertCosts": {
+                  "billingType": "FIXED_RATE",
+                  "hourlyRate": 50.00,
+                  "totalAmount": 100.00,
+                  "costsSharedWithOtherParties": false
+                }
+              }
             }
-          }
-        }
-        """
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -419,24 +416,24 @@ class PriorAuthorityControllerTest {
   void returns400WhenTimeMinutesIsGreaterThan59() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "EXPERT",
-          "justification": "Specialist evidence is required.",
-          "expertDetails": {
-            "expertType": "Psychologist",
-            "expertFullName": "Dr John Doe",
-            "expertPostcode": "SW1H 9AJ",
-            "expertCosts": {
-              "billingType": "HOURLY",
-              "hourlyRate": 50.00,
-              "timeRequested": { "hours": 1, "minutes": 60 },
-              "totalAmount": 50.00,
-              "costsSharedWithOtherParties": false
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "EXPERT",
+              "justification": "Specialist evidence is required.",
+              "expertDetails": {
+                "expertType": "Psychologist",
+                "expertFullName": "Dr John Doe",
+                "expertPostcode": "SW1H 9AJ",
+                "expertCosts": {
+                  "billingType": "HOURLY",
+                  "hourlyRate": 50.00,
+                  "timeRequested": { "hours": 1, "minutes": 60 },
+                  "totalAmount": 50.00,
+                  "costsSharedWithOtherParties": false
+                }
+              }
             }
-          }
-        }
-        """
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -446,23 +443,23 @@ class PriorAuthorityControllerTest {
   void returns400WhenApportionmentIsPresentButIncomplete() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "priorAuthorityType": "EXPERT",
-          "justification": "Costs are shared.",
-          "expertDetails": {
-            "expertType": "Psychologist",
-            "expertFullName": "Dr John Doe",
-            "expertPostcode": "SW1H 9AJ",
-            "expertCosts": {
-              "billingType": "FIXED_RATE",
-              "totalAmount": 100.00,
-              "costsSharedWithOtherParties": true,
-              "apportionment": { "partiesSharingCosts": 4 }
+            {
+              "applicationId": "%s",
+              "priorAuthorityType": "EXPERT",
+              "justification": "Costs are shared.",
+              "expertDetails": {
+                "expertType": "Psychologist",
+                "expertFullName": "Dr John Doe",
+                "expertPostcode": "SW1H 9AJ",
+                "expertCosts": {
+                  "billingType": "FIXED_RATE",
+                  "totalAmount": 100.00,
+                  "costsSharedWithOtherParties": true,
+                  "apportionment": { "partiesSharingCosts": 4 }
+                }
+              }
             }
-          }
-        }
-        """
+            """
             .formatted(APPLICATION_ID);
 
     postPriorAuthority(body).andExpect(status().isBadRequest());
@@ -476,16 +473,16 @@ class PriorAuthorityControllerTest {
 
     String body =
         """
-        {
-          "applicationId": "%s",
-          "expertType": "Child psychologist",
-          "expertFullName": "Dr Joe Bloggs",
-          "billingType": "HOURLY",
-          "hourlyRate": 45.00,
-          "totalAmount": 135.00,
-          "justification": "Draft justification"
-        }
-        """
+            {
+              "applicationId": "%s",
+              "expertType": "Child psychologist",
+              "expertFullName": "Dr Joe Bloggs",
+              "billingType": "HOURLY",
+              "hourlyRate": 45.00,
+              "totalAmount": 135.00,
+              "justification": "Draft justification"
+            }
+            """
             .formatted(DRAFT_APPLICATION_ID);
 
     mockMvc
@@ -504,11 +501,11 @@ class PriorAuthorityControllerTest {
     // drafts.
     String body =
         """
-        {
-          "applicationId": "%s",
-          "billingType": "HOURLY"
-        }
-        """
+            {
+              "applicationId": "%s",
+              "billingType": "HOURLY"
+            }
+            """
             .formatted(DRAFT_APPLICATION_ID);
 
     mockMvc
@@ -521,12 +518,12 @@ class PriorAuthorityControllerTest {
   void postDraftReturns400WhenTimeMinutesIsGreaterThan59() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "billingType": "HOURLY",
-          "timeMinutes": 60
-        }
-        """
+            {
+              "applicationId": "%s",
+              "billingType": "HOURLY",
+              "timeMinutes": 60
+            }
+            """
             .formatted(DRAFT_APPLICATION_ID);
 
     mockMvc
@@ -539,10 +536,10 @@ class PriorAuthorityControllerTest {
   void postDraftReturns400WhenApplicationIdMissing() throws Exception {
     String body =
         """
-        {
-          "expertFullName": "Dr Joe Bloggs"
-        }
-        """;
+            {
+              "expertFullName": "Dr Joe Bloggs"
+            }
+            """;
 
     mockMvc
         .perform(
@@ -554,11 +551,11 @@ class PriorAuthorityControllerTest {
   void putDraftReturns200() throws Exception {
     String body =
         """
-        {
-          "applicationId": "%s",
-          "totalAmount": 180.00
-        }
-        """
+            {
+              "applicationId": "%s",
+              "totalAmount": 180.00
+            }
+            """
             .formatted(DRAFT_APPLICATION_ID);
 
     mockMvc

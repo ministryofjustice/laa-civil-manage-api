@@ -21,7 +21,6 @@ import uk.gov.justice.laa_civil_manage_api.models.ExpertDetails;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
-import uk.gov.justice.laa_civil_manage_api.models.SubmissionStatus;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
 
@@ -53,7 +52,6 @@ class PriorAuthorityServiceTest {
     PriorAuthorityApplicationResponse expected =
         PriorAuthorityApplicationResponse.builder()
             .submissionId(UUID.randomUUID())
-            .status(SubmissionStatus.ACCEPTED)
             .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
             .build();
     when(client.submitPriorAuthority(pa)).thenReturn(expected);
@@ -175,7 +173,6 @@ class PriorAuthorityServiceTest {
     PriorAuthorityApplicationResponse expected =
         PriorAuthorityApplicationResponse.builder()
             .submissionId(UUID.randomUUID())
-            .status(SubmissionStatus.ACCEPTED)
             .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
             .build();
     when(client.submitPriorAuthority(pa)).thenReturn(expected);

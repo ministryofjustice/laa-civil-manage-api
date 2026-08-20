@@ -8,7 +8,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.justice.laa_civil_manage_api.mockaccessdatastore.models.PriorAuthoritySubmission;
 import uk.gov.justice.laa_civil_manage_api.models.*;
 
 @Component
@@ -28,13 +27,18 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
   @Override
   public PriorAuthorityApplicationResponse submitPriorAuthority(PriorAuthority priorAuthority) {
     String baseUrl = properties.urlFor(AccessDataStoreOperations.SUBMIT_PRIOR_AUTHORITY);
+
     return restClient
         .post()
         .uri(
-            baseUrl + "/applications/{applicationId}/prior-authority",
-            priorAuthority.applicationId())
+            baseUrl,
+            uriBuilder ->
+                uriBuilder
+                    .path("/api/v0/applications/{id}/prior-authority")
+                    .build(priorAuthority.applicationId()))
+        .header("X-Service-Name", "CIVIL_APPLY")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(PriorAuthoritySubmission.from(priorAuthority))
+        .body(CreatePriorAuthorityRequest.from(priorAuthority))
         .retrieve()
         .body(PriorAuthorityApplicationResponse.class);
   }

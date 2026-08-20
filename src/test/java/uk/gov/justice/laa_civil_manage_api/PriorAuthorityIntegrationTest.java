@@ -1,141 +1,119 @@
 package uk.gov.justice.laa_civil_manage_api;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.boot.web.server.servlet.context.ServletWebServerApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.jwt.BadJwtException;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
-import uk.gov.justice.laa_civil_manage_api.mockaccessdatastore.models.PriorAuthoritySubmission;
 import uk.gov.justice.laa_civil_manage_api.models.*;
-import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreProperties;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class PriorAuthorityIntegrationTest {
 
-  @TestConfiguration
-  static class Config {
-
-    @Bean
-    @Primary
-    AccessDataStoreClient testAccessDataStoreClient(ServletWebServerApplicationContext context) {
-      return new AccessDataStoreClient() {
-
-        private String url() {
-          return "http://localhost:"
-              + Objects.requireNonNull(context.getWebServer()).getPort()
-              + "/mock-access-data-store";
-        }
-
-        @Override
-        public PriorAuthorityApplicationResponse submitPriorAuthority(
-            PriorAuthority priorAuthority) {
-          return RestClient.builder()
-              .defaultHeader("Authorization", "Bearer fake-downstream-obo-token")
-              .build()
-              .post()
-              .uri(
-                  url() + "/applications/{applicationId}/prior-authority",
-                  priorAuthority.applicationId())
-              .contentType(MediaType.APPLICATION_JSON)
-              .body(PriorAuthoritySubmission.from(priorAuthority))
-              .retrieve()
-              .body(PriorAuthorityApplicationResponse.class);
-        }
-
-        @Override
-        public DraftCreatedResponse createDraft(Draft draft) {
-          throw new UnsupportedOperationException("Not used in this test");
-        }
-
-        @Override
-        public ApplicationSummaryResponse getApplications(
-            int page, int pageSize, ApplicationStatus status) {
-          throw new UnsupportedOperationException("Not used in this test");
-        }
-
-        @Override
-        public IndividualsResponse getIndividuals(UUID applicationId) {
-          throw new UnsupportedOperationException("Not used in this test");
-        }
-
-        @Override
-        public void updateDraft(java.util.UUID draftId, Draft draft) {
-          throw new UnsupportedOperationException("Not used in this test");
-        }
-
-        @Override
-        public Optional<DraftSummary> getDraft(UUID draftId) {
-          throw new UnsupportedOperationException("Not used in this test");
-        }
-
-        @Override
-        public List<DraftSummary> getDrafts(
-            String sourceSystem, String userId, String draftType, java.util.UUID applicationId) {
-          throw new UnsupportedOperationException("Not used in this test");
-        }
-
-        @Override
-        public void deleteDraft(java.util.UUID draftId) {
-          throw new UnsupportedOperationException("Not used in this test");
-        }
-
-        @Override
-        public uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary getApplicationById(
-            java.util.UUID applicationId) {
-          throw new UnsupportedOperationException("Not used in this test");
-        }
-      };
-    }
-  }
+  @RegisterExtension
+  static WireMockExtension accessDataStore =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
   @LocalServerPort private int port;
 
   @MockitoBean private JwtDecoder jwtDecoder;
 
+  @MockitoBean private AccessDataStoreProperties accessDataStoreProperties;
+
+  @MockitoBean private OAuth2AuthorizedClientManager authorizedClientManager;
+
+  private RestClient authenticatedClient;
+
   @BeforeEach
   void setUp() {
+    when(accessDataStoreProperties.urlFor(any())).thenReturn(accessDataStore.baseUrl());
+
     Jwt mockJwt =
         Jwt.withTokenValue("test-token").header("alg", "none").claim("sub", "test-user").build();
 
     when(jwtDecoder.decode("test-token")).thenReturn(mockJwt);
 
-    when(jwtDecoder.decode("fake-downstream-obo-token"))
-        .thenThrow(new BadJwtException("The aud claim is not valid"));
+    ClientRegistration clientRegistration =
+        ClientRegistration.withRegistrationId("entra-obo-access-data-store")
+            .clientId("test-client-id")
+            .clientSecret("test-client-secret")
+            .authorizationGrantType(AuthorizationGrantType.JWT_BEARER)
+            .tokenUri("https://test-tenant.example.com/oauth2/v2.0/token")
+            .build();
+
+    OAuth2AccessToken accessToken =
+        new OAuth2AccessToken(
+            OAuth2AccessToken.TokenType.BEARER,
+            "downstream-access-token",
+            Instant.now(),
+            Instant.now().plusSeconds(300));
+
+    OAuth2AuthorizedClient authorizedClient =
+        new OAuth2AuthorizedClient(clientRegistration, "test-user", accessToken);
+
+    when(authorizedClientManager.authorize(any())).thenReturn(authorizedClient);
+
+    authenticatedClient =
+        RestClient.builder().defaultHeader("Authorization", "Bearer test-token").build();
   }
 
   @Test
-  void postingAPriorAuthorityRequestFlowsThroughToTheMockAccessDataStore() {
-    RestClient restClient =
-        RestClient.builder().defaultHeader("Authorization", "Bearer test-token").build();
+  void postingAPriorAuthorityRequestFlowsThroughToTheAccessDataStore() {
+    UUID applicationId = UUID.randomUUID();
+    UUID expectedSubmissionId = UUID.randomUUID();
+
+    // Stub the downstream Access Data Store API to return 201 Created
+    accessDataStore.stubFor(
+        post(urlEqualTo("/api/v0/applications/" + applicationId + "/prior-authority"))
+            .withHeader("X-Service-Name", equalTo("CIVIL_APPLY"))
+            .willReturn(
+                aResponse()
+                    .withStatus(201)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                                            {
+                                              "submissionId": "%s",
+                                              "submittedAt": "2026-08-20T10:00:00Z"
+                                            }
+                                            """
+                            .formatted(expectedSubmissionId))));
 
     PriorAuthority body =
         PriorAuthority.builder()
-            .applicationId(UUID.randomUUID())
+            .applicationId(applicationId)
             .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertDetails(
                 ExpertDetails.builder()
@@ -153,17 +131,16 @@ class PriorAuthorityIntegrationTest {
             .build();
 
     ResponseEntity<PriorAuthorityApplicationResponse> response =
-        restClient
+        authenticatedClient
             .post()
             .uri("http://localhost:" + port + "/prior-authority")
             .body(body)
             .retrieve()
             .toEntity(PriorAuthorityApplicationResponse.class);
 
-    assertEquals(HttpStatusCode.valueOf(201), response.getStatusCode());
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertNotNull(response.getBody().submissionId());
-    assertEquals(SubmissionStatus.ACCEPTED, response.getBody().status());
+    assertEquals(expectedSubmissionId, response.getBody().submissionId());
   }
 
   @Test
@@ -192,9 +169,6 @@ class PriorAuthorityIntegrationTest {
 
   @Test
   void uploadDocumentLargerThanConfiguredMultipartLimitReturns413() {
-    RestClient restClient =
-        RestClient.builder().defaultHeader("Authorization", "Bearer test-token").build();
-
     byte[] oversizedFile = new byte[(10 * 1024 * 1024) + 1];
     ByteArrayResource fileResource =
         new ByteArrayResource(oversizedFile) {
@@ -208,7 +182,7 @@ class PriorAuthorityIntegrationTest {
     multipartBody.add("file", fileResource);
 
     HttpStatusCode status =
-        restClient
+        authenticatedClient
             .post()
             .uri("http://localhost:" + port + "/prior-authority/documents")
             .contentType(MediaType.MULTIPART_FORM_DATA)

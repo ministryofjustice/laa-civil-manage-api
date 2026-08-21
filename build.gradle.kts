@@ -13,6 +13,32 @@ group = "uk.gov.justice"
 version = "0.0.1-SNAPSHOT"
 description = "Demo project for Spring Boot"
 
+subprojects {
+    apply(plugin = "java")
+    apply(plugin = "io.spring.dependency-management")
+
+    group = "uk.gov.justice"
+    version = "0.0.1-SNAPSHOT"
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:4.1.0")
+    }
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+    }
+}
+
 // Temporary: override Spring Boot BOM's logback version to fix SNYK-JAVA-CHQOSLOGBACK-17675439
 // (Expression Injection, High severity). Remove once Spring Boot ships with logback-core >= 1.5.36.
 extra["logback.version"] = "1.5.36"
@@ -94,7 +120,7 @@ openApi {
 
 spotless {
     java {
-        target("src/*/java/**/*.java")
+        target("**src/*/java/**/*.java")
         googleJavaFormat("1.30.0")
     }
 

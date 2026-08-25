@@ -18,7 +18,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import uk.gov.justice.laa.civil.notify.config.NotifyAsyncConfiguration;
 import uk.gov.justice.laa.civil.notify.model.SendEmailRequest;
 import uk.gov.justice.laa.civil.notify.service.GovUkNotifyEmailSender;
 import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
@@ -43,7 +42,7 @@ class GovUkNotifyEmailSenderTest {
                 "notify.email.retry.max-attempts", "4",
                 "notify.email.retry.delay-ms", "1",
                 "notify.email.retry.multiplier", "1.0"));
-    context.register(NotifyAsyncConfiguration.class, RetryTestConfig.class);
+    context.register(RetryTestConfig.class);
     context.refresh();
     client = context.getBean(NotificationClient.class);
     sender = context.getBean(NotifyEmailSender.class);
@@ -63,19 +62,22 @@ class GovUkNotifyEmailSenderTest {
   void delegatesToNotificationClient() throws NotificationClientException {
     SendEmailRequest request =
         new SendEmailRequest("template-123", "solicitor@example.com", Map.of("name", "Jane Doe"));
-    when(client.sendEmail("template-123", "solicitor@example.com", Map.of("name", "Jane Doe"), null))
+    when(client.sendEmail(
+            "template-123", "solicitor@example.com", Map.of("name", "Jane Doe"), null))
         .thenReturn(mock(SendEmailResponse.class));
 
     sender.sendEmail(request).join();
 
-    verify(client).sendEmail("template-123", "solicitor@example.com", Map.of("name", "Jane Doe"), null);
+    verify(client)
+        .sendEmail("template-123", "solicitor@example.com", Map.of("name", "Jane Doe"), null);
   }
 
   @Test
   void retriesAndEventuallySucceeds() throws NotificationClientException {
     SendEmailRequest request =
         new SendEmailRequest("template-123", "solicitor@example.com", Map.of("name", "Jane Doe"));
-    when(client.sendEmail("template-123", "solicitor@example.com", Map.of("name", "Jane Doe"), null))
+    when(client.sendEmail(
+            "template-123", "solicitor@example.com", Map.of("name", "Jane Doe"), null))
         .thenThrow(new NotificationClientException("temporary error 1"))
         .thenThrow(new NotificationClientException("temporary error 2"))
         .thenReturn(mock(SendEmailResponse.class));
@@ -94,7 +96,8 @@ class GovUkNotifyEmailSenderTest {
     when(client.sendEmail("template-123", "solicitor@example.com", Map.of(), null))
         .thenThrow(new NotificationClientException("bad api key"));
 
-    assertThrows(ExecutionException.class, () -> sender.sendEmail(request).get(2, TimeUnit.SECONDS));
+    assertThrows(
+        ExecutionException.class, () -> sender.sendEmail(request).get(2, TimeUnit.SECONDS));
 
     verify(client, times(4)).sendEmail("template-123", "solicitor@example.com", Map.of(), null);
   }

@@ -17,6 +17,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import uk.gov.justice.laa.civil.notify.config.NotifyAsyncConfiguration;
+import uk.gov.justice.laa.civil.notify.model.SendEmailRequest;
+import uk.gov.justice.laa.civil.notify.service.GovUkNotifyEmailSender;
+import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
 import uk.gov.service.notify.NotificationClient;
 import uk.gov.service.notify.NotificationClientException;
 import uk.gov.service.notify.SendEmailResponse;
@@ -35,10 +40,9 @@ class GovUkNotifyEmailSenderTest {
         .getSystemProperties()
         .putAll(
             Map.of(
-                "notify.email.retry.max-attempts", "6",
+                "notify.email.retry.max-attempts", "4",
                 "notify.email.retry.delay-ms", "1",
-                "notify.email.retry.multiplier", "1.0",
-                "notify.email.retry.max-delay-ms", "1"));
+                "notify.email.retry.multiplier", "1.0"));
     context.register(NotifyAsyncConfiguration.class, RetryTestConfig.class);
     context.refresh();
     client = context.getBean(NotificationClient.class);
@@ -92,7 +96,7 @@ class GovUkNotifyEmailSenderTest {
 
     assertThrows(ExecutionException.class, () -> sender.sendEmail(request).get(2, TimeUnit.SECONDS));
 
-    verify(client, times(6)).sendEmail("template-123", "solicitor@example.com", Map.of(), null);
+    verify(client, times(4)).sendEmail("template-123", "solicitor@example.com", Map.of(), null);
   }
 
   @Configuration

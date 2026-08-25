@@ -12,14 +12,17 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.concurrent.CompletableFuture;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.justice.laa.civil.notify.model.SendEmailRequest;
+import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
+import uk.gov.justice.laa_civil_manage_api.config.NotifyEmailProperties;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
 import uk.gov.justice.laa_civil_manage_api.models.ExpertCosts;
 import uk.gov.justice.laa_civil_manage_api.models.ExpertDetails;
@@ -29,15 +32,13 @@ import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
 import uk.gov.justice.laa_civil_manage_api.models.SubmissionStatus;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
-import uk.gov.justice.laa.civil.notify.NotifyEmailSender;
-import uk.gov.justice.laa.civil.notify.SendEmailRequest;
 
 class PriorAuthorityServiceTest {
 
   private final AccessDataStoreClient client = mock(AccessDataStoreClient.class);
   private final NotifyEmailSender notifyEmailSender = mock(NotifyEmailSender.class);
   private final NotifyEmailProperties notifyEmailProperties =
-      new NotifyEmailProperties("api-key", "template-id", "ops@example.com");
+      new NotifyEmailProperties("api-key", "template-id", "ops@example.com", true);
   private final PriorAuthorityService service =
       new PriorAuthorityService(client, notifyEmailSender, notifyEmailProperties);
 
@@ -123,7 +124,7 @@ class PriorAuthorityServiceTest {
   @Test
   void doesNotSendEmailWhenNotifyIsNotConfigured() {
     PriorAuthorityService unconfiguredService =
-        new PriorAuthorityService(client, notifyEmailSender, new NotifyEmailProperties("", "", ""));
+        new PriorAuthorityService(client, notifyEmailSender, new NotifyEmailProperties("", "", "", false));
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())

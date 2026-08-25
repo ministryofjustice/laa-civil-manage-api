@@ -1,6 +1,8 @@
-package uk.gov.justice.laa.civil.notify;
+package uk.gov.justice.laa.civil.notify.service;
 
 import java.util.concurrent.CompletableFuture;
+
+import uk.gov.justice.laa.civil.notify.model.SendEmailRequest;
 
 /** Sends emails via GOV.UK Notify. */
 public interface NotifyEmailSender {

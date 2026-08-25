@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.civil.notify;
+package uk.gov.justice.laa.civil.notify.model;
 
 import java.util.Map;
 

@@ -1,10 +1,13 @@
-package uk.gov.justice.laa.civil.notify;
+package uk.gov.justice.laa.civil.notify.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
+
+import uk.gov.justice.laa.civil.notify.service.GovUkNotifyEmailSender;
+import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
 import uk.gov.service.notify.NotificationClient;
 
 @Configuration

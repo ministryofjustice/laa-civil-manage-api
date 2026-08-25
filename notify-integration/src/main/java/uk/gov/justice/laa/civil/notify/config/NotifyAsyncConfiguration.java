@@ -1,4 +1,4 @@
-package uk.gov.justice.laa.civil.notify;
+package uk.gov.justice.laa.civil.notify.config;
 
 import java.util.concurrent.Executor;
 import org.springframework.context.annotation.Bean;

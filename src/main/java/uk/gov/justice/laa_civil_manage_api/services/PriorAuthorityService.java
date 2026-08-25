@@ -10,8 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.justice.laa.civil.notify.NotifyEmailSender;
-import uk.gov.justice.laa.civil.notify.SendEmailRequest;
+import uk.gov.justice.laa.civil.notify.model.SendEmailRequest;
+import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
+import uk.gov.justice.laa_civil_manage_api.config.NotifyEmailProperties;
 import uk.gov.justice.laa_civil_manage_api.models.ExpertCosts;
 import uk.gov.justice.laa_civil_manage_api.models.ExpertDetails;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
@@ -45,7 +46,10 @@ public class PriorAuthorityService {
 
     PriorAuthorityApplicationResponse response =
         accessDataStoreClient.submitPriorAuthority(priorAuthority);
-    triggerSubmittedEmail(priorAuthority, response);
+
+    if (notifyEmailProperties.enabled())  {
+      triggerSubmittedEmail(priorAuthority, response);
+    }   
 
     log.info("Prior authority submitted: applicationId={}", priorAuthority.applicationId());
     return response;
@@ -53,18 +57,14 @@ public class PriorAuthorityService {
 
   private void triggerSubmittedEmail(
       PriorAuthority priorAuthority, PriorAuthorityApplicationResponse response) {
-    if (!notifyEmailProperties.isConfigured()) {
-      return;
-    }
 
     SendEmailRequest emailRequest =
         new SendEmailRequest(
             notifyEmailProperties.priorAuthoritySubmittedTemplateId(),
             notifyEmailProperties.recipientEmail(),
             Map.of(
-                "applicationId", String.valueOf(priorAuthority.applicationId()),
-                "submissionId", String.valueOf(response.submissionId()),
-                "status", String.valueOf(response.status())));
+                "fullName", "John Doe"
+            ));
 
     notifyEmailSender
         .sendEmail(emailRequest)

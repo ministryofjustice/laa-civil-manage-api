@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import uk.gov.justice.laa.civil.notify.model.SendEmailRequest;
 import uk.gov.justice.laa.civil.notify.service.GovUkNotifyEmailSender;
@@ -103,6 +105,8 @@ class GovUkNotifyEmailSenderTest {
   }
 
   @Configuration
+  @EnableAsync
+  @EnableRetry
   static class RetryTestConfig {
 
     @Bean

@@ -47,9 +47,9 @@ public class PriorAuthorityService {
     PriorAuthorityApplicationResponse response =
         accessDataStoreClient.submitPriorAuthority(priorAuthority);
 
-    if (notifyEmailProperties.enabled())  {
+    if (notifyEmailProperties.enabled()) {
       triggerSubmittedEmail(priorAuthority, response);
-    }   
+    }
 
     log.info("Prior authority submitted: applicationId={}", priorAuthority.applicationId());
     return response;
@@ -62,9 +62,7 @@ public class PriorAuthorityService {
         new SendEmailRequest(
             notifyEmailProperties.priorAuthoritySubmittedTemplateId(),
             notifyEmailProperties.recipientEmail(),
-            Map.of(
-                "fullName", "John Doe"
-            ));
+            Map.of("fullName", "John Doe"));
 
     notifyEmailSender
         .sendEmail(emailRequest)

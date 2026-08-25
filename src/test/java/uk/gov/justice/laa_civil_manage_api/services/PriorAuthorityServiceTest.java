@@ -124,7 +124,8 @@ class PriorAuthorityServiceTest {
   @Test
   void doesNotSendEmailWhenNotifyIsNotConfigured() {
     PriorAuthorityService unconfiguredService =
-        new PriorAuthorityService(client, notifyEmailSender, new NotifyEmailProperties("", "", "", false));
+        new PriorAuthorityService(
+            client, notifyEmailSender, new NotifyEmailProperties("", "", "", false));
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())

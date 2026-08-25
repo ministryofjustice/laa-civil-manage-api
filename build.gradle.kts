@@ -51,7 +51,7 @@ extra["commons-lang3.version"] = "3.18.0" // Fixes Uncontrolled Recursion (CVE-2
 extra["httpcore5.version"] = "5.4.3" // Fixes Header Parsing & HPACK Decoder DoS (CVE-2026-54428)
 extra["httpclient5.version"] = "5.6.4" // Fixes Connection Leak DoS (CVE-2026-64607)
 extra["log4j2.version"] = "2.25.5" // Fixes MapMessage JSON serialization (CVE-2026-49844)
-extra["micrometer-core.version"] = "1.17.1" // Fixes Micrometer CRLF Injection (CVE-2026-59296)
+extra["micrometer.version"] = "1.17.1" // Fixes Micrometer CRLF Injection (CVE-2026-59296)
 
 java {
     toolchain {

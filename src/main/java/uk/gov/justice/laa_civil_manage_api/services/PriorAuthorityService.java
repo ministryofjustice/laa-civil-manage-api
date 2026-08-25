@@ -2,6 +2,7 @@ package uk.gov.justice.laa_civil_manage_api.services;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.justice.laa.civil.notify.NotifyEmailSender;
+import uk.gov.justice.laa.civil.notify.SendEmailRequest;
 import uk.gov.justice.laa_civil_manage_api.models.ExpertCosts;
 import uk.gov.justice.laa_civil_manage_api.models.ExpertDetails;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
@@ -24,6 +27,8 @@ public class PriorAuthorityService {
       List.of("pdf", "doc", "docx", "odt", "rtf", "jpeg", "jpg", "png", "bmp", "tiff", "tif");
 
   private final AccessDataStoreClient accessDataStoreClient;
+  private final NotifyEmailSender notifyEmailSender;
+  private final NotifyEmailProperties notifyEmailProperties;
 
   public PriorAuthorityApplicationResponse submit(PriorAuthority priorAuthority) {
     int documentCount =
@@ -40,9 +45,38 @@ public class PriorAuthorityService {
 
     PriorAuthorityApplicationResponse response =
         accessDataStoreClient.submitPriorAuthority(priorAuthority);
+    triggerSubmittedEmail(priorAuthority, response);
 
     log.info("Prior authority submitted: applicationId={}", priorAuthority.applicationId());
     return response;
+  }
+
+  private void triggerSubmittedEmail(
+      PriorAuthority priorAuthority, PriorAuthorityApplicationResponse response) {
+    if (!notifyEmailProperties.isConfigured()) {
+      return;
+    }
+
+    SendEmailRequest emailRequest =
+        new SendEmailRequest(
+            notifyEmailProperties.priorAuthoritySubmittedTemplateId(),
+            notifyEmailProperties.recipientEmail(),
+            Map.of(
+                "applicationId", String.valueOf(priorAuthority.applicationId()),
+                "submissionId", String.valueOf(response.submissionId()),
+                "status", String.valueOf(response.status())));
+
+    notifyEmailSender
+        .sendEmail(emailRequest)
+        .exceptionally(
+            throwable -> {
+              log.error(
+                  "Failed to send prior authority submission email: applicationId={}, submissionId={}",
+                  priorAuthority.applicationId(),
+                  response.submissionId(),
+                  throwable);
+              return null;
+            });
   }
 
   public UploadedDocument uploadDocument(MultipartFile file) {

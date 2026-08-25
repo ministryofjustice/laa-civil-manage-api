@@ -17,7 +17,7 @@ public class GovUkNotifyEmailSender implements NotifyEmailSender {
   }
 
   @Override
-  @Async("notifyEmailTaskExecutor")
+  @Async
   @Retryable(
       retryFor = NotifyEmailSendException.class,
       maxAttemptsExpression = "${notify.email.retry.max-attempts:6}",

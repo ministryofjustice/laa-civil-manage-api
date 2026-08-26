@@ -96,7 +96,11 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
   @Override
   public void deleteDraft(UUID draftId) {
     String baseUrl = properties.urlFor(AccessDataStoreOperations.DELETE_DRAFT);
-    adsRestClient.delete().uri(baseUrl + "/drafts/{draftId}", draftId).retrieve().toBodilessEntity();
+    adsRestClient
+        .delete()
+        .uri(baseUrl + "/drafts/{draftId}", draftId)
+        .retrieve()
+        .toBodilessEntity();
   }
 
   @Override

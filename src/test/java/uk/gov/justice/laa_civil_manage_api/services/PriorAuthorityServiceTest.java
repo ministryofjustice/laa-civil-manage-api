@@ -13,10 +13,12 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -81,7 +83,7 @@ class PriorAuthorityServiceTest {
 
     assertSame(expected, actual);
     verify(client).submitPriorAuthority(pa);
-    verify(notifyEmailSender).sendEmail(any(SendEmailRequest.class));
+    assertSubmittedEmailRequest();
   }
 
   @Test
@@ -118,7 +120,7 @@ class PriorAuthorityServiceTest {
 
     assertSame(expected, actual);
     verify(client).submitPriorAuthority(pa);
-    verify(notifyEmailSender).sendEmail(any(SendEmailRequest.class));
+    assertSubmittedEmailRequest();
   }
 
   @Test
@@ -279,5 +281,15 @@ class PriorAuthorityServiceTest {
     PriorAuthorityApplicationResponse actual = service.submit(pa);
 
     assertSame(expected, actual);
+  }
+
+  private void assertSubmittedEmailRequest() {
+    ArgumentCaptor<SendEmailRequest> emailCaptor = ArgumentCaptor.forClass(SendEmailRequest.class);
+    verify(notifyEmailSender).sendEmail(emailCaptor.capture());
+
+    SendEmailRequest request = emailCaptor.getValue();
+    assertEquals("template-id", request.templateId());
+    assertEquals("ops@example.com", request.emailAddress());
+    assertEquals(Map.of("fullName", "John Doe"), request.personalisation());
   }
 }

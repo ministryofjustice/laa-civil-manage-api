@@ -98,7 +98,7 @@ containerEnvironment:
     AZURE_ENTRA_API_AUDIENCE: "efb49b90-5365-456f-bc87-c5a613e0d08d"
     ACCESS_DATA_STORE_OBO_SCOPE: "api://devlexternal.onmicrosoft.com/efb49b90-5365-456f-bc87-c5a613e0d08d/access_as_user"
     LEGAL_FRAMEWORK_API_BASE_URL: "https://main-legal-framework-uat.cloud-platform.service.justice.gov.uk"
-    ACCESS_DATA_STORE_BASE_URL: "https://dev-token-enabled-internal-laa-data-access-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk"
+    ACCESS_DATA_STORE_BASE_URL: "https://dev-token-enabled-axon-internal-laa-data-access-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk"
   secrets:
     - name: AZURE_ENTRA_API_CLIENT_SECRET
       secretName: azure-entra-api-client-secret

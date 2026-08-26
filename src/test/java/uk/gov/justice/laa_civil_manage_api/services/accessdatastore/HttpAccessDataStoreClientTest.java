@@ -350,7 +350,9 @@ class HttpAccessDataStoreClientTest {
   @Test
   void getApplicationsGetsFromAdsWithServiceNameHeader() {
     server
-        .expect(requestTo(BASE_URL + "/api/v0/applications?page=1&pageSize=20&status=GRANTED"))
+        .expect(
+            requestTo(
+                BASE_URL + "/api/v0/applications?page=1&pageSize=20&status=APPLICATION_GRANTED"))
         .andExpect(method(HttpMethod.GET))
         .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
         .andRespond(
@@ -377,7 +379,8 @@ class HttpAccessDataStoreClientTest {
                                 """,
                 MediaType.APPLICATION_JSON));
 
-    ApplicationSummaryResponse result = client.getApplications(1, 20, ApplicationStatus.GRANTED);
+    ApplicationSummaryResponse result =
+        client.getApplications(1, 20, ApplicationStatus.APPLICATION_GRANTED);
 
     assertNotNull(result);
     assertEquals(1, result.applications().size());

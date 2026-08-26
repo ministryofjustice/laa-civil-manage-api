@@ -1,7 +1,7 @@
 plugins {
     java
     jacoco
-    id("org.springframework.boot") version "4.1.0"
+    id("org.springframework.boot") version "4.1.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
     id("com.diffplug.spotless") version "7.2.1"
@@ -31,7 +31,7 @@ subprojects {
     }
 
     the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:4.1.0")
+        mavenBom("org.springframework.boot:spring-boot-dependencies:4.1.1")
     }
 
     tasks.withType<Test> {

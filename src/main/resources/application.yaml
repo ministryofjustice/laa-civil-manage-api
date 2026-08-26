@@ -84,3 +84,8 @@ laa-civil-manage-api:
     base-url: ${LEGAL_FRAMEWORK_API_BASE_URL}
     connect-timeout: 3s
     read-timeout: 5s
+  notify:
+    enabled: ${GOV_UK_NOTIFY_ENABLED:true}
+    api-key: ${GOV_UK_NOTIFY_API_KEY:}
+    prior-authority-submitted-template-id: ${GOV_UK_NOTIFY_TEMPLATE_ID:}
+    recipient-email: ${GOV_UK_NOTIFY_EMAIL:}

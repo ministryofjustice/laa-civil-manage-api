@@ -93,10 +93,15 @@ containerEnvironment:
     ACCESS_DATA_STORE_OBO_SCOPE: "" # TODO: populate with production scope
     LEGAL_FRAMEWORK_API_BASE_URL: "" # TODO: populate with production legal framework API URL
     ACCESS_DATA_STORE_BASE_URL: "" # TODO: populate with production access data store URL
+    GOV_UK_NOTIFY_EMAIL: ""  # TODO: populate with production email address
+    GOV_UK_NOTIFY_TEMPLATE_ID: ""  # TODO: populate with production template ID
   secrets:
     - name: AZURE_ENTRA_API_CLIENT_SECRET
       secretName: azure-entra-api-client-secret
       key: azure-entra-api-client-secret
+    - name: GOV_UK_NOTIFY_API_KEY
+      secretName: gov-uk-notify-api-key
+      key: gov-uk-notify-api-key
 
 volumes: []
 volumeMounts: []

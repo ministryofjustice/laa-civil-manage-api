@@ -3,18 +3,28 @@ package uk.gov.justice.laa_civil_manage_api.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.justice.laa.civil.notify.model.SendEmailRequest;
+import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
+import uk.gov.justice.laa_civil_manage_api.config.NotifyEmailProperties;
 import uk.gov.justice.laa_civil_manage_api.models.BillingType;
 import uk.gov.justice.laa_civil_manage_api.models.ExpertCosts;
 import uk.gov.justice.laa_civil_manage_api.models.ExpertDetails;
@@ -28,7 +38,16 @@ import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataSt
 class PriorAuthorityServiceTest {
 
   private final AccessDataStoreClient client = mock(AccessDataStoreClient.class);
-  private final PriorAuthorityService service = new PriorAuthorityService(client);
+  private final NotifyEmailSender notifyEmailSender = mock(NotifyEmailSender.class);
+  private final NotifyEmailProperties notifyEmailProperties =
+      new NotifyEmailProperties("api-key", "template-id", "ops@example.com", true);
+  private final PriorAuthorityService service =
+      new PriorAuthorityService(client, notifyEmailSender, notifyEmailProperties);
+
+  @BeforeEach
+  void resetMocks() {
+    reset(client, notifyEmailSender);
+  }
 
   @Test
   void delegatesToAccessDataStoreClient() {
@@ -57,11 +76,88 @@ class PriorAuthorityServiceTest {
             .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
             .build();
     when(client.submitPriorAuthority(pa)).thenReturn(expected);
+    when(notifyEmailSender.sendEmail(any(SendEmailRequest.class)))
+        .thenReturn(CompletableFuture.completedFuture(null));
 
     PriorAuthorityApplicationResponse actual = service.submit(pa);
 
     assertSame(expected, actual);
     verify(client).submitPriorAuthority(pa);
+    assertSubmittedEmailRequest();
+  }
+
+  @Test
+  void submitReturnsResponseEvenWhenEmailFutureFails() {
+    PriorAuthority pa =
+        PriorAuthority.builder()
+            .applicationId(UUID.randomUUID())
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
+            .expertDetails(
+                ExpertDetails.builder()
+                    .expertType("Psychologist")
+                    .expertFullName("Dr John Doe")
+                    .expertPostcode("M1 1AA")
+                    .expertCosts(
+                        ExpertCosts.builder()
+                            .billingType(BillingType.FIXED_RATE)
+                            .totalAmount(new BigDecimal("249.99"))
+                            .costsSharedWithOtherParties(false)
+                            .build())
+                    .build())
+            .justification("Required expert evidence.")
+            .build();
+    PriorAuthorityApplicationResponse expected =
+        PriorAuthorityApplicationResponse.builder()
+            .submissionId(UUID.randomUUID())
+            .status(SubmissionStatus.ACCEPTED)
+            .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
+            .build();
+    when(client.submitPriorAuthority(pa)).thenReturn(expected);
+    when(notifyEmailSender.sendEmail(any(SendEmailRequest.class)))
+        .thenReturn(CompletableFuture.failedFuture(new RuntimeException("notify down")));
+
+    PriorAuthorityApplicationResponse actual = service.submit(pa);
+
+    assertSame(expected, actual);
+    verify(client).submitPriorAuthority(pa);
+    assertSubmittedEmailRequest();
+  }
+
+  @Test
+  void doesNotSendEmailWhenNotifyIsNotConfigured() {
+    PriorAuthorityService unconfiguredService =
+        new PriorAuthorityService(
+            client, notifyEmailSender, new NotifyEmailProperties("", "", "", false));
+    PriorAuthority pa =
+        PriorAuthority.builder()
+            .applicationId(UUID.randomUUID())
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
+            .expertDetails(
+                ExpertDetails.builder()
+                    .expertType("Psychologist")
+                    .expertFullName("Dr John Doe")
+                    .expertPostcode("M1 1AA")
+                    .expertCosts(
+                        ExpertCosts.builder()
+                            .billingType(BillingType.FIXED_RATE)
+                            .totalAmount(new BigDecimal("249.99"))
+                            .costsSharedWithOtherParties(false)
+                            .build())
+                    .build())
+            .justification("Required expert evidence.")
+            .build();
+    PriorAuthorityApplicationResponse expected =
+        PriorAuthorityApplicationResponse.builder()
+            .submissionId(UUID.randomUUID())
+            .status(SubmissionStatus.ACCEPTED)
+            .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
+            .build();
+    when(client.submitPriorAuthority(pa)).thenReturn(expected);
+
+    PriorAuthorityApplicationResponse actual = unconfiguredService.submit(pa);
+
+    assertSame(expected, actual);
+    verify(notifyEmailSender, never()).sendEmail(any(SendEmailRequest.class));
   }
 
   @Test
@@ -179,9 +275,21 @@ class PriorAuthorityServiceTest {
             .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
             .build();
     when(client.submitPriorAuthority(pa)).thenReturn(expected);
+    when(notifyEmailSender.sendEmail(any(SendEmailRequest.class)))
+        .thenReturn(CompletableFuture.completedFuture(null));
 
     PriorAuthorityApplicationResponse actual = service.submit(pa);
 
     assertSame(expected, actual);
+  }
+
+  private void assertSubmittedEmailRequest() {
+    ArgumentCaptor<SendEmailRequest> emailCaptor = ArgumentCaptor.forClass(SendEmailRequest.class);
+    verify(notifyEmailSender).sendEmail(emailCaptor.capture());
+
+    SendEmailRequest request = emailCaptor.getValue();
+    assertEquals("template-id", request.templateId());
+    assertEquals("ops@example.com", request.emailAddress());
+    assertEquals(Map.of("fullName", "John Doe"), request.personalisation());
   }
 }

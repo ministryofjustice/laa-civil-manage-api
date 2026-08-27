@@ -371,14 +371,12 @@
             "required": false,
             "schema": {
               "type": "string",
-              "default": "APPLICATION_SUBMITTED",
+              "default": "APPLICATION_GRANTED",
               "description": "The status of an application",
               "enum": [
                 "APPLICATION_SUBMITTED",
-                "READY",
-                "APPLICATION_IN_PROGRESS",
-                "GRANTED",
-                "REFUSED"
+                "APPLICATION_GRANTED",
+                "APPLICATION_REFUSED"
               ]
             }
           }

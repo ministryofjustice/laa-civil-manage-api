@@ -107,7 +107,6 @@ class PriorAuthorityServiceTest {
     PriorAuthorityApplicationResponse expected =
         PriorAuthorityApplicationResponse.builder()
             .submissionId(UUID.randomUUID())
-            .status(SubmissionStatus.ACCEPTED)
             .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
             .build();
     when(client.submitPriorAuthority(pa)).thenReturn(expected);
@@ -147,7 +146,6 @@ class PriorAuthorityServiceTest {
     PriorAuthorityApplicationResponse expected =
         PriorAuthorityApplicationResponse.builder()
             .submissionId(UUID.randomUUID())
-            .status(SubmissionStatus.ACCEPTED)
             .submittedAt(OffsetDateTime.parse("2026-05-22T10:00:00Z"))
             .build();
     when(client.submitPriorAuthority(pa)).thenReturn(expected);

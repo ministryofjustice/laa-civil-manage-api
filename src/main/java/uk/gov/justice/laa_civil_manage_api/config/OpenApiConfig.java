@@ -20,14 +20,6 @@ public class OpenApiConfig {
    * contract independently rather than from one combined document.
    */
   @Bean
-  public GroupedOpenApi mockAccessDataStoreSubmitPaApi() {
-    return GroupedOpenApi.builder()
-        .group("mock-access-data-store-submit-pa")
-        .pathsToMatch("/mock-access-data-store/applications/**")
-        .build();
-  }
-
-  @Bean
   public GroupedOpenApi mockAccessDataStoreDraftsApi() {
     return GroupedOpenApi.builder()
         .group("mock-access-data-store-drafts")

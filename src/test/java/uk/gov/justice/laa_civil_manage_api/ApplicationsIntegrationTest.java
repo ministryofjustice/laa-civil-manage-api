@@ -42,7 +42,7 @@ class ApplicationsIntegrationTest {
         ApplicationSummary.builder()
             .applicationId(UUID.fromString("11111111-2222-3333-4444-555555555555"))
             .laaReference("APP-1")
-            .status("APPLICATION_SUBMITTED")
+            .status("APPLICATION_GRANTED")
             .startDate(OffsetDateTime.parse("2026-07-22T10:00:00Z"))
             .clientFirstName("John")
             .clientLastName("Doe")
@@ -54,7 +54,7 @@ class ApplicationsIntegrationTest {
             .applications(List.of(application))
             .build();
 
-    when(accessDataStoreClient.getApplications(1, 10, ApplicationStatus.APPLICATION_SUBMITTED))
+    when(accessDataStoreClient.getApplications(1, 10, ApplicationStatus.APPLICATION_GRANTED))
         .thenReturn(expected);
 
     String body =

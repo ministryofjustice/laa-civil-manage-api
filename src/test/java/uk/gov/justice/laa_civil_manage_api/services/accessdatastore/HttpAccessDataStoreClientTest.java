@@ -2,6 +2,7 @@ package uk.gov.justice.laa_civil_manage_api.services.accessdatastore;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
@@ -9,16 +10,19 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.queryParam;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
@@ -47,10 +51,12 @@ class HttpAccessDataStoreClientTest {
     UUID submissionId = UUID.fromString("11111111-2222-3333-4444-555555555555");
 
     server
-        .expect(requestTo(BASE_URL + "/applications/" + applicationId + "/prior-authority"))
+        .expect(requestTo(BASE_URL + "/api/v0/applications/" + applicationId + "/prior-authority"))
         .andExpect(method(HttpMethod.POST))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
         .andExpect(jsonPath("$.applicationId").doesNotExist())
+        .andExpect(jsonPath("$.uploadedDocuments").doesNotExist())
         .andExpect(jsonPath("$.priorAuthorityType").value("EXPERT"))
         .andExpect(jsonPath("$.counselDetails").doesNotExist())
         .andExpect(jsonPath("$.disbursementDetails").doesNotExist())
@@ -62,12 +68,11 @@ class HttpAccessDataStoreClientTest {
         .andRespond(
             withSuccess(
                 """
-                    {
-                      "submissionId": "%s",
-                      "status": "ACCEPTED",
-                      "submittedAt": "2026-05-22T10:00:00Z"
-                    }
-                    """
+                                {
+                                  "submissionId": "%s",
+                                  "submittedAt": "2026-05-22T10:00:00Z"
+                                }
+                                """
                     .formatted(submissionId),
                 MediaType.APPLICATION_JSON));
 
@@ -75,6 +80,8 @@ class HttpAccessDataStoreClientTest {
         PriorAuthority.builder()
             .applicationId(applicationId)
             .priorAuthorityType(PriorAuthorityType.EXPERT)
+            .uploadedDocuments(
+                List.of(UploadedDocument.builder().fileName("instructions.pdf").build()))
             .expertDetails(
                 ExpertDetails.builder()
                     .expertType("Psychologist")
@@ -93,7 +100,6 @@ class HttpAccessDataStoreClientTest {
     PriorAuthorityApplicationResponse response = client.submitPriorAuthority(pa);
 
     assertEquals(submissionId, response.submissionId());
-    assertEquals(SubmissionStatus.ACCEPTED, response.status());
     server.verify();
   }
 
@@ -114,17 +120,17 @@ class HttpAccessDataStoreClientTest {
     client = new HttpAccessDataStoreClient(builder.build(), properties);
 
     server
-        .expect(requestTo(operationUrl + "/applications/" + applicationId + "/prior-authority"))
+        .expect(
+            requestTo(operationUrl + "/api/v0/applications/" + applicationId + "/prior-authority"))
         .andExpect(method(HttpMethod.POST))
         .andRespond(
             withSuccess(
                 """
-                    {
-                      "submissionId": "11111111-1111-1111-1111-111111111111",
-                      "status": "ACCEPTED",
-                      "submittedAt": "2026-05-22T10:00:00Z"
-                    }
-                    """,
+                                {
+                                  "submissionId": "11111111-1111-1111-1111-111111111111",
+                                  "submittedAt": "2026-05-22T10:00:00Z"
+                                }
+                                """,
                 MediaType.APPLICATION_JSON));
 
     client.submitPriorAuthority(
@@ -154,7 +160,7 @@ class HttpAccessDataStoreClientTest {
     UUID applicationId = UUID.randomUUID();
 
     server
-        .expect(requestTo(BASE_URL + "/applications/" + applicationId + "/prior-authority"))
+        .expect(requestTo(BASE_URL + "/api/v0/applications/" + applicationId + "/prior-authority"))
         .andExpect(method(HttpMethod.POST))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.priorAuthorityType").value("COUNSEL"))
@@ -165,12 +171,11 @@ class HttpAccessDataStoreClientTest {
         .andRespond(
             withSuccess(
                 """
-                    {
-                      "submissionId": "11111111-1111-1111-1111-111111111111",
-                      "status": "ACCEPTED",
-                      "submittedAt": "2026-05-22T10:00:00Z"
-                    }
-                    """,
+                                {
+                                  "submissionId": "11111111-1111-1111-1111-111111111111",
+                                  "submittedAt": "2026-05-22T10:00:00Z"
+                                }
+                                """,
                 MediaType.APPLICATION_JSON));
 
     client.submitPriorAuthority(
@@ -255,21 +260,63 @@ class HttpAccessDataStoreClientTest {
         .andRespond(
             withSuccess(
                 """
-                    [
-                      {
-                        "draftId": "c3b07e24-d92b-410a-9d95-88f117a12b43",
-                        "draftType": "PRIOR_AUTHORITY",
-                        "timestamp": "2026-05-19T12:00:00Z",
-                        "draftBody": { "totalAmount": 135.00 }
-                      }
-                    ]
-                    """,
+                                [
+                                  {
+                                    "draftId": "c3b07e24-d92b-410a-9d95-88f117a12b43",
+                                    "draftType": "PRIOR_AUTHORITY",
+                                    "timestamp": "2026-05-19T12:00:00Z",
+                                    "draftBody": { "totalAmount": 135.00 }
+                                  }
+                                ]
+                                """,
                 MediaType.APPLICATION_JSON));
 
     List<DraftSummary> drafts =
         client.getDrafts("laa-civil-manage", "entra-id", "PRIOR_AUTHORITY", applicationId);
     assertEquals(1, drafts.size());
     assertEquals("PRIOR_AUTHORITY", drafts.get(0).draftType());
+    server.verify();
+  }
+
+  @Test
+  void getDraftReturnsDraftWhenPresent() {
+    UUID draftId = UUID.fromString("c3b07e24-d92b-410a-9d95-88f117a12b43");
+
+    server
+        .expect(requestTo(BASE_URL + "/drafts/" + draftId))
+        .andExpect(method(HttpMethod.GET))
+        .andRespond(
+            withSuccess(
+                """
+                                {
+                                  "draftId": "%s",
+                                  "draftType": "PRIOR_AUTHORITY",
+                                  "timestamp": "2026-05-19T12:00:00Z",
+                                  "draftBody": { "totalAmount": 135.00 }
+                                }
+                                """
+                    .formatted(draftId),
+                MediaType.APPLICATION_JSON));
+
+    Optional<DraftSummary> result = client.getDraft(draftId);
+
+    assertTrue(result.isPresent());
+    assertEquals(draftId, result.get().draftId());
+    server.verify();
+  }
+
+  @Test
+  void getDraftReturnsEmptyWhenNotFound() {
+    UUID draftId = UUID.randomUUID();
+
+    server
+        .expect(requestTo(BASE_URL + "/drafts/" + draftId))
+        .andExpect(method(HttpMethod.GET))
+        .andRespond(withStatus(HttpStatus.NOT_FOUND));
+
+    Optional<DraftSummary> result = client.getDraft(draftId);
+
+    assertTrue(result.isEmpty());
     server.verify();
   }
 
@@ -303,34 +350,37 @@ class HttpAccessDataStoreClientTest {
   @Test
   void getApplicationsGetsFromAdsWithServiceNameHeader() {
     server
-        .expect(requestTo(BASE_URL + "/api/v0/applications?page=1&pageSize=20&status=GRANTED"))
+        .expect(
+            requestTo(
+                BASE_URL + "/api/v0/applications?page=1&pageSize=20&status=APPLICATION_GRANTED"))
         .andExpect(method(HttpMethod.GET))
         .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
         .andRespond(
             withSuccess(
                 """
-                    {
-                      "paging": {
-                        "page": 1,
-                        "pageSize": 20,
-                        "itemsReturned": 1,
-                        "totalRecords": 1
-                      },
-                      "applications": [
-                        {
-                          "applicationId": "11111111-2222-3333-4444-555555555555",
-                          "laaReference": "APP-1",
-                          "status": "APPLICATION_SUBMITTED",
-                          "submittedAt": "2026-07-22T10:00:00Z",
-                          "clientFirstName": "John",
-                          "clientLastName": "Doe"
-                        }
-                      ]
-                    }
-                    """,
+                                {
+                                  "paging": {
+                                    "page": 1,
+                                    "pageSize": 20,
+                                    "itemsReturned": 1,
+                                    "totalRecords": 1
+                                  },
+                                  "applications": [
+                                    {
+                                      "applicationId": "11111111-2222-3333-4444-555555555555",
+                                      "laaReference": "APP-1",
+                                      "status": "APPLICATION_SUBMITTED",
+                                      "submittedAt": "2026-07-22T10:00:00Z",
+                                      "clientFirstName": "John",
+                                      "clientLastName": "Doe"
+                                    }
+                                  ]
+                                }
+                                """,
                 MediaType.APPLICATION_JSON));
 
-    ApplicationSummaryResponse result = client.getApplications(1, 20, ApplicationStatus.GRANTED);
+    ApplicationSummaryResponse result =
+        client.getApplications(1, 20, ApplicationStatus.APPLICATION_GRANTED);
 
     assertNotNull(result);
     assertEquals(1, result.applications().size());
@@ -349,15 +399,15 @@ class HttpAccessDataStoreClientTest {
         .andRespond(
             withSuccess(
                 """
-                    {
-                      "applicationId": "11111111-2222-3333-4444-555555555555",
-                      "laaReference": "APP-1",
-                      "status": "APPLICATION_SUBMITTED",
-                      "submittedAt": "2026-07-22T10:00:00Z",
-                      "clientFirstName": "John",
-                      "clientLastName": "Doe"
-                    }
-                    """,
+                                {
+                                  "applicationId": "11111111-2222-3333-4444-555555555555",
+                                  "laaReference": "APP-1",
+                                  "status": "APPLICATION_SUBMITTED",
+                                  "submittedAt": "2026-07-22T10:00:00Z",
+                                  "clientFirstName": "John",
+                                  "clientLastName": "Doe"
+                                }
+                                """,
                 MediaType.APPLICATION_JSON));
 
     ApplicationSummary result = client.getApplicationById(applicationId);
@@ -366,6 +416,36 @@ class HttpAccessDataStoreClientTest {
     assertEquals(applicationId, result.applicationId());
     assertEquals("APP-1", result.laaReference());
     assertEquals("APPLICATION_SUBMITTED", result.status());
+    server.verify();
+  }
+
+  @Test
+  void getIndividualsGetsFromAdsWithServiceNameHeader() {
+    UUID applicationId = UUID.fromString("11111111-2222-3333-4444-555555555555");
+
+    server
+        .expect(requestTo(BASE_URL + "/api/v0/individuals?applicationId=" + applicationId))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
+        .andRespond(
+            withSuccess(
+                """
+                                {
+                                  "individuals": [
+                                    {
+                                      "firstName": "John",
+                                      "lastName": "Doe"
+                                    }
+                                  ]
+                                }
+                                """,
+                MediaType.APPLICATION_JSON));
+
+    IndividualsResponse result = client.getIndividuals(applicationId);
+
+    assertNotNull(result);
+    assertEquals(1, result.individuals().size());
+    assertEquals("John", result.individuals().get(0).firstName());
     server.verify();
   }
 }

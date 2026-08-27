@@ -38,9 +38,6 @@ logging:
 
 laa-civil-manage-api:
   access-data-store:
-    operation-base-urls:
-      get-applications: https://dev-token-enabled-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk
-      get-application-by-id: https://dev-token-enabled-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk
-      get-individuals: https://dev-token-enabled-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk
+    default-base-url: https://dev-token-enabled-axon-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk
   legal-framework:
     base-url: https://main-legal-framework-uat.cloud-platform.service.justice.gov.uk

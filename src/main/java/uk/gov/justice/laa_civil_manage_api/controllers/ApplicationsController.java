@@ -25,9 +25,7 @@ public class ApplicationsController {
   public ResponseEntity<ApplicationSummaryResponse> getApplications(
       @RequestParam(defaultValue = "1") int page,
       @RequestParam(defaultValue = "10") int pageSize,
-      // TODO Change to GRANTED once the Access Data Store API is updated to support
-      // filtering by status
-      @RequestParam(defaultValue = "APPLICATION_SUBMITTED") ApplicationStatus status) {
+      @RequestParam(defaultValue = "APPLICATION_GRANTED") ApplicationStatus status) {
     log.info("Received request to fetch applications page {} with pageSize {}", page, pageSize);
     ApplicationSummaryResponse data =
         applicationsService.getApplicationsData(page, pageSize, status);

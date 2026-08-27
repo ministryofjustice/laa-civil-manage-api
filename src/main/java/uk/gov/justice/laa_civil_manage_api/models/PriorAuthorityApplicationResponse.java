@@ -14,8 +14,6 @@ public record PriorAuthorityApplicationResponse(
                 "Identifier assigned to the prior-authority application by the Access Data Store.",
             example = "11111111-2222-3333-4444-555555555555")
         UUID submissionId,
-    @Schema(description = "Outcome of the submission.", example = "ACCEPTED")
-        SubmissionStatus status,
     @Schema(
             description = "Timestamp the application was accepted by the Access Data Store.",
             example = "2026-05-22T10:00:00Z")

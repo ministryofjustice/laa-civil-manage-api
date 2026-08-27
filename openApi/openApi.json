@@ -371,14 +371,12 @@
             "required": false,
             "schema": {
               "type": "string",
-              "default": "APPLICATION_SUBMITTED",
+              "default": "APPLICATION_GRANTED",
               "description": "The status of an application",
               "enum": [
                 "APPLICATION_SUBMITTED",
-                "READY",
-                "APPLICATION_IN_PROGRESS",
-                "GRANTED",
-                "REFUSED"
+                "APPLICATION_GRANTED",
+                "APPLICATION_REFUSED"
               ]
             }
           }
@@ -805,15 +803,6 @@
             "format": "uuid",
             "description": "Identifier assigned to the prior-authority application by the Access Data Store.",
             "example": "11111111-2222-3333-4444-555555555555"
-          },
-          "status": {
-            "type": "string",
-            "description": "Outcome of the submission.",
-            "enum": [
-              "ACCEPTED",
-              "REJECTED"
-            ],
-            "example": "ACCEPTED"
           },
           "submittedAt": {
             "type": "string",

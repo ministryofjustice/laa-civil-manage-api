@@ -1,7 +1,7 @@
 plugins {
     java
     jacoco
-    id("org.springframework.boot") version "4.1.0"
+    id("org.springframework.boot") version "4.1.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
     id("com.diffplug.spotless") version "7.2.1"
@@ -12,6 +12,32 @@ plugins {
 group = "uk.gov.justice"
 version = "0.0.1-SNAPSHOT"
 description = "Demo project for Spring Boot"
+
+subprojects {
+    apply(plugin = "java")
+    apply(plugin = "io.spring.dependency-management")
+
+    group = "uk.gov.justice"
+    version = "0.0.1-SNAPSHOT"
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:4.1.1")
+    }
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+    }
+}
 
 // Temporary: override Spring Boot BOM's logback version to fix SNYK-JAVA-CHQOSLOGBACK-17675439
 // (Expression Injection, High severity). Remove once Spring Boot ships with logback-core >= 1.5.36.
@@ -25,6 +51,7 @@ extra["commons-lang3.version"] = "3.18.0" // Fixes Uncontrolled Recursion (CVE-2
 extra["httpcore5.version"] = "5.4.3" // Fixes Header Parsing & HPACK Decoder DoS (CVE-2026-54428)
 extra["httpclient5.version"] = "5.6.4" // Fixes Connection Leak DoS (CVE-2026-64607)
 extra["log4j2.version"] = "2.25.5" // Fixes MapMessage JSON serialization (CVE-2026-49844)
+extra["micrometer.version"] = "1.17.1" // Fixes Micrometer CRLF Injection (CVE-2026-59296)
 
 java {
     toolchain {
@@ -50,6 +77,7 @@ dependencyManagement {
 }
 
 dependencies {
+    implementation(project(":notify-integration"))
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
@@ -93,7 +121,7 @@ openApi {
 
 spotless {
     java {
-        target("src/*/java/**/*.java")
+        target("**src/*/java/**/*.java")
         googleJavaFormat("1.30.0")
     }
 

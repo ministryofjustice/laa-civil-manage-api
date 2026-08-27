@@ -40,7 +40,12 @@ class PriorAuthorityServiceTest {
   private final AccessDataStoreClient client = mock(AccessDataStoreClient.class);
   private final NotifyEmailSender notifyEmailSender = mock(NotifyEmailSender.class);
   private final NotifyEmailProperties notifyEmailProperties =
-      new NotifyEmailProperties("api-key", "template-id", "ops@example.com", true);
+      new NotifyEmailProperties(
+          "api-key",
+          "https://api.notifications.service.gov.uk",
+          "template-id",
+          "ops@example.com",
+          true);
   private final PriorAuthorityService service =
       new PriorAuthorityService(client, notifyEmailSender, notifyEmailProperties);
 
@@ -127,7 +132,7 @@ class PriorAuthorityServiceTest {
   void doesNotSendEmailWhenNotifyIsNotConfigured() {
     PriorAuthorityService unconfiguredService =
         new PriorAuthorityService(
-            client, notifyEmailSender, new NotifyEmailProperties("", "", "", false));
+            client, notifyEmailSender, new NotifyEmailProperties("", "", "", "", false));
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())

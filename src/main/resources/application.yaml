@@ -87,5 +87,8 @@ laa-civil-manage-api:
   notify:
     enabled: ${GOV_UK_NOTIFY_ENABLED:true}
     api-key: ${GOV_UK_NOTIFY_API_KEY:}
+    # Only set in test/e2e environments to redirect calls to a WireMock stub instead
+    # of the real GOV.UK Notify API. Leave unset in production to use the client's default.
+    base-url: ${GOV_UK_NOTIFY_BASE_URL:}
     prior-authority-submitted-template-id: ${GOV_UK_NOTIFY_TEMPLATE_ID:}
     recipient-email: ${GOV_UK_NOTIFY_EMAIL:}

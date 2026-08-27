@@ -18,8 +18,11 @@ public class NotifySenderConfiguration {
 
   @Bean
   public NotificationClient notificationClient(
-      @Value("${laa-civil-manage-api.notify.api-key}") String apiKey) {
-    return new NotificationClient(apiKey);
+      @Value("${laa-civil-manage-api.notify.api-key}") String apiKey,
+      @Value("${laa-civil-manage-api.notify.base-url:}") String baseUrl) {
+    return baseUrl == null || baseUrl.isBlank()
+        ? new NotificationClient(apiKey)
+        : new NotificationClient(apiKey, baseUrl);
   }
 
   @Bean

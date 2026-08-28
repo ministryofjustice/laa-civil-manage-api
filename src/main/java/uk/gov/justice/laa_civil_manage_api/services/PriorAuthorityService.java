@@ -1,5 +1,6 @@
 package uk.gov.justice.laa_civil_manage_api.services;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -26,6 +27,8 @@ import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataSt
 public class PriorAuthorityService {
   private static final List<String> ALLOWED_FILE_EXTENSIONS =
       List.of("pdf", "doc", "docx", "odt", "rtf", "jpeg", "jpg", "png", "bmp", "tiff", "tif");
+  private static final DateTimeFormatter SUBMITTED_AT_FORMATTER =
+      DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a", Locale.UK);
 
   private final AccessDataStoreClient accessDataStoreClient;
   private final NotifyEmailSender notifyEmailSender;
@@ -62,7 +65,11 @@ public class PriorAuthorityService {
         new SendEmailRequest(
             notifyEmailProperties.priorAuthoritySubmittedTemplateId(),
             notifyEmailProperties.recipientEmail(),
-            Map.of("fullName", "John Doe"));
+            Map.of("priorAuthorityReference", response.submissionId(),
+                   "laaReference", priorAuthority.applicationId(),
+                   "priorAuthorityType", priorAuthority.priorAuthorityType(),
+                   "submittedAt", response.submittedAt().format(SUBMITTED_AT_FORMATTER)
+                ));
 
     notifyEmailSender
         .sendEmail(emailRequest)

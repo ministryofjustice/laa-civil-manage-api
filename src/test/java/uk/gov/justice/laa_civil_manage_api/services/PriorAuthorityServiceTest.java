@@ -81,7 +81,7 @@ class PriorAuthorityServiceTest {
 
     assertSame(expected, actual);
     verify(client).submitPriorAuthority(pa);
-    assertSubmittedEmailRequest();
+    assertSubmittedEmailRequest(pa, expected);
   }
 
   @Test
@@ -117,7 +117,7 @@ class PriorAuthorityServiceTest {
 
     assertSame(expected, actual);
     verify(client).submitPriorAuthority(pa);
-    assertSubmittedEmailRequest();
+    assertSubmittedEmailRequest(pa, expected);
   }
 
   @Test
@@ -278,13 +278,19 @@ class PriorAuthorityServiceTest {
     assertSame(expected, actual);
   }
 
-  private void assertSubmittedEmailRequest() {
+  private void assertSubmittedEmailRequest(PriorAuthority priorAuthority, PriorAuthorityApplicationResponse response) {
     ArgumentCaptor<SendEmailRequest> emailCaptor = ArgumentCaptor.forClass(SendEmailRequest.class);
     verify(notifyEmailSender).sendEmail(emailCaptor.capture());
 
     SendEmailRequest request = emailCaptor.getValue();
     assertEquals("template-id", request.templateId());
     assertEquals("ops@example.com", request.emailAddress());
-    assertEquals(Map.of("fullName", "John Doe"), request.personalisation());
+    assertEquals(
+        Map.of(
+            "priorAuthorityReference", response.submissionId(),
+            "laaReference", priorAuthority.applicationId(),
+            "priorAuthorityType", priorAuthority.priorAuthorityType(),
+            "submittedAt", "22 May 2026, 10:00 am"),
+        request.personalisation());
   }
 }

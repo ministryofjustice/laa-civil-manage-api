@@ -114,6 +114,7 @@ class PriorAuthorityIntegrationTest {
     PriorAuthority body =
         PriorAuthority.builder()
             .applicationId(applicationId)
+            .laaReference("LAA123456")
             .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertDetails(
                 ExpertDetails.builder()

@@ -26,6 +26,13 @@ public record PriorAuthority(
         @NotNull
         UUID applicationId,
     @Schema(
+            description =
+                "LAA reference of the application this prior-authority request is associated with.",
+            example = "LAA123456",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank
+        String laaReference,
+    @Schema(
             description = "The category of prior authority being requested.",
             example = "EXPERT",
             requiredMode = Schema.RequiredMode.REQUIRED)

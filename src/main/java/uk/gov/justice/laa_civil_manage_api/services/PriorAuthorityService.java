@@ -65,11 +65,11 @@ public class PriorAuthorityService {
         new SendEmailRequest(
             notifyEmailProperties.priorAuthoritySubmittedTemplateId(),
             notifyEmailProperties.recipientEmail(),
-            Map.of("priorAuthorityReference", response.submissionId(),
-                   "laaReference", priorAuthority.applicationId(),
-                   "priorAuthorityType", priorAuthority.priorAuthorityType(),
-                   "submittedAt", response.submittedAt().format(SUBMITTED_AT_FORMATTER)
-                ));
+            Map.of(
+                "priorAuthorityReference", response.submissionId(),
+                "laaReference", priorAuthority.laaReference(),
+                "priorAuthorityType", priorAuthority.priorAuthorityType().getDisplayName(),
+                "submittedAt", response.submittedAt().format(SUBMITTED_AT_FORMATTER)));
 
     notifyEmailSender
         .sendEmail(emailRequest)

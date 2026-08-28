@@ -53,6 +53,7 @@ class PriorAuthorityServiceTest {
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
+            .laaReference("LAA123456")
             .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertDetails(
                 ExpertDetails.builder()
@@ -89,6 +90,7 @@ class PriorAuthorityServiceTest {
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
+            .laaReference("LAA123456")
             .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertDetails(
                 ExpertDetails.builder()
@@ -128,6 +130,7 @@ class PriorAuthorityServiceTest {
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
+            .laaReference("LAA123456")
             .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertDetails(
                 ExpertDetails.builder()
@@ -248,6 +251,7 @@ class PriorAuthorityServiceTest {
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
+            .laaReference("LAA123456")
             .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertDetails(
                 ExpertDetails.builder()
@@ -278,7 +282,8 @@ class PriorAuthorityServiceTest {
     assertSame(expected, actual);
   }
 
-  private void assertSubmittedEmailRequest(PriorAuthority priorAuthority, PriorAuthorityApplicationResponse response) {
+  private void assertSubmittedEmailRequest(
+      PriorAuthority priorAuthority, PriorAuthorityApplicationResponse response) {
     ArgumentCaptor<SendEmailRequest> emailCaptor = ArgumentCaptor.forClass(SendEmailRequest.class);
     verify(notifyEmailSender).sendEmail(emailCaptor.capture());
 
@@ -288,8 +293,8 @@ class PriorAuthorityServiceTest {
     assertEquals(
         Map.of(
             "priorAuthorityReference", response.submissionId(),
-            "laaReference", priorAuthority.applicationId(),
-            "priorAuthorityType", priorAuthority.priorAuthorityType(),
+            "laaReference", priorAuthority.laaReference(),
+            "priorAuthorityType", priorAuthority.priorAuthorityType().getDisplayName(),
             "submittedAt", "22 May 2026, 10:00 am"),
         request.personalisation());
   }

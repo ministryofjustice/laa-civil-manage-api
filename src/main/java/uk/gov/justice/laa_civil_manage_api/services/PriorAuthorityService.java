@@ -47,7 +47,9 @@ public class PriorAuthorityService {
     PriorAuthorityApplicationResponse response =
         accessDataStoreClient.submitPriorAuthority(priorAuthority);
 
-    log.info("DEBUG: Prior authority submitted to ADS. Notify enabled={}", notifyEmailProperties.enabled());
+    log.info(
+        "DEBUG: Prior authority submitted to ADS. Notify enabled={}",
+        notifyEmailProperties.enabled());
 
     if (notifyEmailProperties.enabled()) {
       log.info("DEBUG: Notify is enabled, triggering email");

@@ -53,6 +53,7 @@ class PriorAuthorityServiceTest {
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
+            .laaReference("LAA123456")
             .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertDetails(
                 ExpertDetails.builder()
@@ -81,7 +82,7 @@ class PriorAuthorityServiceTest {
 
     assertSame(expected, actual);
     verify(client).submitPriorAuthority(pa);
-    assertSubmittedEmailRequest();
+    assertSubmittedEmailRequest(pa, expected);
   }
 
   @Test
@@ -89,6 +90,7 @@ class PriorAuthorityServiceTest {
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
+            .laaReference("LAA123456")
             .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertDetails(
                 ExpertDetails.builder()
@@ -117,7 +119,7 @@ class PriorAuthorityServiceTest {
 
     assertSame(expected, actual);
     verify(client).submitPriorAuthority(pa);
-    assertSubmittedEmailRequest();
+    assertSubmittedEmailRequest(pa, expected);
   }
 
   @Test
@@ -128,6 +130,7 @@ class PriorAuthorityServiceTest {
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
+            .laaReference("LAA123456")
             .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertDetails(
                 ExpertDetails.builder()
@@ -248,6 +251,7 @@ class PriorAuthorityServiceTest {
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
+            .laaReference("LAA123456")
             .priorAuthorityType(PriorAuthorityType.EXPERT)
             .expertDetails(
                 ExpertDetails.builder()
@@ -278,13 +282,20 @@ class PriorAuthorityServiceTest {
     assertSame(expected, actual);
   }
 
-  private void assertSubmittedEmailRequest() {
+  private void assertSubmittedEmailRequest(
+      PriorAuthority priorAuthority, PriorAuthorityApplicationResponse response) {
     ArgumentCaptor<SendEmailRequest> emailCaptor = ArgumentCaptor.forClass(SendEmailRequest.class);
     verify(notifyEmailSender).sendEmail(emailCaptor.capture());
 
     SendEmailRequest request = emailCaptor.getValue();
     assertEquals("template-id", request.templateId());
     assertEquals("ops@example.com", request.emailAddress());
-    assertEquals(Map.of("fullName", "John Doe"), request.personalisation());
+    assertEquals(
+        Map.of(
+            "priorAuthorityReference", response.submissionId(),
+            "laaReference", priorAuthority.laaReference(),
+            "priorAuthorityType", priorAuthority.priorAuthorityType().getDisplayName(),
+            "submittedAt", "22 May 2026, 10:00 am"),
+        request.personalisation());
   }
 }

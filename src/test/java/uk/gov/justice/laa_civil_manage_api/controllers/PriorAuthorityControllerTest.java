@@ -94,6 +94,7 @@ class PriorAuthorityControllerTest {
     return """
         {
           "applicationId": "%s",
+          "laaReference": "LAA123456",
           "priorAuthorityType": "EXPERT",
           "justification": "%s",
           "expertDetails": {
@@ -129,6 +130,7 @@ class PriorAuthorityControllerTest {
         """
             {
               "applicationId": "%s",
+              "laaReference": "LAA123456",
               "priorAuthorityType": "EXPERT",
               "justification": "Agreed flat fee for standard psychiatric report.",
               "expertDetails": {
@@ -152,6 +154,7 @@ class PriorAuthorityControllerTest {
         """
             {
               "applicationId": "%s",
+              "laaReference": "LAA123456",
               "priorAuthorityType": "COUNSEL",
               "justification": "Counsel is required to advise on complex points of law.",
               "uploadedDocuments": [ { "fileName": "instructions.pdf" } ],
@@ -174,6 +177,7 @@ class PriorAuthorityControllerTest {
         """
             {
               "applicationId": "%s",
+              "laaReference": "LAA123456",
               "priorAuthorityType": "DISBURSEMENT",
               "justification": "Train fare required for the expert to attend in person.",
               "disbursementDetails": { "disbursementPurpose": "Travel", "disbursementAmount": 125.50 }
@@ -192,6 +196,7 @@ class PriorAuthorityControllerTest {
         """
             {
               "applicationId": "%s",
+              "laaReference": "LAA123456",
               "priorAuthorityType": "COUNSEL",
               "justification": "Counsel is required.",
               "counselDetails": { "counselType": "TWO_JUNIOR_COUNSEL" }

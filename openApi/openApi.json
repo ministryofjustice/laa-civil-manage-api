@@ -727,6 +727,12 @@
             "description": "ID of the application this prior-authority request is associated with.",
             "example": "5f1b2c3d-1111-2222-3333-444455556666"
           },
+          "laaReference": {
+            "type": "string",
+            "description": "LAA reference of the application this prior-authority request is associated with.",
+            "example": "LAA123456",
+            "minLength": 1
+          },
           "priorAuthorityType": {
             "type": "string",
             "description": "The category of prior authority being requested.",
@@ -766,6 +772,7 @@
         "required": [
           "applicationId",
           "justification",
+          "laaReference",
           "priorAuthorityType"
         ]
       },

@@ -47,15 +47,8 @@ public class PriorAuthorityService {
     PriorAuthorityApplicationResponse response =
         accessDataStoreClient.submitPriorAuthority(priorAuthority);
 
-    log.info(
-        "DEBUG: Prior authority submitted to ADS. Notify enabled={}",
-        notifyEmailProperties.enabled());
-
     if (notifyEmailProperties.enabled()) {
-      log.info("DEBUG: Notify is enabled, triggering email");
       triggerSubmittedEmail(priorAuthority, response);
-    } else {
-      log.info("DEBUG: Notify is DISABLED - skipping email");
     }
 
     log.info("Prior authority submitted: applicationId={}", priorAuthority.applicationId());
@@ -65,19 +58,11 @@ public class PriorAuthorityService {
   private void triggerSubmittedEmail(
       PriorAuthority priorAuthority, PriorAuthorityApplicationResponse response) {
 
-    log.info(
-        "DEBUG: Notify email properties - enabled={}, templateId={}, recipientEmail={}",
-        notifyEmailProperties.enabled(),
-        notifyEmailProperties.priorAuthoritySubmittedTemplateId(),
-        notifyEmailProperties.recipientEmail());
-
     SendEmailRequest emailRequest =
         new SendEmailRequest(
             notifyEmailProperties.priorAuthoritySubmittedTemplateId(),
             notifyEmailProperties.recipientEmail(),
             Map.of("fullName", "John Doe"));
-
-    log.info("DEBUG: Sending email request: {}", emailRequest);
 
     notifyEmailSender
         .sendEmail(emailRequest)
@@ -90,8 +75,6 @@ public class PriorAuthorityService {
                   throwable);
               return null;
             });
-
-    log.info("DEBUG: Email send initiated for applicationId={}", priorAuthority.applicationId());
   }
 
   public UploadedDocument uploadDocument(MultipartFile file) {

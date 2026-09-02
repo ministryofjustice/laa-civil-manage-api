@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "laa-civil-manage-api.notify")
 public record NotifyEmailProperties(
     String apiKey,
+    String baseUrl,
     String priorAuthoritySubmittedTemplateId,
     String recipientEmail,
     boolean enabled) {}

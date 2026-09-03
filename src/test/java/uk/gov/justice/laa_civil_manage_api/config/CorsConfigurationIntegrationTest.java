@@ -29,7 +29,8 @@ import uk.gov.justice.laa_civil_manage_api.services.ExpertTypeService;
 @WebMvcTest(ExpertTypeController.class)
 @Import(SecurityConfig.class)
 @TestPropertySource(
-    properties = "laa-civil-manage-api.cors.allowed-origins=https://allowed-frontend.example.com")
+    properties =
+        "laa-civil-manage-api.cors.allowed-origins=https://allowed-frontend.example.com, https://second-frontend.example.com, ")
 class CorsConfigurationIntegrationTest {
 
   private static final String ALLOWED_ORIGIN = "https://allowed-frontend.example.com";

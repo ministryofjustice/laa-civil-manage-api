@@ -1,6 +1,7 @@
 package uk.gov.justice.laa_civil_manage_api.services;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
@@ -137,19 +138,13 @@ public class PriorAuthorityService {
               + String.join(", ", ALLOWED_FILE_EXTENSIONS).toUpperCase(Locale.ROOT));
     }
 
-    byte[] fileBytes;
-    try {
-      fileBytes = file.getBytes();
-    } catch (IOException e) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "unable to read uploaded file", e);
-    }
-
-    if (!hasPdfMagicBytes(fileBytes)) {
+    byte[] header = readHeaderBytes(file);
+    if (!Arrays.equals(header, PDF_MAGIC_BYTES)) {
       throw new ResponseStatusException(
           HttpStatus.UNSUPPORTED_MEDIA_TYPE, "file content does not match the PDF file signature");
     }
 
-    if (!EXPECTED_MEDIA_TYPE.equals(TIKA.detect(fileBytes, sanitizedFilename))) {
+    if (!EXPECTED_MEDIA_TYPE.equals(detectMediaType(file, sanitizedFilename))) {
       throw new ResponseStatusException(
           HttpStatus.UNSUPPORTED_MEDIA_TYPE, "file content does not match a valid PDF media type");
     }
@@ -165,9 +160,19 @@ public class PriorAuthorityService {
         .build();
   }
 
-  private boolean hasPdfMagicBytes(byte[] fileBytes) {
-    return fileBytes.length >= PDF_MAGIC_BYTES.length
-        && Arrays.equals(
-            fileBytes, 0, PDF_MAGIC_BYTES.length, PDF_MAGIC_BYTES, 0, PDF_MAGIC_BYTES.length);
+  private byte[] readHeaderBytes(MultipartFile file) {
+    try (InputStream inputStream = file.getInputStream()) {
+      return inputStream.readNBytes(PDF_MAGIC_BYTES.length);
+    } catch (IOException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "unable to read uploaded file", e);
+    }
+  }
+
+  private String detectMediaType(MultipartFile file, String filename) {
+    try (InputStream inputStream = file.getInputStream()) {
+      return TIKA.detect(inputStream, filename);
+    } catch (IOException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "unable to read uploaded file", e);
+    }
   }
 }

@@ -36,6 +36,8 @@ import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataSt
 
 class PriorAuthorityServiceTest {
 
+  private static final byte[] PDF_CONTENT = "%PDF-1.4\nmock pdf content for testing".getBytes();
+
   private final AccessDataStoreClient client = mock(AccessDataStoreClient.class);
   private final NotifyEmailSender notifyEmailSender = mock(NotifyEmailSender.class);
   private final NotifyEmailProperties notifyEmailProperties =
@@ -167,7 +169,7 @@ class PriorAuthorityServiceTest {
   @Test
   void uploadDocumentReturnsUploadedFilename() {
     MockMultipartFile file =
-        new MockMultipartFile("file", "evidence.pdf", "application/pdf", "content".getBytes());
+        new MockMultipartFile("file", "evidence.pdf", "application/pdf", PDF_CONTENT);
 
     UploadedDocument uploadedDocument = service.uploadDocument(file);
 
@@ -177,8 +179,7 @@ class PriorAuthorityServiceTest {
   @Test
   void uploadDocumentStripsUnixPathSegmentsFromClientSuppliedFilename() {
     MockMultipartFile file =
-        new MockMultipartFile(
-            "file", "../../sneaky/evidence.pdf", "application/pdf", "content".getBytes());
+        new MockMultipartFile("file", "../../sneaky/evidence.pdf", "application/pdf", PDF_CONTENT);
 
     UploadedDocument uploadedDocument = service.uploadDocument(file);
 
@@ -189,13 +190,85 @@ class PriorAuthorityServiceTest {
   @Test
   void uploadDocumentStripsWindowsPathSegmentsFromClientSuppliedFilename() {
     MockMultipartFile file =
-        new MockMultipartFile(
-            "file", "..\\..\\temp\\evidence.pdf", "application/pdf", "content".getBytes());
+        new MockMultipartFile("file", "..\\..\\temp\\evidence.pdf", "application/pdf", PDF_CONTENT);
 
     UploadedDocument uploadedDocument = service.uploadDocument(file);
 
     assertEquals("evidence.pdf", uploadedDocument.fileName());
     assertEquals("https://example.com/evidence.pdf", uploadedDocument.hostedUrl());
+  }
+
+  @Test
+  void uploadDocumentSanitisesNullBytesBeforeRejectingDisguisedExtension() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "evidence.pdf\0.exe", "application/pdf", PDF_CONTENT);
+
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+
+    assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
+  }
+
+  @Test
+  void uploadDocumentThrowsWhenFilenameExceedsMaxLength() {
+    String longName = "a".repeat(252) + ".pdf";
+    MockMultipartFile file =
+        new MockMultipartFile("file", longName, "application/pdf", PDF_CONTENT);
+
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+
+    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+  }
+
+  @Test
+  void uploadDocumentThrowsWhenFilenameHasMultipleExtensions() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "evidence.docx.pdf", "application/pdf", PDF_CONTENT);
+
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+
+    assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
+  }
+
+  @Test
+  void uploadDocumentThrowsWhenFileContentDoesNotMatchPdfMagicBytes() {
+    MockMultipartFile file =
+        new MockMultipartFile("file", "evidence.pdf", "application/pdf", "not a pdf".getBytes());
+
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+
+    assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
+  }
+
+  @Test
+  void uploadDocumentThrowsWhenDisallowedExtension() {
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file",
+            "evidence.docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "content".getBytes());
+
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+
+    assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
+  }
+
+  @Test
+  void uploadDocumentThrowsWhenFileExceedsMaxSize() {
+    byte[] oversized = new byte[(10 * 1024 * 1024) + 1];
+    System.arraycopy(PDF_CONTENT, 0, oversized, 0, PDF_CONTENT.length);
+    MockMultipartFile file =
+        new MockMultipartFile("file", "large.pdf", "application/pdf", oversized);
+
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+
+    assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, ex.getStatusCode());
   }
 
   @Test
@@ -211,8 +284,7 @@ class PriorAuthorityServiceTest {
 
   @Test
   void uploadDocumentThrowsWhenFilenameIsMissing() {
-    MockMultipartFile file =
-        new MockMultipartFile("file", null, "application/pdf", "content".getBytes());
+    MockMultipartFile file = new MockMultipartFile("file", null, "application/pdf", PDF_CONTENT);
 
     ResponseStatusException ex =
         assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
@@ -243,7 +315,7 @@ class PriorAuthorityServiceTest {
   @Test
   void uploadDocumentThrowsWhenFileHasNoExtension() {
     MockMultipartFile file =
-        new MockMultipartFile("file", "nodotinfilename", "application/pdf", "content".getBytes());
+        new MockMultipartFile("file", "nodotinfilename", "application/pdf", PDF_CONTENT);
 
     ResponseStatusException ex =
         assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));

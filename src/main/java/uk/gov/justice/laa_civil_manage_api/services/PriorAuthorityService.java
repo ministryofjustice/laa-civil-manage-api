@@ -29,7 +29,6 @@ import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataSt
 @Service
 @RequiredArgsConstructor
 public class PriorAuthorityService {
-  // MVP only supports PDF uploads; see CM-446.
   private static final List<String> ALLOWED_FILE_EXTENSIONS = List.of("pdf");
   private static final String EXPECTED_MEDIA_TYPE = "application/pdf";
   private static final byte[] PDF_MAGIC_BYTES = {0x25, 0x50, 0x44, 0x46}; // "%PDF"
@@ -100,7 +99,7 @@ public class PriorAuthorityService {
 
     if (file.getSize() > MAX_FILE_SIZE_BYTES) {
       throw new ResponseStatusException(
-          HttpStatus.PAYLOAD_TOO_LARGE, "file size must not exceed 10MB");
+          HttpStatus.CONTENT_TOO_LARGE, "file size must not exceed 10MB");
     }
 
     String originalFilename = file.getOriginalFilename();
@@ -108,11 +107,8 @@ public class PriorAuthorityService {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file name must not be empty");
     }
 
-    // Strip null bytes before path cleaning; these are used to trick naive extension checks
     String nullByteFreeFilename = originalFilename.replace("\0", "").replaceAll("(?i)%00", "");
 
-    // TODO - cleanPath is not adequate protection against path-traversal attacks - we must save the
-    // file with a different name to that provided by the user
     String sanitizedFilename = StringUtils.getFilename(StringUtils.cleanPath(nullByteFreeFilename));
     if (!StringUtils.hasText(sanitizedFilename)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file name must not be empty");

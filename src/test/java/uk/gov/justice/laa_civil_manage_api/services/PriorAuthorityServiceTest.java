@@ -268,7 +268,7 @@ class PriorAuthorityServiceTest {
     ResponseStatusException ex =
         assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
 
-    assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, ex.getStatusCode());
+    assertEquals(HttpStatus.CONTENT_TOO_LARGE, ex.getStatusCode());
   }
 
   @Test

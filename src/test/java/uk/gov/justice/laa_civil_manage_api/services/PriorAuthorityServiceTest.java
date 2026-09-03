@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +34,14 @@ import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationRespo
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
+import uk.gov.justice.laa_civil_manage_api.validation.FileUploadRules;
+import uk.gov.justice.laa_civil_manage_api.validation.PdfUploadValidator;
 
 class PriorAuthorityServiceTest {
+
+  private static final byte[] VALID_PDF_CONTENT =
+      ("%PDF-1.4\n1 0 obj<< /Type /Catalog >>endobj\ntrailer<< /Root 1 0 R >>\n%%EOF")
+          .getBytes(StandardCharsets.US_ASCII);
 
   private final AccessDataStoreClient client = mock(AccessDataStoreClient.class);
   private final NotifyEmailSender notifyEmailSender = mock(NotifyEmailSender.class);
@@ -45,8 +52,10 @@ class PriorAuthorityServiceTest {
           "template-id",
           "ops@example.com",
           true);
+  private final PdfUploadValidator pdfUploadValidator = new PdfUploadValidator();
   private final PriorAuthorityService service =
-      new PriorAuthorityService(client, notifyEmailSender, notifyEmailProperties);
+      new PriorAuthorityService(
+          client, notifyEmailSender, notifyEmailProperties, pdfUploadValidator);
 
   @BeforeEach
   void resetMocks() {
@@ -131,7 +140,10 @@ class PriorAuthorityServiceTest {
   void doesNotSendEmailWhenNotifyIsNotConfigured() {
     PriorAuthorityService unconfiguredService =
         new PriorAuthorityService(
-            client, notifyEmailSender, new NotifyEmailProperties("", "", "", "", false));
+            client,
+            notifyEmailSender,
+            new NotifyEmailProperties("", "", "", "", false),
+            pdfUploadValidator);
     PriorAuthority pa =
         PriorAuthority.builder()
             .applicationId(UUID.randomUUID())
@@ -167,7 +179,7 @@ class PriorAuthorityServiceTest {
   @Test
   void uploadDocumentReturnsUploadedFilename() {
     MockMultipartFile file =
-        new MockMultipartFile("file", "evidence.pdf", "application/pdf", "content".getBytes());
+        new MockMultipartFile("file", "evidence.pdf", "application/pdf", VALID_PDF_CONTENT);
 
     UploadedDocument uploadedDocument = service.uploadDocument(file);
 
@@ -178,7 +190,7 @@ class PriorAuthorityServiceTest {
   void uploadDocumentStripsUnixPathSegmentsFromClientSuppliedFilename() {
     MockMultipartFile file =
         new MockMultipartFile(
-            "file", "../../sneaky/evidence.pdf", "application/pdf", "content".getBytes());
+            "file", "../../sneaky/evidence.pdf", "application/pdf", VALID_PDF_CONTENT);
 
     UploadedDocument uploadedDocument = service.uploadDocument(file);
 
@@ -190,7 +202,7 @@ class PriorAuthorityServiceTest {
   void uploadDocumentStripsWindowsPathSegmentsFromClientSuppliedFilename() {
     MockMultipartFile file =
         new MockMultipartFile(
-            "file", "..\\..\\temp\\evidence.pdf", "application/pdf", "content".getBytes());
+            "file", "..\\..\\temp\\evidence.pdf", "application/pdf", VALID_PDF_CONTENT);
 
     UploadedDocument uploadedDocument = service.uploadDocument(file);
 
@@ -212,7 +224,7 @@ class PriorAuthorityServiceTest {
   @Test
   void uploadDocumentThrowsWhenFilenameIsMissing() {
     MockMultipartFile file =
-        new MockMultipartFile("file", null, "application/pdf", "content".getBytes());
+        new MockMultipartFile("file", null, "application/pdf", VALID_PDF_CONTENT);
 
     ResponseStatusException ex =
         assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
@@ -230,6 +242,7 @@ class PriorAuthorityServiceTest {
         assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
 
     assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
+    assertEquals(FileUploadRules.MESSAGE_INVALID_EXTENSION, ex.getReason());
   }
 
   @Test
@@ -243,12 +256,38 @@ class PriorAuthorityServiceTest {
   @Test
   void uploadDocumentThrowsWhenFileHasNoExtension() {
     MockMultipartFile file =
-        new MockMultipartFile("file", "nodotinfilename", "application/pdf", "content".getBytes());
+        new MockMultipartFile("file", "nodotinfilename", "application/pdf", VALID_PDF_CONTENT);
 
     ResponseStatusException ex =
         assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
 
     assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
+  }
+
+  @Test
+  void uploadDocumentThrowsWhenContentDoesNotMatchPdfSignature() {
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "evidence.pdf", "application/pdf", "not a real pdf".getBytes());
+
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+
+    assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
+  }
+
+  @Test
+  void uploadDocumentThrowsWhenFileExceedsSizeLimit() {
+    byte[] oversizedContent = new byte[(int) FileUploadRules.MAX_FILE_SIZE_BYTES + 1];
+    System.arraycopy(VALID_PDF_CONTENT, 0, oversizedContent, 0, VALID_PDF_CONTENT.length);
+    MockMultipartFile file =
+        new MockMultipartFile("file", "evidence.pdf", "application/pdf", oversizedContent);
+
+    ResponseStatusException ex =
+        assertThrows(ResponseStatusException.class, () -> service.uploadDocument(file));
+
+    assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, ex.getStatusCode());
+    assertEquals(FileUploadRules.MESSAGE_FILE_TOO_LARGE, ex.getReason());
   }
 
   @Test

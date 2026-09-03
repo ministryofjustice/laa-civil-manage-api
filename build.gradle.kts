@@ -99,6 +99,7 @@ dependencies {
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.apache.tika:tika-core:3.2.3")
 }
 
 openApi {

@@ -88,6 +88,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+    implementation("org.apache.tika:tika-core:3.3.2")
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.projectlombok:lombok")

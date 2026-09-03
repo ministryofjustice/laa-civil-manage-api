@@ -67,6 +67,8 @@ logging:
         node_name: ${HOSTNAME:unknown}
 
 laa-civil-manage-api:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:}
   access-data-store:
     # Default to the real Access Data Store. Only journeys still backed by the in-process
     # mock need an explicit override below

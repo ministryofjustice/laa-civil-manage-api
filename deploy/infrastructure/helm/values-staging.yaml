@@ -93,6 +93,7 @@ containerEnvironment:
   enabled: true
   variables:
     SKIP_AUTH: "false"
+    CORS_ALLOWED_ORIGINS: "https://laa-civil-manage-staging.cloud-platform.service.justice.gov.uk"
     AZURE_ENTRA_TENANT_ID: "ff260a8b-cb92-4cfe-8ae9-d48bb0fd9851"
     AZURE_ENTRA_API_CLIENT_ID: "e50ffd82-d524-45f3-88d8-509498266adc"
     AZURE_ENTRA_API_AUDIENCE: "laa-civil-manage-api"

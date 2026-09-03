@@ -37,6 +37,8 @@ logging:
     console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr([%X{correlationId:-},%X{traceId:-},%X{spanId:-}]){yellow} %clr(%-35logger{35}){cyan} : %m%n"
 
 laa-civil-manage-api:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
   access-data-store:
     default-base-url: https://dev-token-enabled-axon-laa-data-access-api-uat.cloud-platform.service.justice.gov.uk
   legal-framework:

@@ -87,6 +87,7 @@ containerEnvironment:
   enabled: true
   variables:
     SKIP_AUTH: "false"
+    CORS_ALLOWED_ORIGINS: "https://laa-civil-manage.cloud-platform.service.justice.gov.uk"
     AZURE_ENTRA_TENANT_ID: "" # TODO: populate with production tenant ID
     AZURE_ENTRA_API_CLIENT_ID: "" # TODO: populate with production client ID
     AZURE_ENTRA_API_AUDIENCE: "" # TODO: populate with production audience

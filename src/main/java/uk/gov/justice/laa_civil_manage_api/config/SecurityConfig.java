@@ -3,6 +3,7 @@ package uk.gov.justice.laa_civil_manage_api.config;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -28,6 +29,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -45,10 +49,14 @@ public class SecurityConfig {
   @Value("${custom.proxy.port:0}")
   private int proxyPort;
 
+  @Value("${laa-civil-manage-api.cors.allowed-origins:}")
+  private String allowedOrigins;
+
   @Bean
   @ConditionalOnProperty(name = "SKIP_AUTH", havingValue = "true")
   public SecurityFilterChain skipAuthFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(authz -> authz.anyRequest().permitAll());
@@ -60,6 +68,7 @@ public class SecurityConfig {
   @ConditionalOnProperty(name = "SKIP_AUTH", havingValue = "false", matchIfMissing = true)
   public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
@@ -122,6 +131,26 @@ public class SecurityConfig {
               JwtClaimNames.AUD, aud -> aud.stream().anyMatch(audiences::contains)));
     }
     return new DelegatingOAuth2TokenValidator<>(validators);
+  }
+
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    List<String> origins =
+        Arrays.stream(allowedOrigins.split(","))
+            .map(String::trim)
+            .filter(StringUtils::hasText)
+            .toList();
+
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOrigins(origins);
+    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    configuration.setAllowedHeaders(List.of("*"));
+    configuration.setExposedHeaders(List.of("X-Correlation-ID", "Location"));
+    configuration.setAllowCredentials(false);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
   }
 
   @Bean

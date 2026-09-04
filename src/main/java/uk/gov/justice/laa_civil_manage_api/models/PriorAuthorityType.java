@@ -2,11 +2,11 @@ package uk.gov.justice.laa_civil_manage_api.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "The type of prior authority")
+@Schema(description = "The category of prior authority being requested.")
 public enum PriorAuthorityType {
   EXPERT("Expert"),
-  DISBURSEMENT("Disbursement"),
-  COUNSEL("Counsel");
+  COUNSEL("Counsel"),
+  DISBURSEMENT("Disbursement");
 
   private final String displayName;
 

@@ -1,22 +1,23 @@
 package uk.gov.justice.laa_civil_manage_api.services.accessdatastore;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.multipart.MultipartFile;
 import uk.gov.justice.laa_civil_manage_api.models.*;
 
 @Component
 @RequiredArgsConstructor
 public class HttpAccessDataStoreClient implements AccessDataStoreClient {
 
-  private static final ParameterizedTypeReference<List<DraftSummary>> DRAFT_LIST_TYPE =
-      new ParameterizedTypeReference<>() {};
+  private static final String SERVICE_NAME_HEADER = "X-Service-Name";
+  private static final String SERVICE_NAME = "CIVIL_APPLY";
+  private static final String PRIOR_AUTHORITIES_PATH = "/api/v0/prior-authorities";
 
   private static final String DEFAULT_MATTER_TYPE = "SPECIAL_CHILDREN_ACT";
   private static final String DEFAULT_SORT_BY = "SUBMITTED_DATE";
@@ -26,91 +27,78 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
   private final AccessDataStoreProperties properties;
 
   @Override
-  public PriorAuthorityApplicationResponse submitPriorAuthority(PriorAuthority priorAuthority) {
-    String baseUrl = properties.urlFor(AccessDataStoreOperations.SUBMIT_PRIOR_AUTHORITY);
-
+  public PriorAuthorityIdResponse createPriorAuthorityDraft(
+      CreatePriorAuthorityDraftRequest request) {
+    String baseUrl = properties.baseUrl();
     return adsRestClient
         .post()
-        .uri(
-            baseUrl,
-            uriBuilder ->
-                uriBuilder
-                    .path("/api/v0/applications/{id}/prior-authority")
-                    .build(priorAuthority.applicationId()))
-        .header("X-Service-Name", "CIVIL_APPLY")
+        .uri(baseUrl + PRIOR_AUTHORITIES_PATH)
+        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .contentType(MediaType.APPLICATION_JSON)
-        .body(CreatePriorAuthorityRequest.from(priorAuthority))
+        .body(request)
         .retrieve()
-        .body(PriorAuthorityApplicationResponse.class);
+        .body(PriorAuthorityIdResponse.class);
   }
 
   @Override
-  public DraftCreatedResponse createDraft(Draft draft) {
-    String baseUrl = properties.urlFor(AccessDataStoreOperations.CREATE_DRAFT);
-    return adsRestClient
-        .post()
-        .uri(baseUrl + "/drafts")
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(draft)
-        .retrieve()
-        .body(DraftCreatedResponse.class);
-  }
-
-  @Override
-  public void updateDraft(UUID draftId, Draft draft) {
-    String baseUrl = properties.urlFor(AccessDataStoreOperations.UPDATE_DRAFT);
+  public void updatePriorAuthorityDraft(
+      UUID priorAuthorityId, SavePriorAuthorityDraftRequest request) {
+    String baseUrl = properties.baseUrl();
     adsRestClient
         .put()
-        .uri(baseUrl + "/drafts/{draftId}", draftId)
+        .uri(baseUrl + PRIOR_AUTHORITIES_PATH + "/{id}", priorAuthorityId)
+        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .contentType(MediaType.APPLICATION_JSON)
-        .body(draft)
+        .body(request)
         .retrieve()
         .toBodilessEntity();
   }
 
   @Override
-  public Optional<DraftSummary> getDraft(UUID draftId) {
-    String baseUrl = properties.urlFor(AccessDataStoreOperations.GET_DRAFT);
+  public Optional<PriorAuthorityRecordResponse> getPriorAuthority(UUID priorAuthorityId) {
+    String baseUrl = properties.baseUrl();
     return Optional.ofNullable(
         adsRestClient
             .get()
-            .uri(baseUrl + "/drafts/{draftId}", draftId)
+            .uri(baseUrl + PRIOR_AUTHORITIES_PATH + "/{id}", priorAuthorityId)
+            .header(SERVICE_NAME_HEADER, SERVICE_NAME)
             .retrieve()
             .onStatus(status -> status.value() == 404, (_, _) -> {})
-            .body(DraftSummary.class));
+            .body(PriorAuthorityRecordResponse.class));
   }
 
   @Override
-  public List<DraftSummary> getDrafts(
-      String sourceSystem, String userId, String draftType, UUID applicationId) {
-    String baseUrl = properties.urlFor(AccessDataStoreOperations.GET_DRAFTS);
-    UriComponentsBuilder uri =
-        UriComponentsBuilder.fromUriString(baseUrl + "/drafts")
-            .queryParam("sourceSystem", sourceSystem)
-            .queryParam("userId", userId);
-    if (draftType != null) {
-      uri.queryParam("draftType", draftType);
-    }
-    if (applicationId != null) {
-      uri.queryParam("applicationId", applicationId);
-    }
-    return adsRestClient.get().uri(uri.build().toUri()).retrieve().body(DRAFT_LIST_TYPE);
-  }
-
-  @Override
-  public void deleteDraft(UUID draftId) {
-    String baseUrl = properties.urlFor(AccessDataStoreOperations.DELETE_DRAFT);
-    adsRestClient
-        .delete()
-        .uri(baseUrl + "/drafts/{draftId}", draftId)
+  public SubmitPriorAuthorityDraftResponse submitPriorAuthority(UUID priorAuthorityId) {
+    String baseUrl = properties.baseUrl();
+    return adsRestClient
+        .post()
+        .uri(baseUrl + PRIOR_AUTHORITIES_PATH + "/{id}/submit", priorAuthorityId)
+        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .retrieve()
-        .toBodilessEntity();
+        .body(SubmitPriorAuthorityDraftResponse.class);
+  }
+
+  @Override
+  public UploadPriorAuthorityDocumentResponse uploadPriorAuthorityDocument(
+      UUID priorAuthorityId, MultipartFile file) {
+    String baseUrl = properties.baseUrl();
+    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+    body.add("file", file.getResource());
+
+    return adsRestClient
+        .post()
+        .uri(baseUrl + PRIOR_AUTHORITIES_PATH + "/{id}/documents", priorAuthorityId)
+        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
+        .contentType(MediaType.MULTIPART_FORM_DATA)
+        .body(body)
+        .retrieve()
+        .body(UploadPriorAuthorityDocumentResponse.class);
   }
 
   @Override
   public ApplicationSummaryResponse getApplications(
       int page, int pageSize, ApplicationStatus status) {
-    String baseUrl = properties.urlFor(AccessDataStoreOperations.GET_APPLICATIONS);
+    String baseUrl = properties.baseUrl();
 
     return adsRestClient
         .get()
@@ -125,31 +113,31 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
             page,
             pageSize,
             status)
-        .header("X-Service-Name", "CIVIL_APPLY")
+        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .retrieve()
         .body(ApplicationSummaryResponse.class);
   }
 
   @Override
   public ApplicationSummary getApplicationById(UUID applicationId) {
-    String baseUrl = properties.urlFor(AccessDataStoreOperations.GET_APPLICATION_BY_ID);
+    String baseUrl = properties.baseUrl();
 
     return adsRestClient
         .get()
         .uri(baseUrl + "/api/v0/applications/" + applicationId)
-        .header("X-Service-Name", "CIVIL_APPLY")
+        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .retrieve()
         .body(ApplicationSummary.class);
   }
 
   @Override
   public IndividualsResponse getIndividuals(UUID applicationId) {
-    String baseUrl = properties.urlFor(AccessDataStoreOperations.GET_INDIVIDUALS);
+    String baseUrl = properties.baseUrl();
 
     return adsRestClient
         .get()
         .uri(baseUrl + "/api/v0/individuals?applicationId={applicationId}", applicationId)
-        .header("X-Service-Name", "CIVIL_APPLY")
+        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .retrieve()
         .body(IndividualsResponse.class);
   }

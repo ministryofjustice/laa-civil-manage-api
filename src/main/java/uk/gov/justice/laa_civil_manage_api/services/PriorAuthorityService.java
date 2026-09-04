@@ -2,11 +2,14 @@ package uk.gov.justice.laa_civil_manage_api.services;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
@@ -18,12 +21,18 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.justice.laa.civil.notify.model.SendEmailRequest;
 import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
 import uk.gov.justice.laa_civil_manage_api.config.NotifyEmailProperties;
-import uk.gov.justice.laa_civil_manage_api.models.ExpertCosts;
-import uk.gov.justice.laa_civil_manage_api.models.ExpertDetails;
-import uk.gov.justice.laa_civil_manage_api.models.PriorAuthority;
+import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityResponse;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.CreatePriorAuthorityDraftRequest;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.PriorAuthorityIdResponse;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.PriorAuthorityRecordResponse;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.SavePriorAuthorityDraftRequest;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.SubmitPriorAuthorityDraftResponse;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.UploadPriorAuthorityDocumentResponse;
 
 @Slf4j
 @Service
@@ -42,41 +51,77 @@ public class PriorAuthorityService {
   private final NotifyEmailSender notifyEmailSender;
   private final NotifyEmailProperties notifyEmailProperties;
 
-  public PriorAuthorityApplicationResponse submit(PriorAuthority priorAuthority) {
-    int documentCount =
-        priorAuthority.uploadedDocuments() == null ? 0 : priorAuthority.uploadedDocuments().size();
-    ExpertDetails expertDetails = priorAuthority.expertDetails();
-    ExpertCosts expertCosts = expertDetails == null ? null : expertDetails.expertCosts();
+  public UUID createDraft(PriorAuthorityDraft draft) {
     log.info(
-        "Submitting prior authority: applicationId={}, priorAuthorityType={}, expertType={}, billingType={}, documentCount={}",
-        priorAuthority.applicationId(),
-        priorAuthority.priorAuthorityType(),
-        expertDetails == null ? null : expertDetails.expertType(),
-        expertCosts == null ? null : expertCosts.billingType(),
-        documentCount);
+        "Creating prior authority draft: applicationId={}, priorAuthorityType={}",
+        draft.applicationId(),
+        draft.priorAuthorityType());
+
+    PriorAuthorityIdResponse response =
+        accessDataStoreClient.createPriorAuthorityDraft(
+            CreatePriorAuthorityDraftRequest.from(draft));
+
+    log.info(
+        "Created prior authority draft: priorAuthorityId={}, applicationId={}",
+        response.priorAuthorityId(),
+        draft.applicationId());
+    return response.priorAuthorityId();
+  }
+
+  public void updateDraft(UUID priorAuthorityId, PriorAuthorityDraft draft) {
+    log.info(
+        "Updating prior authority draft: priorAuthorityId={}, applicationId={}",
+        priorAuthorityId,
+        draft.applicationId());
+    accessDataStoreClient.updatePriorAuthorityDraft(
+        priorAuthorityId, SavePriorAuthorityDraftRequest.from(draft));
+  }
+
+  public Optional<PriorAuthorityResponse> get(UUID priorAuthorityId) {
+    log.info("Get prior authority: priorAuthorityId={}", priorAuthorityId);
+    Optional<PriorAuthorityRecordResponse> record =
+        accessDataStoreClient.getPriorAuthority(priorAuthorityId);
+    record.ifPresentOrElse(
+        r -> log.info("Found prior authority: priorAuthorityId={}", r.priorAuthorityId()),
+        () -> log.info("No prior authority found for priorAuthorityId={}", priorAuthorityId));
+    return record.map(this::toSummary);
+  }
+
+  public PriorAuthorityApplicationResponse submit(UUID priorAuthorityId) {
+    log.info("Submitting prior authority: priorAuthorityId={}", priorAuthorityId);
+
+    SubmitPriorAuthorityDraftResponse submitResponse =
+        accessDataStoreClient.submitPriorAuthority(priorAuthorityId);
 
     PriorAuthorityApplicationResponse response =
-        accessDataStoreClient.submitPriorAuthority(priorAuthority);
+        PriorAuthorityApplicationResponse.builder()
+            .priorAuthorityId(submitResponse.priorAuthorityId())
+            .submittedAt(submitResponse.submittedAt())
+            .build();
 
     if (notifyEmailProperties.enabled()) {
-      triggerSubmittedEmail(priorAuthority, response);
+      accessDataStoreClient
+          .getPriorAuthority(priorAuthorityId)
+          .ifPresent(record -> triggerSubmittedEmail(record, response));
     }
 
-    log.info("Prior authority submitted: applicationId={}", priorAuthority.applicationId());
+    log.info("Prior authority submitted: priorAuthorityId={}", priorAuthorityId);
     return response;
   }
 
   private void triggerSubmittedEmail(
-      PriorAuthority priorAuthority, PriorAuthorityApplicationResponse response) {
+      PriorAuthorityRecordResponse record, PriorAuthorityApplicationResponse response) {
+
+    ApplicationSummary app = accessDataStoreClient.getApplicationById(record.applicationId());
 
     SendEmailRequest emailRequest =
         new SendEmailRequest(
             notifyEmailProperties.priorAuthoritySubmittedTemplateId(),
             notifyEmailProperties.recipientEmail(),
             Map.of(
-                "priorAuthorityReference", response.submissionId(),
-                "laaReference", priorAuthority.laaReference(),
-                "priorAuthorityType", priorAuthority.priorAuthorityType().getDisplayName(),
+                "priorAuthorityReference", response.priorAuthorityId(),
+                "laaReference", app.laaReference(),
+                "priorAuthorityType", record.priorAuthorityType().getDisplayName(),
                 "submittedAt", response.submittedAt().format(SUBMITTED_AT_FORMATTER)));
 
     notifyEmailSender
@@ -84,15 +129,31 @@ public class PriorAuthorityService {
         .exceptionally(
             throwable -> {
               log.error(
-                  "Failed to send prior authority submission email: applicationId={}, submissionId={}",
-                  priorAuthority.applicationId(),
-                  response.submissionId(),
+                  "Failed to send prior authority submission email: priorAuthorityId={}",
+                  record.priorAuthorityId(),
                   throwable);
               return null;
             });
   }
 
-  public UploadedDocument uploadDocument(MultipartFile file) {
+  private PriorAuthorityResponse toSummary(PriorAuthorityRecordResponse record) {
+    PriorAuthorityDraft draft =
+        PriorAuthorityDraft.builder()
+            .applicationId(record.applicationId())
+            .priorAuthorityType(record.priorAuthorityType())
+            .justification(record.justification())
+            .expertDetails(record.expertDetails())
+            .counselDetails(record.counselDetails())
+            .disbursementDetails(record.disbursementDetails())
+            .build();
+    return PriorAuthorityResponse.builder()
+        .priorAuthorityId(record.priorAuthorityId())
+        .status(record.status())
+        .draft(draft)
+        .build();
+  }
+
+  public UploadedDocument uploadDocument(UUID priorAuthorityId, MultipartFile file) {
     if (file == null || file.isEmpty()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file must not be empty");
     }
@@ -146,14 +207,16 @@ public class PriorAuthorityService {
     }
 
     log.info(
-        "Received document upload: filename={}, contentType={}",
+        "Uploading document for prior authority: priorAuthorityId={}, filename={}, contentType={}",
+        priorAuthorityId,
         sanitizedFilename,
         file.getContentType());
 
-    return UploadedDocument.builder()
-        .fileName(sanitizedFilename)
-        .hostedUrl("https://example.com/" + sanitizedFilename)
-        .build();
+    UploadPriorAuthorityDocumentResponse response =
+        accessDataStoreClient.uploadPriorAuthorityDocument(priorAuthorityId, file);
+
+    return new UploadedDocument(
+        response.documentId(), sanitizedFilename, null, file.getSize(), OffsetDateTime.now());
   }
 
   private byte[] readHeaderBytes(MultipartFile file) {

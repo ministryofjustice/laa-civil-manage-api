@@ -80,6 +80,22 @@ This API is fully secured using Microsoft Entra ID via OAuth 2.0.
 *(Note: If you need to test endpoints locally without a token, you can temporarily set `SKIP_AUTH=true` in your `.env`
 file).*
 
+## CORS
+
+CORS requires an explicit allowlist of trusted frontend origins (no wildcards). It is configured centrally in `SecurityConfig`.
+
+Set the comma-separated allowlist per environment via `CORS_ALLOWED_ORIGINS`:
+
+```text
+CORS_ALLOWED_ORIGINS=https://laa-civil-manage-dev.cloud-platform.service.justice.gov.uk
+```
+
+- Local dev: Defaults to http://localhost:3000,http://localhost:5173 (override in .env).
+- Deployed envs: Set in deploy/infrastructure/helm/values-*.yaml. An empty string ("") acts as a fail-safe, denying all cross-origin requests.
+- Enforcement: Browsers block unlisted origins; non-browser server-to-server calls are unaffected.
+- Request headers: Allow * to support automatically injected APM/tracing headers (e.g., AWS X-Ray).
+- Exposed headers: Location and X-Correlation-ID are explicitly exposed so frontend JS can read 201 Created responses and track request IDs.
+
 ## Example requests
 
 All examples assume a local instance running at `http://localhost:8080`. Unless `SKIP_AUTH=true` is set locally, all

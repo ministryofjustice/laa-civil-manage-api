@@ -18,6 +18,10 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
   private static final ParameterizedTypeReference<List<DraftSummary>> DRAFT_LIST_TYPE =
       new ParameterizedTypeReference<>() {};
 
+  private static final String DEFAULT_MATTER_TYPE = "SPECIAL_CHILDREN_ACT";
+  private static final String DEFAULT_SORT_BY = "SUBMITTED_DATE";
+  private static final String DEFAULT_ORDER_BY = "DESC";
+
   private final RestClient adsRestClient;
   private final AccessDataStoreProperties properties;
 
@@ -111,7 +115,13 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
     return adsRestClient
         .get()
         .uri(
-            baseUrl + "/api/v0/applications?page={page}&pageSize={pageSize}&status={status}",
+            baseUrl
+                + "/api/v0/applications?page={page}&pageSize={pageSize}&status={status}&matterType="
+                + DEFAULT_MATTER_TYPE
+                + "&sortBy="
+                + DEFAULT_SORT_BY
+                + "&orderBy="
+                + DEFAULT_ORDER_BY,
             page,
             pageSize,
             status)

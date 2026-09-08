@@ -274,7 +274,7 @@ class HttpAccessDataStoreClientTest {
     List<DraftSummary> drafts =
         client.getDrafts("laa-civil-manage", "entra-id", "PRIOR_AUTHORITY", applicationId);
     assertEquals(1, drafts.size());
-    assertEquals("PRIOR_AUTHORITY", drafts.get(0).draftType());
+    assertEquals("PRIOR_AUTHORITY", drafts.getFirst().draftType());
     server.verify();
   }
 
@@ -352,7 +352,8 @@ class HttpAccessDataStoreClientTest {
     server
         .expect(
             requestTo(
-                BASE_URL + "/api/v0/applications?page=1&pageSize=20&status=APPLICATION_GRANTED"))
+                BASE_URL
+                    + "/api/v0/applications?page=1&pageSize=20&status=APPLICATION_GRANTED&matterType=SPECIAL_CHILDREN_ACT&sortBy=SUBMITTED_DATE&orderBy=DESC"))
         .andExpect(method(HttpMethod.GET))
         .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
         .andRespond(
@@ -384,7 +385,7 @@ class HttpAccessDataStoreClientTest {
 
     assertNotNull(result);
     assertEquals(1, result.applications().size());
-    assertEquals("APP-1", result.applications().get(0).laaReference());
+    assertEquals("APP-1", result.applications().getFirst().laaReference());
     server.verify();
   }
 
@@ -445,7 +446,7 @@ class HttpAccessDataStoreClientTest {
 
     assertNotNull(result);
     assertEquals(1, result.individuals().size());
-    assertEquals("John", result.individuals().get(0).firstName());
+    assertEquals("John", result.individuals().getFirst().firstName());
     server.verify();
   }
 }

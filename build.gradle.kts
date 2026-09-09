@@ -116,6 +116,8 @@ openApi {
             listOf(
                 "--spring.security.oauth2.client.registration.entra-obo-access-data-store.client-id=openapi-doc-gen",
                 "--spring.security.oauth2.client.registration.entra-obo-access-data-store.client-secret=openapi-doc-gen",
+                "--laa-civil-manage-api.provider-details.base-url=http://localhost:8080/openapi-doc-gen",
+                "--laa-civil-manage-api.provider-details.api-key=openapi-doc-gen",
             ),
         )
     }

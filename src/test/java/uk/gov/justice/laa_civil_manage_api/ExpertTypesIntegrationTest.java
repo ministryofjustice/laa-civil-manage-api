@@ -42,9 +42,14 @@ class ExpertTypesIntegrationTest {
   static WireMockExtension legalFramework =
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
+  @RegisterExtension
+  static WireMockExtension providerDetails =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+
   @DynamicPropertySource
   static void legalFrameworkProperties(DynamicPropertyRegistry registry) {
     registry.add("laa-civil-manage-api.legal-framework.base-url", legalFramework::baseUrl);
+    registry.add("laa-civil-manage-api.provider-details.base-url", providerDetails::baseUrl);
   }
 
   @LocalServerPort private int port;
@@ -56,6 +61,11 @@ class ExpertTypesIntegrationTest {
     Jwt mockJwt =
         Jwt.withTokenValue("test-token").header("alg", "none").claim("sub", "test-user").build();
     when(jwtDecoder.decode("test-token")).thenReturn(mockJwt);
+
+    // Provider Details is not under test here - default its own health check to healthy so it
+    // doesn't drag down the overall /actuator/health aggregate that these tests assert on.
+    providerDetails.stubFor(
+        get(urlEqualTo("/actuator/health")).willReturn(okJson("{\"status\":\"UP\"}")));
   }
 
   private RestClient authenticatedClient() {

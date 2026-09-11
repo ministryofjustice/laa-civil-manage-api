@@ -228,6 +228,49 @@ class HttpAccessDataStoreClientTest {
   }
 
   @Test
+  void getApplicationsIncludesFilterQueryParamsWhenProvided() {
+    server
+        .expect(
+            requestTo(
+                BASE_URL
+                    + "/api/v0/applications?page=1&pageSize=20&status=APPLICATION_GRANTED&matterType=SPECIAL_CHILDREN_ACT&sortBy=SUBMITTED_DATE&orderBy=DESC&laaReference=APP-1&clientFirstName=John&clientLastName=Doe"))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
+        .andRespond(
+            withSuccess(
+                """
+                                {
+                                  "paging": {
+                                    "page": 1,
+                                    "pageSize": 20,
+                                    "itemsReturned": 1,
+                                    "totalRecords": 1
+                                  },
+                                  "applications": [
+                                    {
+                                      "applicationId": "11111111-2222-3333-4444-555555555555",
+                                      "laaReference": "APP-1",
+                                      "status": "APPLICATION_SUBMITTED",
+                                      "submittedAt": "2026-07-22T10:00:00Z",
+                                      "clientFirstName": "John",
+                                      "clientLastName": "Doe"
+                                    }
+                                  ]
+                                }
+                                """,
+                MediaType.APPLICATION_JSON));
+
+    ApplicationSummaryResponse result =
+        client.getApplications(
+            1, 20, ApplicationStatus.APPLICATION_GRANTED, "APP-1", "John", "Doe");
+
+    assertNotNull(result);
+    assertEquals(1, result.applications().size());
+    assertEquals("APP-1", result.applications().getFirst().laaReference());
+    server.verify();
+  }
+
+  @Test
   void getApplicationByIdGetsFromAdsWithServiceNameHeader() {
     UUID applicationId = UUID.fromString("11111111-2222-3333-4444-555555555555");
 

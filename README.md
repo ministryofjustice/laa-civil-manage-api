@@ -96,6 +96,25 @@ CORS_ALLOWED_ORIGINS=https://laa-civil-manage-dev.cloud-platform.service.justice
 - Request headers: Allow * to support automatically injected APM/tracing headers (e.g., AWS X-Ray).
 - Exposed headers: Location and X-Correlation-ID are explicitly exposed so frontend JS can read 201 Created responses and track request IDs.
 
+## Health checks and system alerts
+
+We use two different health checks so the application stays online for users even when an external API we depend on
+goes down.
+
+- **Alerting health (`/actuator/health`)**: Checks this app *and* all external services we depend on (the Provider
+  Details API and Legal Framework API). If a downstream service breaks, this endpoint returns `503 Service
+  Unavailable` and reports `DOWN` — this is what our monitoring tools alert on.
+- **Kubernetes health (`/actuator/health/liveness`, `/actuator/health/readiness`)**: Isolated groups configured in
+  `application.yaml` that strictly check whether this app itself is running and accepting traffic, ignoring the state
+  of external services.
+
+**Why do we do this?** If an external API breaks, we want an alert — but we don't want Kubernetes to panic and
+forcibly restart our app over someone else's outage. By separating these checks and pointing the Kubernetes
+deployment probes at the isolated liveness/readiness paths, our app stays online and continues to work for any user
+journeys that don't rely on the broken API.
+
+See `HealthEndpointIntegrationTest` for tests that document this behaviour end-to-end.
+
 ## Example requests
 
 All examples assume a local instance running at `http://localhost:8080`. Unless `SKIP_AUTH=true` is set locally, all

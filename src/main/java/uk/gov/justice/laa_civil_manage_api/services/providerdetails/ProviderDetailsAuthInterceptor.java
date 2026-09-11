@@ -6,10 +6,6 @@ import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
-/**
- * Attaches the Provider Details API key to every outbound request via the {@code X-Authorization}
- * header. The key itself is never logged.
- */
 public class ProviderDetailsAuthInterceptor implements ClientHttpRequestInterceptor {
 
   private static final String API_KEY_HEADER = "X-Authorization";

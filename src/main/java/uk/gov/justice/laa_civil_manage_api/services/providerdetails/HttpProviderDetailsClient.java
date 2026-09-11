@@ -6,7 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -14,27 +14,19 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
-@Service
+@Component
 @Slf4j
-public class ProviderDetailsService {
+public class HttpProviderDetailsClient implements ProviderDetailsClient {
 
   private static final String PROVIDER_OFFICE_PATH = "/api/v1/provider-offices/{officeCode}";
 
   private final RestClient providerDetailsRestClient;
 
-  public ProviderDetailsService(RestClient providerDetailsRestClient) {
+  public HttpProviderDetailsClient(RestClient providerDetailsRestClient) {
     this.providerDetailsRestClient = providerDetailsRestClient;
   }
 
-  /**
-   * Looks up the email address configured for the given provider office code.
-   *
-   * @param officeCode the provider office code to look up
-   * @return the office's email address, or {@code null} if the office code does not exist or has no
-   *     email address on record
-   * @throws ProviderApiException if the Provider Details API returns an unrecoverable error, or
-   *     remains unavailable after every retry attempt has been exhausted
-   */
+  @Override
   @Retryable(
       retryFor = {
         HttpServerErrorException.class,

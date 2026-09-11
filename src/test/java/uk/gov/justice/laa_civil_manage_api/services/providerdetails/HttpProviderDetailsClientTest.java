@@ -28,14 +28,14 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
-class ProviderDetailsServiceTest {
+class HttpProviderDetailsClientTest {
 
   private static final String BASE_URL = "http://provider-details.test";
   private static final String OFFICE_CODE = "1A234B";
 
   private static AnnotationConfigApplicationContext context;
   private static MockRestServiceServer server;
-  private static ProviderDetailsService service;
+  private static ProviderDetailsClient client;
 
   @BeforeAll
   static void initContext() {
@@ -43,7 +43,7 @@ class ProviderDetailsServiceTest {
     context.register(RetryTestConfig.class);
     context.refresh();
     server = context.getBean(MockRestServiceServer.class);
-    service = context.getBean(ProviderDetailsService.class);
+    client = context.getBean(ProviderDetailsClient.class);
   }
 
   @AfterAll
@@ -69,7 +69,7 @@ class ProviderDetailsServiceTest {
                 """,
                 MediaType.APPLICATION_JSON));
 
-    String email = service.getProviderEmail(OFFICE_CODE);
+    String email = client.getProviderEmail(OFFICE_CODE);
 
     server.verify();
     assertEquals("office@example.com", email);
@@ -86,16 +86,16 @@ class ProviderDetailsServiceTest {
                 """,
                 MediaType.APPLICATION_JSON));
 
-    assertNull(service.getProviderEmail(OFFICE_CODE));
+    assertNull(client.getProviderEmail(OFFICE_CODE));
   }
 
   @Test
-  void getProviderEmailReturnsNullWhenOfficeIsMissing() {
+  void getProviderEmailReturnsNullWhenNoOfficeIsReturned() {
     server
         .expect(requestTo(BASE_URL + "/api/v1/provider-offices/" + OFFICE_CODE))
         .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
 
-    assertNull(service.getProviderEmail(OFFICE_CODE));
+    assertNull(client.getProviderEmail(OFFICE_CODE));
   }
 
   @Test
@@ -104,7 +104,7 @@ class ProviderDetailsServiceTest {
         .expect(requestTo(BASE_URL + "/api/v1/provider-offices/" + OFFICE_CODE))
         .andRespond(withNoContent());
 
-    assertNull(service.getProviderEmail(OFFICE_CODE));
+    assertNull(client.getProviderEmail(OFFICE_CODE));
   }
 
   @Test
@@ -113,7 +113,7 @@ class ProviderDetailsServiceTest {
         .expect(requestTo(BASE_URL + "/api/v1/provider-offices/" + OFFICE_CODE))
         .andRespond(withUnauthorizedRequest());
 
-    assertThrows(ProviderApiException.class, () -> service.getProviderEmail(OFFICE_CODE));
+    assertThrows(ProviderApiException.class, () -> client.getProviderEmail(OFFICE_CODE));
   }
 
   @Test
@@ -122,7 +122,7 @@ class ProviderDetailsServiceTest {
         .expect(requestTo(BASE_URL + "/api/v1/provider-offices/" + OFFICE_CODE))
         .andRespond(withStatus(HttpStatus.FORBIDDEN));
 
-    assertThrows(ProviderApiException.class, () -> service.getProviderEmail(OFFICE_CODE));
+    assertThrows(ProviderApiException.class, () -> client.getProviderEmail(OFFICE_CODE));
   }
 
   @Test
@@ -131,7 +131,7 @@ class ProviderDetailsServiceTest {
         .expect(requestTo(BASE_URL + "/api/v1/provider-offices/" + OFFICE_CODE))
         .andRespond(withStatus(HttpStatus.NOT_FOUND));
 
-    assertThrows(ProviderApiException.class, () -> service.getProviderEmail(OFFICE_CODE));
+    assertThrows(ProviderApiException.class, () -> client.getProviderEmail(OFFICE_CODE));
   }
 
   @Test
@@ -151,7 +151,7 @@ class ProviderDetailsServiceTest {
                 """,
                 MediaType.APPLICATION_JSON));
 
-    String email = service.getProviderEmail(OFFICE_CODE);
+    String email = client.getProviderEmail(OFFICE_CODE);
 
     server.verify();
     assertEquals("office@example.com", email);
@@ -165,7 +165,7 @@ class ProviderDetailsServiceTest {
           .andRespond(withStatus(HttpStatus.CONFLICT));
     }
 
-    assertThrows(ProviderApiException.class, () -> service.getProviderEmail(OFFICE_CODE));
+    assertThrows(ProviderApiException.class, () -> client.getProviderEmail(OFFICE_CODE));
     server.verify();
   }
 
@@ -177,7 +177,7 @@ class ProviderDetailsServiceTest {
           .andRespond(withServerError());
     }
 
-    assertThrows(ProviderApiException.class, () -> service.getProviderEmail(OFFICE_CODE));
+    assertThrows(ProviderApiException.class, () -> client.getProviderEmail(OFFICE_CODE));
     server.verify();
   }
 
@@ -192,7 +192,7 @@ class ProviderDetailsServiceTest {
               });
     }
 
-    assertThrows(ProviderApiException.class, () -> service.getProviderEmail(OFFICE_CODE));
+    assertThrows(ProviderApiException.class, () -> client.getProviderEmail(OFFICE_CODE));
     server.verify();
   }
 
@@ -227,8 +227,8 @@ class ProviderDetailsServiceTest {
     }
 
     @Bean
-    ProviderDetailsService providerDetailsService(RestClient providerDetailsRestClient) {
-      return new ProviderDetailsService(providerDetailsRestClient);
+    ProviderDetailsClient providerDetailsClient(RestClient providerDetailsRestClient) {
+      return new HttpProviderDetailsClient(providerDetailsRestClient);
     }
   }
 }

@@ -62,8 +62,6 @@ class ExpertTypesIntegrationTest {
         Jwt.withTokenValue("test-token").header("alg", "none").claim("sub", "test-user").build();
     when(jwtDecoder.decode("test-token")).thenReturn(mockJwt);
 
-    // Provider Details is not under test here - default its own health check to healthy so it
-    // doesn't drag down the overall /actuator/health aggregate that these tests assert on.
     providerDetails.stubFor(
         get(urlEqualTo("/actuator/health")).willReturn(okJson("{\"status\":\"UP\"}")));
   }

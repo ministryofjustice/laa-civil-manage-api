@@ -19,6 +19,7 @@ import org.springframework.web.client.RestClient;
 class AccessDataStoreHealthIndicatorTest {
 
   private static final String BASE_URL = "http://access-data-store.test";
+  private static final String SERVICE_NAME = "CIVIL_MANAGE";
 
   private MockRestServiceServer server;
   private AccessDataStoreHealthIndicator indicator;
@@ -28,7 +29,8 @@ class AccessDataStoreHealthIndicatorTest {
     RestClient.Builder builder = RestClient.builder().baseUrl(BASE_URL);
     server = MockRestServiceServer.bindTo(builder).build();
     AccessDataStoreProperties properties =
-        new AccessDataStoreProperties(BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(5));
+        new AccessDataStoreProperties(
+            BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(5), SERVICE_NAME);
     indicator = new AccessDataStoreHealthIndicator(builder, properties);
   }
 
@@ -79,7 +81,8 @@ class AccessDataStoreHealthIndicatorTest {
                   throw new java.io.IOException("Connection refused");
                 });
     AccessDataStoreProperties properties =
-        new AccessDataStoreProperties(BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(5));
+        new AccessDataStoreProperties(
+            BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(5), SERVICE_NAME);
     AccessDataStoreHealthIndicator unreachableIndicator =
         new AccessDataStoreHealthIndicator(unreachableBuilder, properties);
 

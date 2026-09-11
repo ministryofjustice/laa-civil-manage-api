@@ -17,8 +17,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentTypeUpdateResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityResponse;
+import uk.gov.justice.laa_civil_manage_api.models.UpdatePriorAuthorityDocumentTypeRequest;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.PriorAuthorityService;
 
@@ -115,7 +117,9 @@ public class PriorAuthorityController {
   @Operation(
       summary = "Upload a supporting document",
       description =
-          "Accepts a multipart/form-data file upload from the frontend and returns the uploaded filename.")
+          "Accepts a multipart/form-data file upload from the frontend and returns the uploaded "
+              + "file's metadata. The document is uploaded without a category; use the PATCH "
+              + "endpoint to assign one afterwards.")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -140,6 +144,33 @@ public class PriorAuthorityController {
     UploadedDocument uploadedDocument =
         priorAuthorityService.uploadDocument(priorAuthorityId, file);
     return ResponseEntity.ok(uploadedDocument);
+  }
+
+  @Operation(
+      summary = "Categorise an uploaded document",
+      description = "Assigns a document type to a previously uploaded supporting document.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Document category updated.",
+        content =
+            @Content(
+                schema = @Schema(implementation = PriorAuthorityDocumentTypeUpdateResponse.class))),
+    @ApiResponse(responseCode = "400", description = "Invalid document type.", content = @Content),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Prior authority or document not found.",
+        content = @Content)
+  })
+  @PatchMapping("/{priorAuthorityId}/documents/{documentId}")
+  public ResponseEntity<PriorAuthorityDocumentTypeUpdateResponse> updateDocumentType(
+      @Parameter(description = "ID of the prior authority.") @PathVariable UUID priorAuthorityId,
+      @Parameter(description = "ID of the document to categorise.") @PathVariable UUID documentId,
+      @Valid @RequestBody UpdatePriorAuthorityDocumentTypeRequest request) {
+    PriorAuthorityDocumentTypeUpdateResponse response =
+        priorAuthorityService.updateDocumentType(
+            priorAuthorityId, documentId, request.documentType());
+    return ResponseEntity.ok(response);
   }
 
   public record PriorAuthorityIdResponse(UUID priorAuthorityId) {}

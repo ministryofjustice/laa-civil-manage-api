@@ -1,6 +1,7 @@
 package uk.gov.justice.laa_civil_manage_api.models;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
 
@@ -20,4 +21,6 @@ public record PriorAuthorityResponse(
             example = "PENDING",
             nullable = true)
         String status,
-    @Schema(description = "The saved prior-authority form.") PriorAuthorityDraft draft) {}
+    @Schema(description = "The saved prior-authority form.") PriorAuthorityDraft draft,
+    @Schema(description = "Documents uploaded as supporting evidence for this prior-authority.")
+        List<UploadedDocument> uploadedDocuments) {}

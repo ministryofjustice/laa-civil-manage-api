@@ -3,6 +3,7 @@ package uk.gov.justice.laa_civil_manage_api;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.patch;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -39,13 +40,17 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import uk.gov.justice.laa_civil_manage_api.controllers.PriorAuthorityController.PriorAuthorityIdResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentTypeUpdateResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
+import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreProperties;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class PriorAuthorityIntegrationTest {
+
+  private static final String SERVICE_NAME = "CIVIL_MANAGE";
 
   @RegisterExtension
   static WireMockExtension accessDataStore =
@@ -64,6 +69,7 @@ class PriorAuthorityIntegrationTest {
   @BeforeEach
   void setUp() {
     when(accessDataStoreProperties.baseUrl()).thenReturn(accessDataStore.baseUrl());
+    when(accessDataStoreProperties.serviceName()).thenReturn(SERVICE_NAME);
 
     Jwt mockJwt =
         Jwt.withTokenValue("test-token").header("alg", "none").claim("sub", "test-user").build();
@@ -101,7 +107,7 @@ class PriorAuthorityIntegrationTest {
 
     accessDataStore.stubFor(
         post(urlEqualTo("/api/v0/prior-authorities"))
-            .withHeader("X-Service-Name", equalTo("CIVIL_APPLY"))
+            .withHeader("X-Service-Name", equalTo(SERVICE_NAME))
             .willReturn(
                 aResponse()
                     .withStatus(201)
@@ -273,5 +279,93 @@ class PriorAuthorityIntegrationTest {
             .getStatusCode();
 
     assertEquals(HttpStatus.CONTENT_TOO_LARGE, status);
+  }
+
+  @Test
+  void uploadDocumentThenUpdateDocumentTypeFlowsThroughToTheAccessDataStore() {
+    UUID priorAuthorityId = UUID.randomUUID();
+    UUID documentId = UUID.randomUUID();
+
+    accessDataStore.stubFor(
+        post(urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId + "/documents"))
+            .withHeader("X-Service-Name", equalTo(SERVICE_NAME))
+            .willReturn(
+                aResponse()
+                    .withStatus(201)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                            {
+                              "documentId": "%s",
+                              "fileName": "evidence.pdf",
+                              "fileType": "pdf",
+                              "contentType": "application/pdf",
+                              "size": 11,
+                              "uploadedAt": "2026-05-22T10:00:00Z",
+                              "sourceService": "%s",
+                              "checksum": "checksum-value"
+                            }
+                            """
+                            .formatted(documentId, SERVICE_NAME))));
+
+    ByteArrayResource fileResource =
+        new ByteArrayResource("%PDF-1.4\nmock pdf content for testing".getBytes()) {
+          @Override
+          public String getFilename() {
+            return "evidence.pdf";
+          }
+        };
+    MultiValueMap<String, Object> multipartBody = new LinkedMultiValueMap<>();
+    multipartBody.add("file", fileResource);
+
+    ResponseEntity<UploadedDocument> uploadResponse =
+        authenticatedClient
+            .post()
+            .uri("http://localhost:" + port + "/prior-authorities/{id}/documents", priorAuthorityId)
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(multipartBody)
+            .retrieve()
+            .toEntity(UploadedDocument.class);
+
+    assertEquals(HttpStatus.OK, uploadResponse.getStatusCode());
+    assertNotNull(uploadResponse.getBody());
+    assertEquals(documentId, uploadResponse.getBody().documentId());
+
+    accessDataStore.stubFor(
+        patch(
+                urlEqualTo(
+                    "/api/v0/prior-authorities/" + priorAuthorityId + "/documents/" + documentId))
+            .withHeader("X-Service-Name", equalTo(SERVICE_NAME))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                            {
+                              "documentId": "%s",
+                              "updatedAt": "2026-05-22T10:05:00Z"
+                            }
+                            """
+                            .formatted(documentId))));
+
+    ResponseEntity<PriorAuthorityDocumentTypeUpdateResponse> updateResponse =
+        authenticatedClient
+            .patch()
+            .uri(
+                "http://localhost:" + port + "/prior-authorities/{id}/documents/{documentId}",
+                priorAuthorityId,
+                documentId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+                """
+                    { "documentType": "GATEWAY_EVIDENCE" }
+                    """)
+            .retrieve()
+            .toEntity(PriorAuthorityDocumentTypeUpdateResponse.class);
+
+    assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
+    assertNotNull(updateResponse.getBody());
+    assertEquals(documentId, updateResponse.getBody().documentId());
   }
 }

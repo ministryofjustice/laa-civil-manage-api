@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -25,11 +26,13 @@ import uk.gov.justice.laa.civil.notify.model.SendEmailRequest;
 import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
 import uk.gov.justice.laa_civil_manage_api.config.NotifyEmailProperties;
 import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentType;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.DocumentTypeUpdateResponse;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.PriorAuthorityIdResponse;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.PriorAuthorityRecordResponse;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.SubmitPriorAuthorityDraftResponse;
@@ -42,6 +45,8 @@ class PriorAuthorityServiceTest {
 
   private final AccessDataStoreClient client = mock(AccessDataStoreClient.class);
   private final NotifyEmailSender notifyEmailSender = mock(NotifyEmailSender.class);
+  private final DocumentValidationService documentValidationService =
+      mock(DocumentValidationService.class);
   private final NotifyEmailProperties notifyEmailProperties =
       new NotifyEmailProperties(
           "api-key",
@@ -50,11 +55,12 @@ class PriorAuthorityServiceTest {
           "ops@example.com",
           true);
   private final PriorAuthorityService service =
-      new PriorAuthorityService(client, notifyEmailSender, notifyEmailProperties);
+      new PriorAuthorityService(
+          client, notifyEmailSender, notifyEmailProperties, documentValidationService);
 
   @BeforeEach
   void resetMocks() {
-    reset(client, notifyEmailSender);
+    reset(client, notifyEmailSender, documentValidationService);
   }
 
   @Test
@@ -92,6 +98,12 @@ class PriorAuthorityServiceTest {
   @Test
   void getReturnsMappedSummaryWhenPresent() {
     UUID applicationId = UUID.randomUUID();
+    UploadedDocument uploadedDocument =
+        UploadedDocument.builder()
+            .documentId(UUID.randomUUID())
+            .documentType(PriorAuthorityDocumentType.GATEWAY_EVIDENCE)
+            .fileName("evidence.pdf")
+            .build();
     when(client.getPriorAuthority(PRIOR_AUTHORITY_ID))
         .thenReturn(
             Optional.of(
@@ -101,6 +113,7 @@ class PriorAuthorityServiceTest {
                     .status(null)
                     .priorAuthorityType(PriorAuthorityType.EXPERT)
                     .justification("Required.")
+                    .uploadedDocuments(List.of(uploadedDocument))
                     .build()));
 
     Optional<PriorAuthorityResponse> result = service.get(PRIOR_AUTHORITY_ID);
@@ -109,6 +122,28 @@ class PriorAuthorityServiceTest {
     assertEquals(PRIOR_AUTHORITY_ID, result.get().priorAuthorityId());
     assertEquals(applicationId, result.get().draft().applicationId());
     assertEquals(PriorAuthorityType.EXPERT, result.get().draft().priorAuthorityType());
+    assertEquals(List.of(uploadedDocument), result.get().uploadedDocuments());
+  }
+
+  @Test
+  void getReturnsEmptyUploadedDocumentsWhenRecordHasNone() {
+    UUID applicationId = UUID.randomUUID();
+    when(client.getPriorAuthority(PRIOR_AUTHORITY_ID))
+        .thenReturn(
+            Optional.of(
+                PriorAuthorityRecordResponse.builder()
+                    .priorAuthorityId(PRIOR_AUTHORITY_ID)
+                    .applicationId(applicationId)
+                    .status(null)
+                    .priorAuthorityType(PriorAuthorityType.EXPERT)
+                    .justification("Required.")
+                    .uploadedDocuments(null)
+                    .build()));
+
+    Optional<PriorAuthorityResponse> result = service.get(PRIOR_AUTHORITY_ID);
+
+    assertTrue(result.isPresent());
+    assertEquals(List.of(), result.get().uploadedDocuments());
   }
 
   @Test
@@ -165,6 +200,7 @@ class PriorAuthorityServiceTest {
                     .priorAuthorityId(PRIOR_AUTHORITY_ID)
                     .applicationId(applicationId)
                     .priorAuthorityType(PriorAuthorityType.EXPERT)
+                    .uploadedDocuments(null)
                     .build()));
     when(client.getApplicationById(applicationId))
         .thenReturn(
@@ -187,7 +223,10 @@ class PriorAuthorityServiceTest {
   void doesNotSendEmailWhenNotifyIsNotConfigured() {
     PriorAuthorityService unconfiguredService =
         new PriorAuthorityService(
-            client, notifyEmailSender, new NotifyEmailProperties("", "", "", "", false));
+            client,
+            notifyEmailSender,
+            new NotifyEmailProperties("", "", "", "", false),
+            documentValidationService);
     when(client.submitPriorAuthority(PRIOR_AUTHORITY_ID))
         .thenReturn(
             new SubmitPriorAuthorityDraftResponse(PRIOR_AUTHORITY_ID, OffsetDateTime.now()));
@@ -203,83 +242,83 @@ class PriorAuthorityServiceTest {
   void uploadDocumentForwardsToAccessDataStoreClient() {
     MockMultipartFile file =
         new MockMultipartFile("file", "evidence.pdf", "application/pdf", PDF_CONTENT);
+    when(documentValidationService.validateAndSanitize(file)).thenReturn("evidence.pdf");
     when(client.uploadPriorAuthorityDocument(eq(PRIOR_AUTHORITY_ID), any()))
-        .thenReturn(new UploadPriorAuthorityDocumentResponse(UUID.randomUUID()));
+        .thenReturn(
+            new UploadPriorAuthorityDocumentResponse(
+                UUID.randomUUID(),
+                "evidence.pdf",
+                "pdf",
+                "application/pdf",
+                (long) PDF_CONTENT.length,
+                OffsetDateTime.now(),
+                "CIVIL_MANAGE",
+                "checksum-value"));
 
     UploadedDocument uploadedDocument = service.uploadDocument(PRIOR_AUTHORITY_ID, file);
 
     assertEquals("evidence.pdf", uploadedDocument.fileName());
+    verify(documentValidationService).validateAndSanitize(file);
     verify(client).uploadPriorAuthorityDocument(PRIOR_AUTHORITY_ID, file);
   }
 
   @Test
-  void uploadDocumentThrowsWhenFileIsEmpty() {
+  void uploadDocumentFallsBackToSanitizedFilenameFileSizeAndNowWhenResponseFieldsAreNull() {
     MockMultipartFile file =
-        new MockMultipartFile("file", "empty.pdf", "application/pdf", new byte[0]);
+        new MockMultipartFile("file", "evidence.pdf", "application/pdf", PDF_CONTENT);
+    when(documentValidationService.validateAndSanitize(file)).thenReturn("evidence.pdf");
+    when(client.uploadPriorAuthorityDocument(eq(PRIOR_AUTHORITY_ID), any()))
+        .thenReturn(
+            new UploadPriorAuthorityDocumentResponse(
+                UUID.randomUUID(),
+                null,
+                "pdf",
+                "application/pdf",
+                null,
+                null,
+                "CIVIL_MANAGE",
+                "checksum-value"));
 
-    ResponseStatusException ex =
-        assertThrows(
-            ResponseStatusException.class, () -> service.uploadDocument(PRIOR_AUTHORITY_ID, file));
+    UploadedDocument uploadedDocument = service.uploadDocument(PRIOR_AUTHORITY_ID, file);
 
-    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+    assertEquals("evidence.pdf", uploadedDocument.fileName());
+    assertEquals(file.getSize(), uploadedDocument.size());
+    assertTrue(uploadedDocument.uploadedAt().isAfter(OffsetDateTime.now().minusMinutes(1)));
   }
 
   @Test
-  void uploadDocumentThrowsWhenFilenameIsMissing() {
-    MockMultipartFile file = new MockMultipartFile("file", null, "application/pdf", PDF_CONTENT);
-
-    ResponseStatusException ex =
-        assertThrows(
-            ResponseStatusException.class, () -> service.uploadDocument(PRIOR_AUTHORITY_ID, file));
-
-    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-    assertEquals("file name must not be empty", ex.getReason());
-  }
-
-  @Test
-  void uploadDocumentThrowsWhenFileTypeIsNotAllowed() {
+  void uploadDocumentPropagatesValidationFailureWithoutCallingAccessDataStoreClient() {
     MockMultipartFile file =
         new MockMultipartFile("file", "malware.exe", "application/octet-stream", "x".getBytes());
+    when(documentValidationService.validateAndSanitize(file))
+        .thenThrow(
+            new ResponseStatusException(
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE, "unsupported file type; allowed: PDF"));
 
     ResponseStatusException ex =
         assertThrows(
             ResponseStatusException.class, () -> service.uploadDocument(PRIOR_AUTHORITY_ID, file));
 
     assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
+    verify(client, never()).uploadPriorAuthorityDocument(any(), any());
   }
 
   @Test
-  void uploadDocumentThrowsWhenFileContentDoesNotMatchPdfMagicBytes() {
-    MockMultipartFile file =
-        new MockMultipartFile("file", "evidence.pdf", "application/pdf", "not a pdf".getBytes());
+  void updateDocumentTypeForwardsToAccessDataStoreClient() {
+    UUID documentId = UUID.randomUUID();
+    OffsetDateTime updatedAt = OffsetDateTime.now();
+    when(client.updatePriorAuthorityDocumentType(
+            PRIOR_AUTHORITY_ID, documentId, PriorAuthorityDocumentType.GATEWAY_EVIDENCE))
+        .thenReturn(new DocumentTypeUpdateResponse(documentId, updatedAt));
 
-    ResponseStatusException ex =
-        assertThrows(
-            ResponseStatusException.class, () -> service.uploadDocument(PRIOR_AUTHORITY_ID, file));
+    var response =
+        service.updateDocumentType(
+            PRIOR_AUTHORITY_ID, documentId, PriorAuthorityDocumentType.GATEWAY_EVIDENCE);
 
-    assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
-  }
-
-  @Test
-  void uploadDocumentThrowsWhenFileExceedsMaxSize() {
-    byte[] oversized = new byte[(10 * 1024 * 1024) + 1];
-    System.arraycopy(PDF_CONTENT, 0, oversized, 0, PDF_CONTENT.length);
-    MockMultipartFile file =
-        new MockMultipartFile("file", "large.pdf", "application/pdf", oversized);
-
-    ResponseStatusException ex =
-        assertThrows(
-            ResponseStatusException.class, () -> service.uploadDocument(PRIOR_AUTHORITY_ID, file));
-
-    assertEquals(HttpStatus.CONTENT_TOO_LARGE, ex.getStatusCode());
-  }
-
-  @Test
-  void uploadDocumentThrowsWhenFileIsNull() {
-    ResponseStatusException ex =
-        assertThrows(
-            ResponseStatusException.class, () -> service.uploadDocument(PRIOR_AUTHORITY_ID, null));
-
-    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
+    assertEquals(documentId, response.documentId());
+    assertEquals(updatedAt, response.updatedAt());
+    verify(client)
+        .updatePriorAuthorityDocumentType(
+            PRIOR_AUTHORITY_ID, documentId, PriorAuthorityDocumentType.GATEWAY_EVIDENCE);
   }
 }

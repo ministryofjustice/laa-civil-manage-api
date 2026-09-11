@@ -171,7 +171,7 @@
           "Prior Authority"
         ],
         "summary": "Upload a supporting document",
-        "description": "Accepts a multipart/form-data file upload from the frontend and returns the uploaded filename.",
+        "description": "Accepts a multipart/form-data file upload from the frontend and returns the uploaded file\u0027s metadata. The document is uploaded without a category; use the PATCH endpoint to assign one afterwards.",
         "operationId": "uploadDocument",
         "parameters": [
           {
@@ -223,6 +223,66 @@
           },
           "415": {
             "description": "Unsupported file type."
+          }
+        }
+      }
+    },
+    "/prior-authorities/{priorAuthorityId}/documents/{documentId}": {
+      "patch": {
+        "tags": [
+          "Prior Authority"
+        ],
+        "summary": "Categorise an uploaded document",
+        "description": "Assigns a document type to a previously uploaded supporting document.",
+        "operationId": "updateDocumentType",
+        "parameters": [
+          {
+            "name": "priorAuthorityId",
+            "in": "path",
+            "description": "ID of the prior authority.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "documentId",
+            "in": "path",
+            "description": "ID of the document to categorise.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePriorAuthorityDocumentTypeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Document category updated.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriorAuthorityDocumentTypeUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid document type."
+          },
+          "404": {
+            "description": "Prior authority or document not found."
           }
         }
       }
@@ -627,11 +687,48 @@
             "description": "Identifier assigned to the uploaded document by the Access Data Store.",
             "example": "c3b07e24-d92b-410a-9d95-88f117a12b43"
           },
+          "documentType": {
+            "type": "string",
+            "description": "Type of document that was uploaded.",
+            "enum": [
+              "GATEWAY_EVIDENCE",
+              "MERITS_REPORT",
+              "STATEMENT_OF_CASE",
+              "COURT_APPLICATION",
+              "COURT_ORDER",
+              "EXPERT_REPORT",
+              "COURT_APPLICATION_OR_ORDER",
+              "PARENTAL_RESPONSIBILITY",
+              "LOCAL_AUTHORITY_ASSESSMENT",
+              "GROUNDS_OF_APPEAL",
+              "COUNSEL_OPINION",
+              "JUDGEMENT",
+              "PLF_COURT_ORDER",
+              "LETTER_OF_INSTRUCTION",
+              "ESTIMATE_OF_COSTS",
+              "ALTERNATIVE_QUOTE",
+              "OTHER_PARTY_CERTIFICATE_REFERENCE",
+              "OTHER_SUPPORTING_DOCUMENT",
+              "PRIMARY_QUOTE",
+              "ADDITIONAL_QUOTE"
+            ],
+            "example": "GATEWAY_EVIDENCE"
+          },
           "fileName": {
             "type": "string",
             "description": "Filename of the uploaded document.",
             "example": "abc123.pdf",
             "minLength": 1
+          },
+          "fileType": {
+            "type": "string",
+            "description": "File extension/type of the uploaded document.",
+            "example": "pdf"
+          },
+          "mediaType": {
+            "type": "string",
+            "description": "MIME content type of the uploaded document.",
+            "example": "application/pdf"
           },
           "hostedUrl": {
             "type": "string"
@@ -647,11 +744,74 @@
             "format": "date-time",
             "description": "Timestamp the document was uploaded.",
             "example": "2026-05-22T10:00:00Z"
+          },
+          "sourceService": {
+            "type": "string",
+            "description": "The service that uploaded the document to the Access Data Store.",
+            "example": "CIVIL_MANAGE"
+          },
+          "checksum": {
+            "type": "string",
+            "description": "Checksum of the uploaded document contents."
           }
         },
         "required": [
           "fileName"
         ]
+      },
+      "UpdatePriorAuthorityDocumentTypeRequest": {
+        "type": "object",
+        "description": "Request body used to assign a category to a previously uploaded prior-authority document.",
+        "properties": {
+          "documentType": {
+            "type": "string",
+            "description": "Type of document being categorised.",
+            "enum": [
+              "GATEWAY_EVIDENCE",
+              "MERITS_REPORT",
+              "STATEMENT_OF_CASE",
+              "COURT_APPLICATION",
+              "COURT_ORDER",
+              "EXPERT_REPORT",
+              "COURT_APPLICATION_OR_ORDER",
+              "PARENTAL_RESPONSIBILITY",
+              "LOCAL_AUTHORITY_ASSESSMENT",
+              "GROUNDS_OF_APPEAL",
+              "COUNSEL_OPINION",
+              "JUDGEMENT",
+              "PLF_COURT_ORDER",
+              "LETTER_OF_INSTRUCTION",
+              "ESTIMATE_OF_COSTS",
+              "ALTERNATIVE_QUOTE",
+              "OTHER_PARTY_CERTIFICATE_REFERENCE",
+              "OTHER_SUPPORTING_DOCUMENT",
+              "PRIMARY_QUOTE",
+              "ADDITIONAL_QUOTE"
+            ],
+            "example": "GATEWAY_EVIDENCE"
+          }
+        },
+        "required": [
+          "documentType"
+        ]
+      },
+      "PriorAuthorityDocumentTypeUpdateResponse": {
+        "type": "object",
+        "description": "Confirmation returned after a document\u0027s category has been updated.",
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the document that was updated.",
+            "example": "c3b07e24-d92b-410a-9d95-88f117a12b43"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp the category update was recorded by the Access Data Store.",
+            "example": "2026-05-22T10:00:00Z"
+          }
+        }
       },
       "PriorAuthorityResponse": {
         "type": "object",
@@ -674,6 +834,13 @@
           "draft": {
             "$ref": "#/components/schemas/PriorAuthorityDraft",
             "description": "The saved prior-authority form."
+          },
+          "uploadedDocuments": {
+            "type": "array",
+            "description": "Documents uploaded as supporting evidence for this prior-authority.",
+            "items": {
+              "$ref": "#/components/schemas/UploadedDocument"
+            }
           }
         }
       },

@@ -18,6 +18,9 @@ public interface AccessDataStoreClient {
   UploadPriorAuthorityDocumentResponse uploadPriorAuthorityDocument(
       UUID priorAuthorityId, MultipartFile file);
 
+  DocumentTypeUpdateResponse updatePriorAuthorityDocumentType(
+      UUID priorAuthorityId, UUID documentId, PriorAuthorityDocumentType documentType);
+
   ApplicationSummaryResponse getApplications(
       int page,
       int pageSize,

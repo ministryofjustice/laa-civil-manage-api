@@ -54,7 +54,8 @@ class ApplicationsIntegrationTest {
             .applications(List.of(application))
             .build();
 
-    when(accessDataStoreClient.getApplications(1, 10, ApplicationStatus.APPLICATION_GRANTED))
+    when(accessDataStoreClient.getApplications(
+            1, 10, ApplicationStatus.APPLICATION_GRANTED, null, null, null))
         .thenReturn(expected);
 
     String body =
@@ -76,6 +77,47 @@ class ApplicationsIntegrationTest {
     mockMvc.perform(get("/applications")).andExpect(status().isUnauthorized());
 
     verifyNoInteractions(accessDataStoreClient);
+  }
+
+  @Test
+  void passesFilterQueryParamsThroughToDataStore() throws Exception {
+    ApplicationSummary application =
+        ApplicationSummary.builder()
+            .applicationId(UUID.fromString("11111111-2222-3333-4444-555555555555"))
+            .laaReference("APP-1")
+            .status("APPLICATION_GRANTED")
+            .startDate(OffsetDateTime.parse("2026-07-22T10:00:00Z"))
+            .clientFirstName("John")
+            .clientLastName("Doe")
+            .build();
+
+    ApplicationSummaryResponse expected =
+        ApplicationSummaryResponse.builder()
+            .paging(Paging.builder().page(1).pageSize(10).itemsReturned(1).totalRecords(1).build())
+            .applications(List.of(application))
+            .build();
+
+    when(accessDataStoreClient.getApplications(
+            1, 10, ApplicationStatus.APPLICATION_GRANTED, "APP-1", "John", "Doe"))
+        .thenReturn(expected);
+
+    String body =
+        mockMvc
+            .perform(
+                get("/applications")
+                    .param("laaReference", "APP-1")
+                    .param("clientFirstName", "John")
+                    .param("clientLastName", "Doe")
+                    .with(jwt()))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    ApplicationSummaryResponse result =
+        objectMapper.readValue(body, ApplicationSummaryResponse.class);
+
+    assertThat(result).isEqualTo(expected);
   }
 
   @Test

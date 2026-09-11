@@ -18,7 +18,13 @@ public interface AccessDataStoreClient {
   UploadPriorAuthorityDocumentResponse uploadPriorAuthorityDocument(
       UUID priorAuthorityId, MultipartFile file);
 
-  ApplicationSummaryResponse getApplications(int page, int pageSize, ApplicationStatus status);
+  ApplicationSummaryResponse getApplications(
+      int page,
+      int pageSize,
+      ApplicationStatus status,
+      String laaReference,
+      String clientFirstName,
+      String clientLastName);
 
   ApplicationSummary getApplicationById(UUID applicationId);
 

@@ -9,6 +9,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.justice.laa_civil_manage_api.models.*;
 
 @Component
@@ -97,22 +98,35 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
 
   @Override
   public ApplicationSummaryResponse getApplications(
-      int page, int pageSize, ApplicationStatus status) {
+      int page,
+      int pageSize,
+      ApplicationStatus status,
+      String laaReference,
+      String clientFirstName,
+      String clientLastName) {
     String baseUrl = properties.baseUrl();
+
+    UriComponentsBuilder uriBuilder =
+        UriComponentsBuilder.fromUriString(baseUrl + "/api/v0/applications")
+            .queryParam("page", page)
+            .queryParam("pageSize", pageSize)
+            .queryParam("status", status)
+            .queryParam("matterType", DEFAULT_MATTER_TYPE)
+            .queryParam("sortBy", DEFAULT_SORT_BY)
+            .queryParam("orderBy", DEFAULT_ORDER_BY);
+    if (laaReference != null) {
+      uriBuilder.queryParam("laaReference", laaReference);
+    }
+    if (clientFirstName != null) {
+      uriBuilder.queryParam("clientFirstName", clientFirstName);
+    }
+    if (clientLastName != null) {
+      uriBuilder.queryParam("clientLastName", clientLastName);
+    }
 
     return adsRestClient
         .get()
-        .uri(
-            baseUrl
-                + "/api/v0/applications?page={page}&pageSize={pageSize}&status={status}&matterType="
-                + DEFAULT_MATTER_TYPE
-                + "&sortBy="
-                + DEFAULT_SORT_BY
-                + "&orderBy="
-                + DEFAULT_ORDER_BY,
-            page,
-            pageSize,
-            status)
+        .uri(uriBuilder.build().toUri())
         .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .retrieve()
         .body(ApplicationSummaryResponse.class);

@@ -20,9 +20,15 @@ public class ApplicationsService {
   private final AccessDataStoreClient accessDataStoreClient;
 
   public ApplicationSummaryResponse getApplicationsData(
-      int page, int pageSize, ApplicationStatus status) {
+      int page,
+      int pageSize,
+      ApplicationStatus status,
+      String laaReference,
+      String clientFirstName,
+      String clientLastName) {
     ApplicationSummaryResponse response =
-        accessDataStoreClient.getApplications(page, pageSize, status);
+        accessDataStoreClient.getApplications(
+            page, pageSize, status, laaReference, clientFirstName, clientLastName);
 
     if (response != null) {
       return response;

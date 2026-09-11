@@ -25,10 +25,14 @@ public class ApplicationsController {
   public ResponseEntity<ApplicationSummaryResponse> getApplications(
       @RequestParam(defaultValue = "1") int page,
       @RequestParam(defaultValue = "10") int pageSize,
-      @RequestParam(defaultValue = "APPLICATION_GRANTED") ApplicationStatus status) {
+      @RequestParam(defaultValue = "APPLICATION_GRANTED") ApplicationStatus status,
+      @RequestParam(required = false) String laaReference,
+      @RequestParam(required = false) String clientFirstName,
+      @RequestParam(required = false) String clientLastName) {
     log.info("Received request to fetch applications page {} with pageSize {}", page, pageSize);
     ApplicationSummaryResponse data =
-        applicationsService.getApplicationsData(page, pageSize, status);
+        applicationsService.getApplicationsData(
+            page, pageSize, status, laaReference, clientFirstName, clientLastName);
     return ResponseEntity.ok(data);
   }
 

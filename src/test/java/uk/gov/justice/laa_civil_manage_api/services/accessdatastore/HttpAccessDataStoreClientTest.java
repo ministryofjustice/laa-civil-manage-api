@@ -219,7 +219,7 @@ class HttpAccessDataStoreClientTest {
                 MediaType.APPLICATION_JSON));
 
     ApplicationSummaryResponse result =
-        client.getApplications(1, 20, ApplicationStatus.APPLICATION_GRANTED);
+        client.getApplications(1, 20, ApplicationStatus.APPLICATION_GRANTED, null, null, null);
 
     assertNotNull(result);
     assertEquals(1, result.applications().size());

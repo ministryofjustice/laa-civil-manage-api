@@ -7,16 +7,12 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.queryParam;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import java.math.BigDecimal;
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 import uk.gov.justice.laa_civil_manage_api.models.*;
@@ -40,310 +37,151 @@ class HttpAccessDataStoreClientTest {
     RestClient.Builder builder = RestClient.builder();
     server = MockRestServiceServer.bindTo(builder).build();
     AccessDataStoreProperties properties =
-        new AccessDataStoreProperties(
-            BASE_URL, Map.of(), Duration.ofSeconds(3), Duration.ofSeconds(5));
+        new AccessDataStoreProperties(BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(5));
     client = new HttpAccessDataStoreClient(builder.build(), properties);
   }
 
   @Test
-  void submitPriorAuthorityPostsToAdsWithApplicationIdInPathAndStrippedBody() {
-    UUID applicationId = UUID.fromString("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-    UUID submissionId = UUID.fromString("11111111-2222-3333-4444-555555555555");
+  void createPriorAuthorityDraftPostsToAdsAndReturnsId() {
+    UUID applicationId = UUID.randomUUID();
+    UUID priorAuthorityId = UUID.randomUUID();
 
     server
-        .expect(requestTo(BASE_URL + "/api/v0/applications/" + applicationId + "/prior-authority"))
+        .expect(requestTo(BASE_URL + "/api/v0/prior-authorities"))
         .andExpect(method(HttpMethod.POST))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
-        .andExpect(jsonPath("$.applicationId").doesNotExist())
-        .andExpect(jsonPath("$.uploadedDocuments").doesNotExist())
+        .andExpect(jsonPath("$.applicationId").value(applicationId.toString()))
         .andExpect(jsonPath("$.priorAuthorityType").value("EXPERT"))
-        .andExpect(jsonPath("$.counselDetails").doesNotExist())
-        .andExpect(jsonPath("$.disbursementDetails").doesNotExist())
-        .andExpect(jsonPath("$.expertDetails.expertFullName").value("Dr John Doe"))
-        .andExpect(jsonPath("$.expertDetails.expertCosts.billingType").value("FIXED_RATE"))
-        .andExpect(jsonPath("$.expertDetails.expertCosts.totalAmount").value(249.99))
-        .andExpect(jsonPath("$.expertDetails.expertCosts.hourlyRate").doesNotExist())
-        .andExpect(jsonPath("$.justification").value("Required expert evidence."))
         .andRespond(
             withSuccess(
-                """
-                                {
-                                  "submissionId": "%s",
-                                  "submittedAt": "2026-05-22T10:00:00Z"
-                                }
-                                """
-                    .formatted(submissionId),
+                "{ \"priorAuthorityId\": \"" + priorAuthorityId + "\" }",
                 MediaType.APPLICATION_JSON));
 
-    PriorAuthority pa =
-        PriorAuthority.builder()
+    CreatePriorAuthorityDraftRequest request =
+        CreatePriorAuthorityDraftRequest.builder()
             .applicationId(applicationId)
             .priorAuthorityType(PriorAuthorityType.EXPERT)
-            .uploadedDocuments(
-                List.of(UploadedDocument.builder().fileName("instructions.pdf").build()))
-            .expertDetails(
-                ExpertDetails.builder()
-                    .expertType("Psychologist")
-                    .expertFullName("Dr John Doe")
-                    .expertPostcode("SW1H 9AJ")
-                    .expertCosts(
-                        ExpertCosts.builder()
-                            .billingType(BillingType.FIXED_RATE)
-                            .totalAmount(new BigDecimal("249.99"))
-                            .costsSharedWithOtherParties(false)
-                            .build())
-                    .build())
             .justification("Required expert evidence.")
             .build();
 
-    PriorAuthorityApplicationResponse response = client.submitPriorAuthority(pa);
+    PriorAuthorityIdResponse response = client.createPriorAuthorityDraft(request);
 
-    assertEquals(submissionId, response.submissionId());
+    assertEquals(priorAuthorityId, response.priorAuthorityId());
     server.verify();
   }
 
   @Test
-  void usesPerOperationUrlWhenConfigured() {
-    UUID applicationId = UUID.randomUUID();
-    String operationUrl = "http://ads.per-op.test";
-
-    RestClient.Builder builder = RestClient.builder();
-    server = MockRestServiceServer.bindTo(builder).build();
-    AccessDataStoreProperties properties =
-        new AccessDataStoreProperties(
-            BASE_URL,
-            Map.of(AccessDataStoreOperations.SUBMIT_PRIOR_AUTHORITY, operationUrl),
-            Duration.ofSeconds(3),
-            Duration.ofSeconds(5));
-
-    client = new HttpAccessDataStoreClient(builder.build(), properties);
+  void updatePriorAuthorityDraftPutsToAdsWithIdInPath() {
+    UUID priorAuthorityId = UUID.randomUUID();
 
     server
-        .expect(
-            requestTo(operationUrl + "/api/v0/applications/" + applicationId + "/prior-authority"))
-        .andExpect(method(HttpMethod.POST))
-        .andRespond(
-            withSuccess(
-                """
-                                {
-                                  "submissionId": "11111111-1111-1111-1111-111111111111",
-                                  "submittedAt": "2026-05-22T10:00:00Z"
-                                }
-                                """,
-                MediaType.APPLICATION_JSON));
-
-    client.submitPriorAuthority(
-        PriorAuthority.builder()
-            .applicationId(applicationId)
-            .priorAuthorityType(PriorAuthorityType.EXPERT)
-            .expertDetails(
-                ExpertDetails.builder()
-                    .expertType("Psychologist")
-                    .expertFullName("Dr John Doe")
-                    .expertPostcode("M1 1AA")
-                    .expertCosts(
-                        ExpertCosts.builder()
-                            .billingType(BillingType.FIXED_RATE)
-                            .totalAmount(new BigDecimal("249.99"))
-                            .costsSharedWithOtherParties(false)
-                            .build())
-                    .build())
-            .justification("Required expert evidence.")
-            .build());
-
-    server.verify();
-  }
-
-  @Test
-  void submitPriorAuthorityIncludesCounselTypeForCounselRequests() {
-    UUID applicationId = UUID.randomUUID();
-
-    server
-        .expect(requestTo(BASE_URL + "/api/v0/applications/" + applicationId + "/prior-authority"))
-        .andExpect(method(HttpMethod.POST))
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.priorAuthorityType").value("COUNSEL"))
-        .andExpect(
-            jsonPath("$.counselDetails.counselType").value("KINGS_COUNSEL_AND_JUNIOR_COUNSEL"))
-        .andExpect(jsonPath("$.expertDetails").doesNotExist())
-        .andExpect(jsonPath("$.disbursementDetails").doesNotExist())
-        .andRespond(
-            withSuccess(
-                """
-                                {
-                                  "submissionId": "11111111-1111-1111-1111-111111111111",
-                                  "submittedAt": "2026-05-22T10:00:00Z"
-                                }
-                                """,
-                MediaType.APPLICATION_JSON));
-
-    client.submitPriorAuthority(
-        PriorAuthority.builder()
-            .applicationId(applicationId)
-            .priorAuthorityType(PriorAuthorityType.COUNSEL)
-            .counselDetails(
-                CounselDetails.builder()
-                    .counselType(CounselType.KINGS_COUNSEL_AND_JUNIOR_COUNSEL)
-                    .build())
-            .justification("Counsel is required.")
-            .build());
-
-    server.verify();
-  }
-
-  @Test
-  void createDraftPostsToAdsAndReturnsDraftId() {
-    UUID draftId = UUID.randomUUID();
-    UUID applicationId = UUID.randomUUID();
-
-    server
-        .expect(requestTo(BASE_URL + "/drafts"))
-        .andExpect(method(HttpMethod.POST))
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.sourceSystem").value("laa-civil-manage"))
-        .andExpect(jsonPath("$.draftType").value("PRIOR_AUTHORITY"))
-        .andExpect(jsonPath("$.draftBody.totalAmount").value(135.00))
-        .andRespond(
-            withSuccess("{ \"draftId\": \"" + draftId + "\" }", MediaType.APPLICATION_JSON));
-
-    Draft draft =
-        Draft.builder()
-            .sourceSystem("laa-civil-manage")
-            .draftType("PRIOR_AUTHORITY")
-            .applicationId(applicationId)
-            .userId("entra-id")
-            .draftBody(Map.of("totalAmount", 135.00))
-            .build();
-
-    DraftCreatedResponse response = client.createDraft(draft);
-    assertEquals(draftId, response.draftId());
-    server.verify();
-  }
-
-  @Test
-  void updateDraftPutsToAdsWithDraftIdInPath() {
-    UUID draftId = UUID.randomUUID();
-    UUID applicationId = UUID.randomUUID();
-
-    server
-        .expect(requestTo(BASE_URL + "/drafts/" + draftId))
+        .expect(requestTo(BASE_URL + "/api/v0/prior-authorities/" + priorAuthorityId))
         .andExpect(method(HttpMethod.PUT))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.draftBody.totalAmount").value(180.00))
+        .andExpect(jsonPath("$.justification").value("Updated justification."))
         .andRespond(withSuccess());
 
-    Draft draft =
-        Draft.builder()
-            .sourceSystem("laa-civil-manage")
-            .draftType("PRIOR_AUTHORITY")
-            .applicationId(applicationId)
-            .userId("entra-id")
-            .draftBody(Map.of("totalAmount", 180.00))
+    SavePriorAuthorityDraftRequest request =
+        SavePriorAuthorityDraftRequest.builder()
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
+            .justification("Updated justification.")
             .build();
 
-    client.updateDraft(draftId, draft);
+    client.updatePriorAuthorityDraft(priorAuthorityId, request);
     server.verify();
   }
 
   @Test
-  void getDraftsBuildsQueryStringWithRequiredAndOptionalParams() {
-    UUID applicationId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+  void getPriorAuthorityReturnsRecordWhenPresent() {
+    UUID priorAuthorityId = UUID.randomUUID();
+    UUID applicationId = UUID.randomUUID();
 
     server
-        .expect(requestTo(org.hamcrest.Matchers.startsWith(BASE_URL + "/drafts")))
-        .andExpect(method(HttpMethod.GET))
-        .andExpect(queryParam("sourceSystem", "laa-civil-manage"))
-        .andExpect(queryParam("userId", "entra-id"))
-        .andExpect(queryParam("draftType", "PRIOR_AUTHORITY"))
-        .andExpect(queryParam("applicationId", applicationId.toString()))
-        .andRespond(
-            withSuccess(
-                """
-                                [
-                                  {
-                                    "draftId": "c3b07e24-d92b-410a-9d95-88f117a12b43",
-                                    "draftType": "PRIOR_AUTHORITY",
-                                    "timestamp": "2026-05-19T12:00:00Z",
-                                    "draftBody": { "totalAmount": 135.00 }
-                                  }
-                                ]
-                                """,
-                MediaType.APPLICATION_JSON));
-
-    List<DraftSummary> drafts =
-        client.getDrafts("laa-civil-manage", "entra-id", "PRIOR_AUTHORITY", applicationId);
-    assertEquals(1, drafts.size());
-    assertEquals("PRIOR_AUTHORITY", drafts.getFirst().draftType());
-    server.verify();
-  }
-
-  @Test
-  void getDraftReturnsDraftWhenPresent() {
-    UUID draftId = UUID.fromString("c3b07e24-d92b-410a-9d95-88f117a12b43");
-
-    server
-        .expect(requestTo(BASE_URL + "/drafts/" + draftId))
+        .expect(requestTo(BASE_URL + "/api/v0/prior-authorities/" + priorAuthorityId))
         .andExpect(method(HttpMethod.GET))
         .andRespond(
             withSuccess(
                 """
-                                {
-                                  "draftId": "%s",
-                                  "draftType": "PRIOR_AUTHORITY",
-                                  "timestamp": "2026-05-19T12:00:00Z",
-                                  "draftBody": { "totalAmount": 135.00 }
-                                }
-                                """
-                    .formatted(draftId),
+                    {
+                      "priorAuthorityId": "%s",
+                      "applicationId": "%s",
+                      "status": null,
+                      "priorAuthorityType": "EXPERT",
+                      "justification": "Required."
+                    }
+                    """
+                    .formatted(priorAuthorityId, applicationId),
                 MediaType.APPLICATION_JSON));
 
-    Optional<DraftSummary> result = client.getDraft(draftId);
+    Optional<PriorAuthorityRecordResponse> result = client.getPriorAuthority(priorAuthorityId);
 
     assertTrue(result.isPresent());
-    assertEquals(draftId, result.get().draftId());
+    assertEquals(priorAuthorityId, result.get().priorAuthorityId());
+    assertEquals(PriorAuthorityType.EXPERT, result.get().priorAuthorityType());
     server.verify();
   }
 
   @Test
-  void getDraftReturnsEmptyWhenNotFound() {
-    UUID draftId = UUID.randomUUID();
+  void getPriorAuthorityReturnsEmptyWhenNotFound() {
+    UUID priorAuthorityId = UUID.randomUUID();
 
     server
-        .expect(requestTo(BASE_URL + "/drafts/" + draftId))
+        .expect(requestTo(BASE_URL + "/api/v0/prior-authorities/" + priorAuthorityId))
         .andExpect(method(HttpMethod.GET))
         .andRespond(withStatus(HttpStatus.NOT_FOUND));
 
-    Optional<DraftSummary> result = client.getDraft(draftId);
+    Optional<PriorAuthorityRecordResponse> result = client.getPriorAuthority(priorAuthorityId);
 
     assertTrue(result.isEmpty());
     server.verify();
   }
 
   @Test
-  void getDraftsOmitsOptionalParamsWhenNull() {
-    server
-        .expect(requestTo(org.hamcrest.Matchers.containsString("sourceSystem=laa-civil-manage")))
-        .andExpect(method(HttpMethod.GET))
-        .andExpect(queryParam("sourceSystem", "laa-civil-manage"))
-        .andExpect(queryParam("userId", "entra-id"))
-        .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
+  void submitPriorAuthorityPostsToAdsSubmitEndpoint() {
+    UUID priorAuthorityId = UUID.randomUUID();
+    OffsetDateTime submittedAt = OffsetDateTime.parse("2026-05-22T10:00:00Z");
 
-    List<DraftSummary> drafts = client.getDrafts("laa-civil-manage", "entra-id", null, null);
-    assertEquals(0, drafts.size());
+    server
+        .expect(requestTo(BASE_URL + "/api/v0/prior-authorities/" + priorAuthorityId + "/submit"))
+        .andExpect(method(HttpMethod.POST))
+        .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
+        .andRespond(
+            withSuccess(
+                """
+                    {
+                      "priorAuthorityId": "%s",
+                      "submittedAt": "%s"
+                    }
+                    """
+                    .formatted(priorAuthorityId, submittedAt),
+                MediaType.APPLICATION_JSON));
+
+    SubmitPriorAuthorityDraftResponse response = client.submitPriorAuthority(priorAuthorityId);
+
+    assertEquals(priorAuthorityId, response.priorAuthorityId());
+    assertEquals(submittedAt, response.submittedAt());
     server.verify();
   }
 
   @Test
-  void deleteDraftDeletesAtAdsWithDraftIdInPath() {
-    UUID draftId = UUID.randomUUID();
+  void uploadPriorAuthorityDocumentPostsMultipartToAds() {
+    UUID priorAuthorityId = UUID.randomUUID();
+    UUID documentId = UUID.randomUUID();
+    MockMultipartFile file =
+        new MockMultipartFile("file", "evidence.pdf", "application/pdf", "pdf-content".getBytes());
 
     server
-        .expect(requestTo(BASE_URL + "/drafts/" + draftId))
-        .andExpect(method(HttpMethod.DELETE))
-        .andRespond(withNoContent());
+        .expect(
+            requestTo(BASE_URL + "/api/v0/prior-authorities/" + priorAuthorityId + "/documents"))
+        .andExpect(method(HttpMethod.POST))
+        .andRespond(
+            withSuccess("{ \"documentId\": \"" + documentId + "\" }", MediaType.APPLICATION_JSON));
 
-    client.deleteDraft(draftId);
+    UploadPriorAuthorityDocumentResponse result =
+        client.uploadPriorAuthorityDocument(priorAuthorityId, file);
+
+    assertEquals(documentId, result.documentId());
     server.verify();
   }
 

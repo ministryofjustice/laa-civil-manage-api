@@ -1,24 +1,22 @@
 package uk.gov.justice.laa_civil_manage_api.services.accessdatastore;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.web.multipart.MultipartFile;
 import uk.gov.justice.laa_civil_manage_api.models.*;
 
 public interface AccessDataStoreClient {
 
-  PriorAuthorityApplicationResponse submitPriorAuthority(PriorAuthority priorAuthority);
+  PriorAuthorityIdResponse createPriorAuthorityDraft(CreatePriorAuthorityDraftRequest request);
 
-  DraftCreatedResponse createDraft(Draft draft);
+  void updatePriorAuthorityDraft(UUID priorAuthorityId, SavePriorAuthorityDraftRequest request);
 
-  void updateDraft(UUID draftId, Draft draft);
+  Optional<PriorAuthorityRecordResponse> getPriorAuthority(UUID priorAuthorityId);
 
-  Optional<DraftSummary> getDraft(UUID draftId);
+  SubmitPriorAuthorityDraftResponse submitPriorAuthority(UUID priorAuthorityId);
 
-  List<DraftSummary> getDrafts(
-      String sourceSystem, String userId, String draftType, UUID applicationId);
-
-  void deleteDraft(UUID draftId);
+  UploadPriorAuthorityDocumentResponse uploadPriorAuthorityDocument(
+      UUID priorAuthorityId, MultipartFile file);
 
   ApplicationSummaryResponse getApplications(int page, int pageSize, ApplicationStatus status);
 

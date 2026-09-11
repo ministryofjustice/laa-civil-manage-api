@@ -13,22 +13,22 @@
   "tags": [
     {
       "name": "Prior Authority",
-      "description": "Submit prior-authority requests to the Legal Aid Agency, and save/resume in-progress drafts"
+      "description": "Create, update and submit prior-authority requests to the Legal Aid Agency, via a create-draft -\u003e update-draft -\u003e upload-documents -\u003e submit lifecycle."
     }
   ],
   "paths": {
-    "/prior-authority/drafts/{draftId}": {
+    "/prior-authorities/{priorAuthorityId}": {
       "get": {
         "tags": [
           "Prior Authority"
         ],
-        "summary": "Retrieve an existing prior-authority draft",
-        "operationId": "getDraft",
+        "summary": "Retrieve an existing prior-authority request (draft or submitted)",
+        "operationId": "getPriorAuthority",
         "parameters": [
           {
-            "name": "draftId",
+            "name": "priorAuthorityId",
             "in": "path",
-            "description": "ID of the draft to return.",
+            "description": "ID of the prior authority to return.",
             "required": true,
             "schema": {
               "type": "string",
@@ -38,17 +38,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Draft returned.",
+            "description": "Prior authority returned.",
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/PriorAuthorityDraftSummary"
+                  "$ref": "#/components/schemas/PriorAuthorityResponse"
                 }
               }
             }
           },
           "404": {
-            "description": "Draft not found."
+            "description": "Prior authority not found."
           }
         }
       },
@@ -60,9 +60,9 @@
         "operationId": "updateDraft",
         "parameters": [
           {
-            "name": "draftId",
+            "name": "priorAuthorityId",
             "in": "path",
-            "description": "ID of the draft to update.",
+            "description": "ID of the prior authority to update.",
             "required": true,
             "schema": {
               "type": "string",
@@ -81,117 +81,22 @@
           "required": true
         },
         "responses": {
-          "200": {
+          "204": {
             "description": "Draft updated."
           },
           "404": {
-            "description": "Draft not found."
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Prior Authority"
-        ],
-        "summary": "Delete a prior-authority draft",
-        "description": "Permanently removes the draft",
-        "operationId": "deleteDraft",
-        "parameters": [
-          {
-            "name": "draftId",
-            "in": "path",
-            "description": "ID of the draft to delete.",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Draft deleted (or did not exist)."
+            "description": "Prior authority not found."
           }
         }
       }
     },
-    "/prior-authority": {
-      "post": {
-        "tags": [
-          "Prior Authority"
-        ],
-        "summary": "Submit a prior-authority request",
-        "description": "Accepts a prior-authority request from the LAA Civil Manage frontend and forwards it to the Access Data Store.",
-        "operationId": "submit",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PriorAuthority"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Request accepted. Location header contains the submission URL.",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/PriorAuthorityApplicationResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation failed"
-          }
-        }
-      }
-    },
-    "/prior-authority/drafts": {
-      "get": {
-        "tags": [
-          "Prior Authority"
-        ],
-        "summary": "List prior-authority drafts for an Application",
-        "description": "Returns all of the current user\u0027s prior-authority drafts. Use applicationId to narrow the list to a specific application.",
-        "operationId": "listDrafts",
-        "parameters": [
-          {
-            "name": "applicationId",
-            "in": "query",
-            "description": "Optional parent application ID filter.",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PriorAuthorityDraftSummary"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
+    "/prior-authorities": {
       "post": {
         "tags": [
           "Prior Authority"
         ],
         "summary": "Create a prior-authority draft",
-        "description": "Saves the supplied form as a new draft.",
+        "description": "Starts a new prior-authority draft.",
         "operationId": "createDraft",
         "requestBody": {
           "content": {
@@ -205,11 +110,11 @@
         },
         "responses": {
           "201": {
-            "description": "Draft created. Location header contains the draft URL.",
+            "description": "Draft created. Location header contains the prior-authority URL.",
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/DraftIdResponse"
+                  "$ref": "#/components/schemas/PriorAuthorityIdResponse"
                 }
               }
             }
@@ -220,7 +125,47 @@
         }
       }
     },
-    "/prior-authority/documents": {
+    "/prior-authorities/{priorAuthorityId}/submit": {
+      "post": {
+        "tags": [
+          "Prior Authority"
+        ],
+        "summary": "Submit an in-progress prior-authority request",
+        "description": "Locks the draft and forwards the submission to the Access Data Store for validation.",
+        "operationId": "submit",
+        "parameters": [
+          {
+            "name": "priorAuthorityId",
+            "in": "path",
+            "description": "ID of the prior authority to submit.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Request accepted. Location header contains the submission URL.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriorAuthorityApplicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "409": {
+            "description": "Not in a submittable state"
+          }
+        }
+      }
+    },
+    "/prior-authorities/{priorAuthorityId}/documents": {
       "post": {
         "tags": [
           "Prior Authority"
@@ -228,6 +173,18 @@
         "summary": "Upload a supporting document",
         "description": "Accepts a multipart/form-data file upload from the frontend and returns the uploaded filename.",
         "operationId": "uploadDocument",
+        "parameters": [
+          {
+            "name": "priorAuthorityId",
+            "in": "path",
+            "description": "ID of the prior authority.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "multipart/form-data": {
@@ -301,36 +258,6 @@
                   "items": {
                     "type": "string"
                   }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/client/{applicationId}": {
-      "get": {
-        "tags": [
-          "client-controller"
-        ],
-        "operationId": "getClientByApplicationId",
-        "parameters": [
-          {
-            "name": "applicationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
                 }
               }
             }
@@ -428,156 +355,6 @@
   },
   "components": {
     "schemas": {
-      "PriorAuthorityDraft": {
-        "type": "object",
-        "description": "An in-progress prior-authority form saved as a draft.",
-        "properties": {
-          "applicationId": {
-            "type": "string",
-            "format": "uuid",
-            "description": "ID of the application this draft is associated with.",
-            "example": "2a28f60d-fe15-43fe-92c3-5530595d5f51"
-          },
-          "priorAuthorityType": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "The type of prior authority being requested.",
-            "enum": [
-              "EXPERT",
-              "DISBURSEMENT",
-              "COUNSEL"
-            ],
-            "example": "EXPERT"
-          },
-          "counselType": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "The counsel type requested.",
-            "enum": [
-              "KINGS_COUNSEL_ALONE",
-              "TWO_JUNIOR_COUNSEL",
-              "KINGS_COUNSEL_AND_JUNIOR_COUNSEL",
-              "KINGS_COUNSEL_AND_TWO_JUNIOR_COUNSEL"
-            ],
-            "example": "KINGS_COUNSEL_ALONE"
-          },
-          "expertType": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "The expert type.",
-            "example": "Child psychologist"
-          },
-          "expertFullName": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Full name of the expert the prior authority is for.",
-            "example": "Dr Joe Bloggs"
-          },
-          "expertPostcode": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Primary business postcode of the expert.",
-            "example": "SW1H 9AJ"
-          },
-          "uploadedDocuments": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "description": "Supporting documents uploaded so far.",
-            "items": {
-              "$ref": "#/components/schemas/UploadedDocument"
-            }
-          },
-          "billingType": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "How the work will be billed.",
-            "enum": [
-              "HOURLY",
-              "FIXED_RATE"
-            ],
-            "example": "HOURLY"
-          },
-          "hourlyRate": {
-            "type": [
-              "number",
-              "null"
-            ],
-            "description": "Hourly rate in GBP.",
-            "example": 45.0
-          },
-          "timeHours": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "format": "int32",
-            "description": "Estimated whole hours.",
-            "example": 2
-          },
-          "timeMinutes": {
-            "type": [
-              "integer",
-              "null"
-            ],
-            "format": "int32",
-            "description": "Estimated additional minutes.",
-            "example": 30,
-            "maximum": 59,
-            "minimum": 0
-          },
-          "totalAmount": {
-            "type": [
-              "number",
-              "null"
-            ],
-            "description": "Total amount in GBP.",
-            "example": 135.0
-          },
-          "justification": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Detailed rationale explaining why funding is necessary.",
-            "example": "Expert evidence is needed to establish causation."
-          }
-        },
-        "required": [
-          "applicationId"
-        ]
-      },
-      "UploadedDocument": {
-        "type": "object",
-        "description": "A document uploaded as supporting evidence for a prior-authority request.",
-        "properties": {
-          "fileName": {
-            "type": "string",
-            "description": "Filename of the uploaded document.",
-            "example": "abc123.pdf",
-            "minLength": 1
-          },
-          "hostedUrl": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "fileName"
-        ]
-      },
       "Apportionment": {
         "type": "object",
         "description": "How the expert\u0027s costs are shared with other parties. Present when costsSharedWithOtherParties is true; omitted when it is false.",
@@ -627,8 +404,7 @@
           "disbursementPurpose": {
             "type": "string",
             "description": "What the disbursement is for.",
-            "example": "Travel",
-            "minLength": 1
+            "example": "Travel"
           },
           "disbursementAmount": {
             "type": "number",
@@ -691,20 +467,17 @@
           "expertType": {
             "type": "string",
             "description": "The expert type.",
-            "example": "Psychologist",
-            "minLength": 1
+            "example": "Psychologist"
           },
           "expertFullName": {
             "type": "string",
             "description": "Full name of the expert the prior authority is for.",
-            "example": "Dr John Doe",
-            "minLength": 1
+            "example": "Dr John Doe"
           },
           "expertPostcode": {
             "type": "string",
             "description": "Primary business postcode of the expert, for regional rate mapping.",
-            "example": "SW1H 9AJ",
-            "minLength": 1
+            "example": "SW1H 9AJ"
           },
           "expertCosts": {
             "$ref": "#/components/schemas/ExpertCosts"
@@ -717,63 +490,55 @@
           "expertType"
         ]
       },
-      "PriorAuthority": {
+      "PriorAuthorityDraft": {
         "type": "object",
-        "description": "A prior-authority request submitted by a legal aid provider against an existing application. Exactly one of expertDetails, counselDetails or disbursementDetails is present, matching priorAuthorityType.",
+        "description": "A prior-authority form, saved and updated incrementally through the create/update draft lifecycle before being submitted. At most one of expertDetails, counselDetails or disbursementDetails should be populated, matching priorAuthorityType.",
         "properties": {
           "applicationId": {
             "type": "string",
             "format": "uuid",
             "description": "ID of the application this prior-authority request is associated with.",
-            "example": "5f1b2c3d-1111-2222-3333-444455556666"
-          },
-          "laaReference": {
-            "type": "string",
-            "description": "LAA reference of the application this prior-authority request is associated with.",
-            "example": "LAA123456",
-            "minLength": 1
+            "example": "2a28f60d-fe15-43fe-92c3-5530595d5f51"
           },
           "priorAuthorityType": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "The category of prior authority being requested.",
             "enum": [
               "EXPERT",
-              "DISBURSEMENT",
-              "COUNSEL"
+              "COUNSEL",
+              "DISBURSEMENT"
             ],
             "example": "EXPERT"
           },
           "justification": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Detailed rationale explaining why funding is necessary.",
-            "example": "The case requires specialist expert evidence to proceed.",
-            "minLength": 1
-          },
-          "uploadedDocuments": {
-            "type": "array",
-            "description": "Supporting documents uploaded with the request. Optional for all types.",
-            "items": {
-              "$ref": "#/components/schemas/UploadedDocument"
-            }
+            "example": "Expert evidence is needed to establish causation."
           },
           "expertDetails": {
+            "type": "null",
             "$ref": "#/components/schemas/ExpertDetails",
-            "description": "Required when priorAuthorityType is EXPERT; omitted otherwise."
+            "description": "Present when priorAuthorityType is EXPERT."
           },
           "counselDetails": {
+            "type": "null",
             "$ref": "#/components/schemas/CounselDetails",
-            "description": "Required when priorAuthorityType is COUNSEL; omitted otherwise."
+            "description": "Present when priorAuthorityType is COUNSEL."
           },
           "disbursementDetails": {
+            "type": "null",
             "$ref": "#/components/schemas/DisbursementDetails",
-            "description": "Required when priorAuthorityType is DISBURSEMENT; omitted otherwise."
+            "description": "Present when priorAuthorityType is DISBURSEMENT."
           }
         },
         "required": [
-          "applicationId",
-          "justification",
-          "laaReference",
-          "priorAuthorityType"
+          "applicationId"
         ]
       },
       "TimeRequested": {
@@ -801,11 +566,20 @@
           "minutes"
         ]
       },
+      "PriorAuthorityIdResponse": {
+        "type": "object",
+        "properties": {
+          "priorAuthorityId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
       "PriorAuthorityApplicationResponse": {
         "type": "object",
         "description": "Confirmation returned after a prior-authority application has been submitted.",
         "properties": {
-          "submissionId": {
+          "priorAuthorityId": {
             "type": "string",
             "format": "uuid",
             "description": "Identifier assigned to the prior-authority application by the Access Data Store.",
@@ -819,30 +593,59 @@
           }
         }
       },
-      "DraftIdResponse": {
+      "UploadedDocument": {
         "type": "object",
+        "description": "A document uploaded as supporting evidence for a prior-authority request.",
         "properties": {
-          "draftId": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
-      "PriorAuthorityDraftSummary": {
-        "type": "object",
-        "description": "A prior-authority draft returned in a list lookup.",
-        "properties": {
-          "draftId": {
+          "documentId": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the draft, assigned when it was created.",
+            "description": "Identifier assigned to the uploaded document by the Access Data Store.",
             "example": "c3b07e24-d92b-410a-9d95-88f117a12b43"
           },
-          "timestamp": {
+          "fileName": {
+            "type": "string",
+            "description": "Filename of the uploaded document.",
+            "example": "abc123.pdf",
+            "minLength": 1
+          },
+          "hostedUrl": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Size of the uploaded document, in bytes.",
+            "example": 10240
+          },
+          "uploadedAt": {
             "type": "string",
             "format": "date-time",
-            "description": "Timestamp the draft was last updated.",
-            "example": "2026-05-19T12:00:00Z"
+            "description": "Timestamp the document was uploaded.",
+            "example": "2026-05-22T10:00:00Z"
+          }
+        },
+        "required": [
+          "fileName"
+        ]
+      },
+      "PriorAuthorityResponse": {
+        "type": "object",
+        "description": "A prior-authority record as returned by the Access Data Store. status is null while the request is still a draft, and PENDING (or later) once it has been submitted.",
+        "properties": {
+          "priorAuthorityId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the prior-authority request, assigned when it was created.",
+            "example": "c3b07e24-d92b-410a-9d95-88f117a12b43"
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Lifecycle status. null while a draft; e.g. PENDING once submitted.",
+            "example": "PENDING"
           },
           "draft": {
             "$ref": "#/components/schemas/PriorAuthorityDraft",

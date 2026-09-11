@@ -2,7 +2,9 @@ package uk.gov.justice.laa_civil_manage_api;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,7 +13,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +37,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
-import uk.gov.justice.laa_civil_manage_api.models.*;
+import uk.gov.justice.laa_civil_manage_api.controllers.PriorAuthorityController.PriorAuthorityIdResponse;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityResponse;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreProperties;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -58,7 +63,7 @@ class PriorAuthorityIntegrationTest {
 
   @BeforeEach
   void setUp() {
-    when(accessDataStoreProperties.urlFor(any())).thenReturn(accessDataStore.baseUrl());
+    when(accessDataStoreProperties.baseUrl()).thenReturn(accessDataStore.baseUrl());
 
     Jwt mockJwt =
         Jwt.withTokenValue("test-token").header("alg", "none").claim("sub", "test-user").build();
@@ -90,13 +95,12 @@ class PriorAuthorityIntegrationTest {
   }
 
   @Test
-  void postingAPriorAuthorityRequestFlowsThroughToTheAccessDataStore() {
+  void fullLifecycleFlowsThroughToTheAccessDataStore() {
     UUID applicationId = UUID.randomUUID();
-    UUID expectedSubmissionId = UUID.randomUUID();
+    UUID priorAuthorityId = UUID.randomUUID();
 
-    // Stub the downstream Access Data Store API to return 201 Created
     accessDataStore.stubFor(
-        post(urlEqualTo("/api/v0/applications/" + applicationId + "/prior-authority"))
+        post(urlEqualTo("/api/v0/prior-authorities"))
             .withHeader("X-Service-Name", equalTo("CIVIL_APPLY"))
             .willReturn(
                 aResponse()
@@ -104,60 +108,134 @@ class PriorAuthorityIntegrationTest {
                     .withHeader("Content-Type", "application/json")
                     .withBody(
                         """
-                                            {
-                                              "submissionId": "%s",
-                                              "submittedAt": "2026-08-20T10:00:00Z"
-                                            }
-                                            """
-                            .formatted(expectedSubmissionId))));
+                            { "priorAuthorityId": "%s" }
+                            """
+                            .formatted(priorAuthorityId))));
 
-    PriorAuthority body =
-        PriorAuthority.builder()
+    PriorAuthorityDraft createBody =
+        PriorAuthorityDraft.builder()
             .applicationId(applicationId)
-            .laaReference("LAA123456")
             .priorAuthorityType(PriorAuthorityType.EXPERT)
-            .expertDetails(
-                ExpertDetails.builder()
-                    .expertType("Psychologist")
-                    .expertFullName("Dr John Doe")
-                    .expertPostcode("SW1H 9AJ")
-                    .expertCosts(
-                        ExpertCosts.builder()
-                            .billingType(BillingType.FIXED_RATE)
-                            .totalAmount(new BigDecimal("249.99"))
-                            .costsSharedWithOtherParties(false)
-                            .build())
-                    .build())
             .justification("Required expert evidence.")
             .build();
 
-    ResponseEntity<PriorAuthorityApplicationResponse> response =
+    ResponseEntity<PriorAuthorityIdResponse> create =
         authenticatedClient
             .post()
-            .uri("http://localhost:" + port + "/prior-authority")
-            .body(body)
+            .uri("http://localhost:" + port + "/prior-authorities")
+            .body(createBody)
+            .retrieve()
+            .toEntity(PriorAuthorityIdResponse.class);
+
+    assertEquals(HttpStatus.CREATED, create.getStatusCode());
+    assertNotNull(create.getBody());
+    assertEquals(priorAuthorityId, create.getBody().priorAuthorityId());
+
+    accessDataStore.stubFor(
+        put(urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId))
+            .willReturn(aResponse().withStatus(204)));
+
+    PriorAuthorityDraft updateBody =
+        PriorAuthorityDraft.builder()
+            .applicationId(applicationId)
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
+            .justification("Updated justification.")
+            .build();
+
+    ResponseEntity<Void> update =
+        authenticatedClient
+            .put()
+            .uri("http://localhost:" + port + "/prior-authorities/{id}", priorAuthorityId)
+            .body(updateBody)
+            .retrieve()
+            .toBodilessEntity();
+
+    assertEquals(HttpStatus.NO_CONTENT, update.getStatusCode());
+
+    accessDataStore.stubFor(
+        get(urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                            {
+                              "priorAuthorityId": "%s",
+                              "applicationId": "%s",
+                              "status": null,
+                              "priorAuthorityType": "EXPERT",
+                              "justification": "Updated justification."
+                            }
+                            """
+                            .formatted(priorAuthorityId, applicationId))));
+
+    ResponseEntity<PriorAuthorityResponse> getResponse =
+        authenticatedClient
+            .get()
+            .uri("http://localhost:" + port + "/prior-authorities/{id}", priorAuthorityId)
+            .retrieve()
+            .toEntity(PriorAuthorityResponse.class);
+
+    assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+    assertNotNull(getResponse.getBody());
+    assertEquals(priorAuthorityId, getResponse.getBody().priorAuthorityId());
+    assertEquals("Updated justification.", getResponse.getBody().draft().justification());
+
+    accessDataStore.stubFor(
+        post(urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId + "/submit"))
+            .willReturn(
+                aResponse()
+                    .withStatus(201)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                            {
+                              "priorAuthorityId": "%s",
+                              "submittedAt": "2026-05-22T10:00:00Z"
+                            }
+                            """
+                            .formatted(priorAuthorityId))));
+
+    accessDataStore.stubFor(
+        get(urlEqualTo("/api/v0/applications/" + applicationId))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                            {
+                              "applicationId": "%s",
+                              "laaReference": "LAA123456",
+                              "status": "APPLICATION_SUBMITTED"
+                            }
+                            """
+                            .formatted(applicationId))));
+
+    ResponseEntity<PriorAuthorityApplicationResponse> submit =
+        authenticatedClient
+            .post()
+            .uri("http://localhost:" + port + "/prior-authorities/{id}/submit", priorAuthorityId)
             .retrieve()
             .toEntity(PriorAuthorityApplicationResponse.class);
 
-    assertEquals(HttpStatus.CREATED, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals(expectedSubmissionId, response.getBody().submissionId());
+    assertEquals(HttpStatus.CREATED, submit.getStatusCode());
+    assertNotNull(submit.getBody());
+    assertEquals(priorAuthorityId, submit.getBody().priorAuthorityId());
   }
 
   @Test
   void requestWithoutTokenReturns401Unauthorized() {
     RestClient unauthenticatedClient = RestClient.create();
 
-    PriorAuthority body =
-        PriorAuthority.builder()
-            .applicationId(UUID.randomUUID())
-            .priorAuthorityType(PriorAuthorityType.EXPERT)
-            .build();
+    PriorAuthorityDraft body =
+        PriorAuthorityDraft.builder().applicationId(UUID.randomUUID()).build();
 
     HttpStatusCode status =
         unauthenticatedClient
             .post()
-            .uri("http://localhost:" + port + "/prior-authority")
+            .uri("http://localhost:" + port + "/prior-authorities")
             .contentType(MediaType.APPLICATION_JSON)
             .body(body)
             .retrieve()
@@ -170,6 +248,7 @@ class PriorAuthorityIntegrationTest {
 
   @Test
   void uploadDocumentLargerThanConfiguredMultipartLimitReturns413() {
+    UUID priorAuthorityId = UUID.randomUUID();
     byte[] oversizedFile = new byte[(10 * 1024 * 1024) + 1];
     ByteArrayResource fileResource =
         new ByteArrayResource(oversizedFile) {
@@ -185,7 +264,7 @@ class PriorAuthorityIntegrationTest {
     HttpStatusCode status =
         authenticatedClient
             .post()
-            .uri("http://localhost:" + port + "/prior-authority/documents")
+            .uri("http://localhost:" + port + "/prior-authorities/{id}/documents", priorAuthorityId)
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(multipartBody)
             .retrieve()

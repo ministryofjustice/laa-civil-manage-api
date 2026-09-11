@@ -101,14 +101,19 @@ CORS_ALLOWED_ORIGINS=https://laa-civil-manage-dev.cloud-platform.service.justice
 All examples assume a local instance running at `http://localhost:8080`. Unless `SKIP_AUTH=true` is set locally, all
 requests require a valid Entra ID token in the `Authorization` header.
 
-### Submit a prior-authority request
+### Prior authorities
 
-Because a Prior Authority request can vary significantly based on its type, the payload relies on specific nested domains (expertDetails, counselDetails, or disbursementDetails) corresponding to the priorAuthorityType.
+The lifecycle is: create a draft -> update the draft -> upload supporting documents -> submit. `GET`/`PUT`/`POST .../submit`/
+`POST .../documents` all act on the `priorAuthorityId` returned when the draft was created.
 
-#### Expert
+Because a prior-authority request can vary significantly based on its type, the payload relies on specific nested
+objects (`expertDetails`, `counselDetails` or `disbursementDetails`) corresponding to the `priorAuthorityType`. Only
+one of these should be populated at a time.
+
+#### Create a draft — Expert
 
 ```bash
-curl -i -X POST http://localhost:8080/prior-authority \
+curl -i -X POST http://localhost:8080/prior-authorities \
   -H "Authorization: Bearer <token>" \
   -H 'Content-Type: application/json' \
   -d '{
@@ -137,10 +142,10 @@ curl -i -X POST http://localhost:8080/prior-authority \
   }'
 ```
 
-#### Counsel
+#### Create a draft — Counsel
 
 ```bash
-curl -i -X POST http://localhost:8080/prior-authority \
+curl -i -X POST http://localhost:8080/prior-authorities \
   -H "Authorization: Bearer <token>" \
   -H 'Content-Type: application/json' \
   -d '{
@@ -153,10 +158,10 @@ curl -i -X POST http://localhost:8080/prior-authority \
   }'
 ```
 
-#### Disbursement
+#### Create a draft — Disbursement
 
 ```bash
-curl -i -X POST http://localhost:8080/prior-authority \
+curl -i -X POST http://localhost:8080/prior-authorities \
   -H "Authorization: Bearer <token>" \
   -H 'Content-Type: application/json' \
   -d '{
@@ -170,79 +175,78 @@ curl -i -X POST http://localhost:8080/prior-authority \
   }'
 ```
 
-### Upload a document
-
-```bash
-curl -X POST http://localhost:8080/prior-authority/documents \
-  -F "file=@./example.jpg"
-```
-
-### Prior-authority drafts
-
-Drafts let users save a partially-completed prior-authority form and come back later.
-
-For `timeMinutes`, use values from `0` to `59`. If the time is longer, add to `timeHours` instead.
-
-#### Create a draft
-
-```bash
-curl -i -X POST http://localhost:8080/prior-authority/drafts \
-  -H "Authorization: Bearer <token>" \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "applicationId": "2a28f60d-fe15-43fe-92c3-5530595d5f51",
-    "priorAuthorityType": "EXPERT",
-    "expertType": "Child psychologist",
-    "expertFullName": "Dr Joe Bloggs",
-    "expertPostcode": "N1 9GU",
-    "billingType": "HOURLY",
-    "hourlyRate": 45.00,
-    "timeHours": 3,
-    "timeMinutes": 0,
-    "totalAmount": 135.00,
-    "justification": "Drafting expert report estimate."
-  }'
-```
-
-Returns `201` with `{"draftId": "..."}`
+Returns `201` with a `Location` header (`/prior-authorities/<id>`) and `{"priorAuthorityId": "..."}`. A draft can be
+created with only `applicationId` populated and filled in incrementally via updates below — cross-field validation is
+only enforced on `POST .../submit`.
 
 #### Update an existing draft
 
 ```bash
-curl -i -X PUT http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9d95-88f117a12b43 \
+curl -i -X PUT http://localhost:8080/prior-authorities/c3b07e24-d92b-410a-9d95-88f117a12b43 \
   -H "Authorization: Bearer <token>" \
   -H 'Content-Type: application/json' \
   -d '{
-    "applicationId": "2a28f60d-fe15-43fe-92c3-5530595d5f51",
-    "priorAuthorityType": "EXPERT",
-    "expertType": "Child psychologist",
-    "expertFullName": "Dr Joe Bloggs",
-    "billingType": "HOURLY",
-    "hourlyRate": 45.00,
-    "timeHours": 4,
-    "timeMinutes": 0,
-    "totalAmount": 180.00,
-    "justification": "Updated estimate after case review."
+    "applicationId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "justification": "Updated justification after case review."
   }'
 ```
 
-#### Get a draft by ID
+Returns `204 No Content`.
+
+#### Get a prior authority (draft or submitted)
 
 ```bash
-curl -i http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9d95-88f117a12b43 \
+curl -i http://localhost:8080/prior-authorities/c3b07e24-d92b-410a-9d95-88f117a12b43 \
   -H "Authorization: Bearer <token>"
 ```
 
-#### List the current user's drafts
+Returns `200` with `{"priorAuthorityId": "...", "status": null | "PENDING" | ..., "draft": { ... }}` (`status` is
+`null` while it's still a draft), or `404` if it doesn't exist.
+
+#### Upload a supporting document
+
+Only PDF files are accepted (validated by extension, magic bytes and detected media type).
 
 ```bash
-curl -i http://localhost:8080/prior-authority/drafts -H "Authorization: Bearer <token>"
-curl -i 'http://localhost:8080/prior-authority/drafts?applicationId=2a28f60d-fe15-43fe-92c3-5530595d5f51' -H "Authorization: Bearer <token>"
+curl -i -X POST http://localhost:8080/prior-authorities/c3b07e24-d92b-410a-9d95-88f117a12b43/documents \
+  -H "Authorization: Bearer <token>" \
+  -F "file=@./example.pdf"
 ```
 
-#### Delete a draft
+Returns `200` with `{"documentId": "...", "fileName": "...", "size": ..., "uploadedAt": "..."}`.
+
+#### Submit
+
+Locks the draft and forwards it to the Access Data Store for validation.
 
 ```bash
-curl -i -X DELETE http://localhost:8080/prior-authority/drafts/c3b07e24-d92b-410a-9d95-88f117a12b43 \
+curl -i -X POST http://localhost:8080/prior-authorities/c3b07e24-d92b-410a-9d95-88f117a12b43/submit \
+  -H "Authorization: Bearer <token>"
+```
+
+Returns `201` with a `Location` header and `{"priorAuthorityId": "...", "submittedAt": "..."}`.
+
+### Applications
+
+```bash
+curl -i 'http://localhost:8080/applications?page=1&pageSize=10&status=APPLICATION_GRANTED' \
+  -H "Authorization: Bearer <token>"
+```
+
+`page`, `pageSize` and `status` are all optional (defaults: `page=1`, `pageSize=10`, `status=APPLICATION_GRANTED`).
+`status` is one of `APPLICATION_SUBMITTED`, `APPLICATION_GRANTED`, `APPLICATION_REFUSED`.
+
+```bash
+curl -i http://localhost:8080/applications/11111111-2222-3333-4444-555555555555 \
+  -H "Authorization: Bearer <token>"
+```
+
+### Expert types
+
+Sourced from the Legal Framework API. Returns an empty list when the matter type has no associated expert types,
+including when it is not a recognised matter type code.
+
+```bash
+curl -i 'http://localhost:8080/expertTypes?matterType=KPBLW' \
   -H "Authorization: Bearer <token>"
 ```

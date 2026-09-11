@@ -24,6 +24,8 @@ import org.springframework.web.client.RestClient;
 import uk.gov.justice.laa_civil_manage_api.logging.CorrelationIdPropagationInterceptor;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreProperties;
 import uk.gov.justice.laa_civil_manage_api.services.legalframework.LegalFrameworkProperties;
+import uk.gov.justice.laa_civil_manage_api.services.providerdetails.ProviderDetailsAuthInterceptor;
+import uk.gov.justice.laa_civil_manage_api.services.providerdetails.ProviderDetailsProperties;
 
 @Configuration
 public class RestClientConfig {
@@ -110,6 +112,20 @@ public class RestClientConfig {
   public RestClient legalFrameworkRestClient(LegalFrameworkProperties properties) {
     return RestClient.builder()
         .requestFactory(requestFactory(properties.connectTimeout(), properties.readTimeout()))
+        .requestInterceptor(new CorrelationIdPropagationInterceptor())
+        .build();
+  }
+
+  /**
+   * The Provider Details API is authenticated with a static API key (not OAuth2), carried via the
+   * {@code X-Authorization} header on every request.
+   */
+  @Bean
+  public RestClient providerDetailsRestClient(ProviderDetailsProperties properties) {
+    return RestClient.builder()
+        .baseUrl(properties.baseUrl())
+        .requestFactory(requestFactory(properties.connectTimeout(), properties.readTimeout()))
+        .requestInterceptor(new ProviderDetailsAuthInterceptor(properties))
         .requestInterceptor(new CorrelationIdPropagationInterceptor())
         .build();
   }

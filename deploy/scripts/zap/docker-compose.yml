@@ -8,6 +8,7 @@ services:
     environment:
       AZURE_ENTRA_API_CLIENT_ID: zap-scan
       AZURE_ENTRA_API_CLIENT_SECRET: zap-scan
+      PROVIDER_DETAILS_API_KEY: zap-scan
 
   zap-scan:
     image: zaproxy/zap-stable@sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef

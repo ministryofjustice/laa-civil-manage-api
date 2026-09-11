@@ -11,8 +11,6 @@ import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
 import uk.gov.service.notify.NotificationClient;
 
 @Configuration
-@EnableAsync
-@EnableRetry
 public class NotifySenderConfiguration {
 
 

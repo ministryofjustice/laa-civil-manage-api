@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentType;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityResponse;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
@@ -136,9 +137,11 @@ public class PriorAuthorityController {
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UploadedDocument> uploadDocument(
       @Parameter(description = "ID of the prior authority.") @PathVariable UUID priorAuthorityId,
+      @Parameter(description = "Type of document being uploaded.") @RequestParam("documentType")
+          PriorAuthorityDocumentType documentType,
       @Parameter(description = "File to upload.") @RequestPart("file") MultipartFile file) {
     UploadedDocument uploadedDocument =
-        priorAuthorityService.uploadDocument(priorAuthorityId, file);
+        priorAuthorityService.uploadDocument(priorAuthorityId, documentType, file);
     return ResponseEntity.ok(uploadedDocument);
   }
 

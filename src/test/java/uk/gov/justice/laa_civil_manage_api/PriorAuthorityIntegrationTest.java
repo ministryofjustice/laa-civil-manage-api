@@ -260,6 +260,7 @@ class PriorAuthorityIntegrationTest {
 
     MultiValueMap<String, Object> multipartBody = new LinkedMultiValueMap<>();
     multipartBody.add("file", fileResource);
+    multipartBody.add("documentType", "GATEWAY_EVIDENCE");
 
     HttpStatusCode status =
         authenticatedClient

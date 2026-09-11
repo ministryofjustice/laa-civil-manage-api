@@ -29,6 +29,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.justice.laa_civil_manage_api.config.SecurityConfig;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentType;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
@@ -193,10 +194,12 @@ class PriorAuthorityControllerTest {
     UUID documentId = UUID.randomUUID();
     OffsetDateTime uploadedAt = OffsetDateTime.parse("2026-05-22T10:00:00Z");
 
-    when(priorAuthorityService.uploadDocument(eq(PRIOR_AUTHORITY_ID), any()))
+    when(priorAuthorityService.uploadDocument(
+            eq(PRIOR_AUTHORITY_ID), eq(PriorAuthorityDocumentType.GATEWAY_EVIDENCE), any()))
         .thenReturn(
             UploadedDocument.builder()
                 .documentId(documentId)
+                .documentType(PriorAuthorityDocumentType.GATEWAY_EVIDENCE)
                 .fileName("evidence.pdf")
                 .size(11L)
                 .uploadedAt(uploadedAt)
@@ -205,7 +208,8 @@ class PriorAuthorityControllerTest {
     mockMvc
         .perform(
             multipart("/prior-authorities/{priorAuthorityId}/documents", PRIOR_AUTHORITY_ID)
-                .file(file))
+                .file(file)
+                .param("documentType", "GATEWAY_EVIDENCE"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.documentId").value(documentId.toString()))
         .andExpect(jsonPath("$.fileName").value("evidence.pdf"))
@@ -218,13 +222,15 @@ class PriorAuthorityControllerTest {
     MockMultipartFile emptyFile =
         new MockMultipartFile("file", "empty.pdf", "application/pdf", new byte[0]);
 
-    when(priorAuthorityService.uploadDocument(eq(PRIOR_AUTHORITY_ID), any()))
+    when(priorAuthorityService.uploadDocument(
+            eq(PRIOR_AUTHORITY_ID), eq(PriorAuthorityDocumentType.GATEWAY_EVIDENCE), any()))
         .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "file must not be empty"));
 
     mockMvc
         .perform(
             multipart("/prior-authorities/{priorAuthorityId}/documents", PRIOR_AUTHORITY_ID)
-                .file(emptyFile))
+                .file(emptyFile)
+                .param("documentType", "GATEWAY_EVIDENCE"))
         .andExpect(status().isBadRequest());
   }
 
@@ -233,7 +239,8 @@ class PriorAuthorityControllerTest {
     MockMultipartFile file =
         new MockMultipartFile("file", "script.js", "application/javascript", "alert(1)".getBytes());
 
-    when(priorAuthorityService.uploadDocument(eq(PRIOR_AUTHORITY_ID), any()))
+    when(priorAuthorityService.uploadDocument(
+            eq(PRIOR_AUTHORITY_ID), eq(PriorAuthorityDocumentType.GATEWAY_EVIDENCE), any()))
         .thenThrow(
             new ResponseStatusException(
                 HttpStatus.UNSUPPORTED_MEDIA_TYPE, "unsupported file type; allowed: PDF"));
@@ -241,7 +248,8 @@ class PriorAuthorityControllerTest {
     mockMvc
         .perform(
             multipart("/prior-authorities/{priorAuthorityId}/documents", PRIOR_AUTHORITY_ID)
-                .file(file))
+                .file(file)
+                .param("documentType", "GATEWAY_EVIDENCE"))
         .andExpect(status().isUnsupportedMediaType());
   }
 
@@ -251,7 +259,8 @@ class PriorAuthorityControllerTest {
         new MockMultipartFile(
             "file", "large.pdf", "application/pdf", new byte[(10 * 1024 * 1024) + 1]);
 
-    when(priorAuthorityService.uploadDocument(eq(PRIOR_AUTHORITY_ID), any()))
+    when(priorAuthorityService.uploadDocument(
+            eq(PRIOR_AUTHORITY_ID), eq(PriorAuthorityDocumentType.GATEWAY_EVIDENCE), any()))
         .thenThrow(
             new ResponseStatusException(
                 HttpStatus.CONTENT_TOO_LARGE, "file size must not exceed 10MB"));
@@ -259,7 +268,8 @@ class PriorAuthorityControllerTest {
     mockMvc
         .perform(
             multipart("/prior-authorities/{priorAuthorityId}/documents", PRIOR_AUTHORITY_ID)
-                .file(file))
+                .file(file)
+                .param("documentType", "GATEWAY_EVIDENCE"))
         .andExpect(status().isContentTooLarge());
   }
 }

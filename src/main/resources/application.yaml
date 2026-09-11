@@ -73,6 +73,10 @@ laa-civil-manage-api:
     base-url: ${ACCESS_DATA_STORE_BASE_URL}
     connect-timeout: 3s
     read-timeout: 5s
+    # TODO: TEMPORARY HACK FOR SPIKE - see HardcodedBearerTokenInterceptor / RestClientConfig.
+    # Only set via .env (ADS_HARDCODED_TOKEN) - never commit an actual token value here.
+    # Leave unset to use the real OAuth2 On-Behalf-Of flow.
+    hardcoded-token: ${ADS_HARDCODED_TOKEN:}
   legal-framework:
     base-url: ${LEGAL_FRAMEWORK_API_BASE_URL}
     connect-timeout: 3s

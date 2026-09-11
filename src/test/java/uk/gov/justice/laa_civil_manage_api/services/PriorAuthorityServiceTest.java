@@ -25,6 +25,7 @@ import uk.gov.justice.laa.civil.notify.model.SendEmailRequest;
 import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
 import uk.gov.justice.laa_civil_manage_api.config.NotifyEmailProperties;
 import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentType;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
@@ -203,13 +204,28 @@ class PriorAuthorityServiceTest {
   void uploadDocumentForwardsToAccessDataStoreClient() {
     MockMultipartFile file =
         new MockMultipartFile("file", "evidence.pdf", "application/pdf", PDF_CONTENT);
-    when(client.uploadPriorAuthorityDocument(eq(PRIOR_AUTHORITY_ID), any()))
-        .thenReturn(new UploadPriorAuthorityDocumentResponse(UUID.randomUUID()));
+    when(client.uploadPriorAuthorityDocument(
+            eq(PRIOR_AUTHORITY_ID), eq(PriorAuthorityDocumentType.GATEWAY_EVIDENCE), any()))
+        .thenReturn(
+            new UploadPriorAuthorityDocumentResponse(
+                UUID.randomUUID(),
+                PriorAuthorityDocumentType.GATEWAY_EVIDENCE,
+                "evidence.pdf",
+                "pdf",
+                "application/pdf",
+                (long) PDF_CONTENT.length,
+                OffsetDateTime.now(),
+                "CIVIL_APPLY",
+                "checksum-value"));
 
-    UploadedDocument uploadedDocument = service.uploadDocument(PRIOR_AUTHORITY_ID, file);
+    UploadedDocument uploadedDocument =
+        service.uploadDocument(
+            PRIOR_AUTHORITY_ID, PriorAuthorityDocumentType.GATEWAY_EVIDENCE, file);
 
     assertEquals("evidence.pdf", uploadedDocument.fileName());
-    verify(client).uploadPriorAuthorityDocument(PRIOR_AUTHORITY_ID, file);
+    verify(client)
+        .uploadPriorAuthorityDocument(
+            PRIOR_AUTHORITY_ID, PriorAuthorityDocumentType.GATEWAY_EVIDENCE, file);
   }
 
   @Test
@@ -219,7 +235,10 @@ class PriorAuthorityServiceTest {
 
     ResponseStatusException ex =
         assertThrows(
-            ResponseStatusException.class, () -> service.uploadDocument(PRIOR_AUTHORITY_ID, file));
+            ResponseStatusException.class,
+            () ->
+                service.uploadDocument(
+                    PRIOR_AUTHORITY_ID, PriorAuthorityDocumentType.GATEWAY_EVIDENCE, file));
 
     assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
   }
@@ -230,7 +249,10 @@ class PriorAuthorityServiceTest {
 
     ResponseStatusException ex =
         assertThrows(
-            ResponseStatusException.class, () -> service.uploadDocument(PRIOR_AUTHORITY_ID, file));
+            ResponseStatusException.class,
+            () ->
+                service.uploadDocument(
+                    PRIOR_AUTHORITY_ID, PriorAuthorityDocumentType.GATEWAY_EVIDENCE, file));
 
     assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
     assertEquals("file name must not be empty", ex.getReason());
@@ -243,7 +265,10 @@ class PriorAuthorityServiceTest {
 
     ResponseStatusException ex =
         assertThrows(
-            ResponseStatusException.class, () -> service.uploadDocument(PRIOR_AUTHORITY_ID, file));
+            ResponseStatusException.class,
+            () ->
+                service.uploadDocument(
+                    PRIOR_AUTHORITY_ID, PriorAuthorityDocumentType.GATEWAY_EVIDENCE, file));
 
     assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
   }
@@ -255,7 +280,10 @@ class PriorAuthorityServiceTest {
 
     ResponseStatusException ex =
         assertThrows(
-            ResponseStatusException.class, () -> service.uploadDocument(PRIOR_AUTHORITY_ID, file));
+            ResponseStatusException.class,
+            () ->
+                service.uploadDocument(
+                    PRIOR_AUTHORITY_ID, PriorAuthorityDocumentType.GATEWAY_EVIDENCE, file));
 
     assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getStatusCode());
   }
@@ -269,7 +297,10 @@ class PriorAuthorityServiceTest {
 
     ResponseStatusException ex =
         assertThrows(
-            ResponseStatusException.class, () -> service.uploadDocument(PRIOR_AUTHORITY_ID, file));
+            ResponseStatusException.class,
+            () ->
+                service.uploadDocument(
+                    PRIOR_AUTHORITY_ID, PriorAuthorityDocumentType.GATEWAY_EVIDENCE, file));
 
     assertEquals(HttpStatus.CONTENT_TOO_LARGE, ex.getStatusCode());
   }
@@ -278,7 +309,10 @@ class PriorAuthorityServiceTest {
   void uploadDocumentThrowsWhenFileIsNull() {
     ResponseStatusException ex =
         assertThrows(
-            ResponseStatusException.class, () -> service.uploadDocument(PRIOR_AUTHORITY_ID, null));
+            ResponseStatusException.class,
+            () ->
+                service.uploadDocument(
+                    PRIOR_AUTHORITY_ID, PriorAuthorityDocumentType.GATEWAY_EVIDENCE, null));
 
     assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
   }

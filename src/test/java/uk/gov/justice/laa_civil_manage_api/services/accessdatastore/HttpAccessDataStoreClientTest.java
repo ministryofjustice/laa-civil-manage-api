@@ -37,7 +37,7 @@ class HttpAccessDataStoreClientTest {
     RestClient.Builder builder = RestClient.builder();
     server = MockRestServiceServer.bindTo(builder).build();
     AccessDataStoreProperties properties =
-        new AccessDataStoreProperties(BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(5));
+        new AccessDataStoreProperties(BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(5), null);
     client = new HttpAccessDataStoreClient(builder.build(), properties);
   }
 
@@ -179,7 +179,8 @@ class HttpAccessDataStoreClientTest {
             withSuccess("{ \"documentId\": \"" + documentId + "\" }", MediaType.APPLICATION_JSON));
 
     UploadPriorAuthorityDocumentResponse result =
-        client.uploadPriorAuthorityDocument(priorAuthorityId, file);
+        client.uploadPriorAuthorityDocument(
+            priorAuthorityId, PriorAuthorityDocumentType.GATEWAY_EVIDENCE, file);
 
     assertEquals(documentId, result.documentId());
     server.verify();

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.security.oauth2.client.JwtBearerOAuth2AuthorizedClientProvider;
@@ -91,15 +92,24 @@ public class RestClientConfig {
       OAuth2AuthorizedClientManager authorizedClientManager,
       OAuth2AuthorizedClientRepository authorizedClientRepository) {
 
-    OAuth2ClientHttpRequestInterceptor interceptor =
-        new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
-    interceptor.setClientRegistrationIdResolver(request -> ADS_CLIENT_REGISTRATION_ID);
-    interceptor.setAuthorizationFailureHandler(
-        OAuth2ClientHttpRequestInterceptor.authorizationFailureHandler(authorizedClientRepository));
+    // TODO: TEMPORARY HACK FOR SPIKE - see HardcodedBearerTokenInterceptor. If a hardcoded token
+    // has been supplied (via ADS_HARDCODED_TOKEN), bypass the OAuth2 OBO flow entirely.
+    ClientHttpRequestInterceptor authInterceptor;
+    if (properties.hardcodedToken() != null && !properties.hardcodedToken().isBlank()) {
+      authInterceptor = new HardcodedBearerTokenInterceptor(properties.hardcodedToken());
+    } else {
+      OAuth2ClientHttpRequestInterceptor interceptor =
+          new OAuth2ClientHttpRequestInterceptor(authorizedClientManager);
+      interceptor.setClientRegistrationIdResolver(request -> ADS_CLIENT_REGISTRATION_ID);
+      interceptor.setAuthorizationFailureHandler(
+          OAuth2ClientHttpRequestInterceptor.authorizationFailureHandler(
+              authorizedClientRepository));
+      authInterceptor = interceptor;
+    }
 
     return RestClient.builder()
         .requestFactory(requestFactory(properties.connectTimeout(), properties.readTimeout()))
-        .requestInterceptor(interceptor)
+        .requestInterceptor(authInterceptor)
         .requestInterceptor(new CorrelationIdPropagationInterceptor())
         .build();
   }

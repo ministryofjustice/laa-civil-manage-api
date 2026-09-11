@@ -23,6 +23,7 @@ import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
 import uk.gov.justice.laa_civil_manage_api.config.NotifyEmailProperties;
 import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentType;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityResponse;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
@@ -153,7 +154,8 @@ public class PriorAuthorityService {
         .build();
   }
 
-  public UploadedDocument uploadDocument(UUID priorAuthorityId, MultipartFile file) {
+  public UploadedDocument uploadDocument(
+      UUID priorAuthorityId, PriorAuthorityDocumentType documentType, MultipartFile file) {
     if (file == null || file.isEmpty()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "file must not be empty");
     }
@@ -213,10 +215,19 @@ public class PriorAuthorityService {
         file.getContentType());
 
     UploadPriorAuthorityDocumentResponse response =
-        accessDataStoreClient.uploadPriorAuthorityDocument(priorAuthorityId, file);
+        accessDataStoreClient.uploadPriorAuthorityDocument(priorAuthorityId, documentType, file);
 
-    return new UploadedDocument(
-        response.documentId(), sanitizedFilename, null, file.getSize(), OffsetDateTime.now());
+    return UploadedDocument.builder()
+        .documentId(response.documentId())
+        .documentType(response.documentType())
+        .fileName(response.fileName() != null ? response.fileName() : sanitizedFilename)
+        .fileType(response.fileType())
+        .contentType(response.contentType())
+        .size(response.size() != null ? response.size() : file.getSize())
+        .uploadedAt(response.uploadedAt() != null ? response.uploadedAt() : OffsetDateTime.now())
+        .sourceService(response.sourceService())
+        .checksum(response.checksum())
+        .build();
   }
 
   private byte[] readHeaderBytes(MultipartFile file) {

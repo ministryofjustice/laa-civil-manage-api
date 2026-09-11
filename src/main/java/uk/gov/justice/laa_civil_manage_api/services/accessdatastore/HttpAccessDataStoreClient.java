@@ -81,10 +81,11 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
 
   @Override
   public UploadPriorAuthorityDocumentResponse uploadPriorAuthorityDocument(
-      UUID priorAuthorityId, MultipartFile file) {
+      UUID priorAuthorityId, PriorAuthorityDocumentType documentType, MultipartFile file) {
     String baseUrl = properties.baseUrl();
     MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
     body.add("file", file.getResource());
+    body.add("documentType", documentType.name().toLowerCase());
 
     return adsRestClient
         .post()

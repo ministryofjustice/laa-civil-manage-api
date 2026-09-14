@@ -25,7 +25,7 @@
 - **No change should reduce test coverage.** Check `mise coverage` after your change and compare
   against the coverage gates in [§6](#6-code-coverage) before opening a PR.
 - **When finished**, run the checks below and update related docs (including `openApi/openApi.json` via
-  `./gradlew generateOpenApiDocs` if a controller/model changed — `verifyOpenApiSync` fails CI otherwise).
+  `mise apidocs` if a controller/model changed — `verifyOpenApiSync` fails CI otherwise).
 
 ### Checks before completing any task
 
@@ -33,7 +33,8 @@
 mise format     # Formatting (./gradlew spotlessApply spotlessCheck)
 mise test       # Unit + integration tests (JUnit 5)
 mise coverage   # Coverage report (./gradlew test jacocoTestReport, build/reports/jacoco/)
-./gradlew verifyOpenApiSync       # Fails if openApi/openApi.json is stale
+mise apidocs    # Regenerate OpenAPI spec (./gradlew generateOpenApiDocs)
+./gradlew verifyOpenApiSync       # Fails if openApi/openApi.json is stale (no mise task yet)
 ```
 
 ### When editing existing files
@@ -75,7 +76,7 @@ This is a **Java 25 + Spring Boot 4.1 + Gradle (Kotlin DSL)** REST API, base pac
 3. Add/extend a service in `services/` that calls the client and applies business logic.
 4. Add/extend a `@RestController` in `controllers/` that calls the service and maps results to a
    `ResponseEntity`, with `@Operation`/`@ApiResponses` Swagger annotations matching existing controllers.
-5. Regenerate the OpenAPI spec: `./gradlew generateOpenApiDocs`.
+5. Regenerate the OpenAPI spec: `mise apidocs`.
 6. Write a `[Class]Test.java` unit test for the new controller/service/client under a `src/test/java`
    package mirroring `src/main/java` (e.g. `services/accessdatastore/HttpAccessDataStoreClientTest`).
 7. Add or extend a `[Feature]IntegrationTest.java` under the base test package

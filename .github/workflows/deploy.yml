@@ -84,7 +84,7 @@ jobs:
           paths: build/reports/jacoco/jacoco.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 90
-          min-coverage-changed-files: 0
+          min-coverage-changed-files: 80
           title: 'Code Coverage Report'
           pass-emoji: ':white_check_mark:'
           fail-emoji: ':x:'

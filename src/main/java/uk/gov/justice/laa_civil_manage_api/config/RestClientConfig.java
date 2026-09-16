@@ -1,7 +1,8 @@
 package uk.gov.justice.laa_civil_manage_api.config;
 
 import java.net.InetSocketAddress;
-import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -9,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.security.oauth2.client.JwtBearerOAuth2AuthorizedClientProvider;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
@@ -102,6 +103,11 @@ public class RestClientConfig {
     return RestClient.builder()
         .requestFactory(requestFactory(properties.connectTimeout(), properties.readTimeout()))
         .requestInterceptor(interceptor)
+        .requestInterceptor(
+            (request, body, execution) -> {
+              request.getHeaders().add("X-Service-Name", properties.serviceName());
+              return execution.execute(request, body);
+            })
         .requestInterceptor(new CorrelationIdPropagationInterceptor())
         .build();
   }
@@ -133,12 +139,23 @@ public class RestClientConfig {
   }
 
   private ClientHttpRequestFactory requestFactory(Duration connectTimeout, Duration readTimeout) {
-    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-    factory.setConnectTimeout((int) connectTimeout.toMillis());
-    factory.setReadTimeout((int) readTimeout.toMillis());
-    if (proxyHost != null && !proxyHost.isEmpty() && proxyPort > 0) {
-      factory.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort)));
+    HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
+
+    if (connectTimeout != null && !connectTimeout.isZero() && !connectTimeout.isNegative()) {
+      httpClientBuilder.connectTimeout(connectTimeout);
     }
+
+    if (proxyHost != null && !proxyHost.isEmpty() && proxyPort > 0) {
+      httpClientBuilder.proxy(ProxySelector.of(new InetSocketAddress(proxyHost, proxyPort)));
+    }
+
+    JdkClientHttpRequestFactory factory =
+        new JdkClientHttpRequestFactory(httpClientBuilder.build());
+
+    if (readTimeout != null && !readTimeout.isZero() && !readTimeout.isNegative()) {
+      factory.setReadTimeout(readTimeout);
+    }
+
     return factory;
   }
 

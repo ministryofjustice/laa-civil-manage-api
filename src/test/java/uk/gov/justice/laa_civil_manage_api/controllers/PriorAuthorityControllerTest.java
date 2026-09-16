@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -13,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -29,6 +31,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.justice.laa_civil_manage_api.config.SecurityConfig;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentType;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentTypeUpdateResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
@@ -151,6 +155,7 @@ class PriorAuthorityControllerTest {
                     .priorAuthorityId(PRIOR_AUTHORITY_ID)
                     .status(null)
                     .draft(draft)
+                    .uploadedDocuments(List.of())
                     .build()));
 
     mockMvc
@@ -261,5 +266,61 @@ class PriorAuthorityControllerTest {
             multipart("/prior-authorities/{priorAuthorityId}/documents", PRIOR_AUTHORITY_ID)
                 .file(file))
         .andExpect(status().isContentTooLarge());
+  }
+
+  @Test
+  void updateDocumentTypeReturns200WithUpdatedResponse() throws Exception {
+    UUID documentId = UUID.randomUUID();
+    OffsetDateTime updatedAt = OffsetDateTime.parse("2026-05-22T10:00:00Z");
+
+    when(priorAuthorityService.updateDocumentType(
+            PRIOR_AUTHORITY_ID, documentId, PriorAuthorityDocumentType.GATEWAY_EVIDENCE))
+        .thenReturn(
+            PriorAuthorityDocumentTypeUpdateResponse.builder()
+                .documentId(documentId)
+                .updatedAt(updatedAt)
+                .build());
+
+    String body =
+        """
+            {
+              "documentType": "GATEWAY_EVIDENCE"
+            }
+            """;
+
+    mockMvc
+        .perform(
+            patch(
+                    "/prior-authorities/{priorAuthorityId}/documents/{documentId}",
+                    PRIOR_AUTHORITY_ID,
+                    documentId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.documentId").value(documentId.toString()))
+        .andExpect(jsonPath("$.updatedAt").value("2026-05-22T10:00:00Z"));
+
+    verify(priorAuthorityService)
+        .updateDocumentType(
+            PRIOR_AUTHORITY_ID, documentId, PriorAuthorityDocumentType.GATEWAY_EVIDENCE);
+  }
+
+  @Test
+  void updateDocumentTypeReturns400WhenDocumentTypeMissing() throws Exception {
+    UUID documentId = UUID.randomUUID();
+    String body =
+        """
+        {}
+        """;
+
+    mockMvc
+        .perform(
+            patch(
+                    "/prior-authorities/{priorAuthorityId}/documents/{documentId}",
+                    PRIOR_AUTHORITY_ID,
+                    documentId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isBadRequest());
   }
 }

@@ -73,6 +73,7 @@ laa-civil-manage-api:
     base-url: ${ACCESS_DATA_STORE_BASE_URL}
     connect-timeout: 3s
     read-timeout: 5s
+    service-name: "CIVIL_MANAGE"
   legal-framework:
     base-url: ${LEGAL_FRAMEWORK_API_BASE_URL}
     connect-timeout: 3s

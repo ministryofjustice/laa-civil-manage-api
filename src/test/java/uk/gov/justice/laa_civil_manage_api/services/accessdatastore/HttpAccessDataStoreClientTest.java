@@ -13,6 +13,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,16 +29,24 @@ import uk.gov.justice.laa_civil_manage_api.models.*;
 class HttpAccessDataStoreClientTest {
 
   private static final String BASE_URL = "http://ads.test";
+  private static final String SERVICE_NAME = "CIVIL_MANAGE";
 
   private MockRestServiceServer server;
   private HttpAccessDataStoreClient client;
 
   @BeforeEach
   void setup() {
-    RestClient.Builder builder = RestClient.builder();
+    RestClient.Builder builder =
+        RestClient.builder()
+            .requestInterceptor(
+                (request, body, execution) -> {
+                  request.getHeaders().add("X-Service-Name", SERVICE_NAME);
+                  return execution.execute(request, body);
+                });
     server = MockRestServiceServer.bindTo(builder).build();
     AccessDataStoreProperties properties =
-        new AccessDataStoreProperties(BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(5));
+        new AccessDataStoreProperties(
+            BASE_URL, Duration.ofSeconds(3), Duration.ofSeconds(5), SERVICE_NAME);
     client = new HttpAccessDataStoreClient(builder.build(), properties);
   }
 
@@ -50,7 +59,7 @@ class HttpAccessDataStoreClientTest {
         .expect(requestTo(BASE_URL + "/api/v0/prior-authorities"))
         .andExpect(method(HttpMethod.POST))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
+        .andExpect(header("X-Service-Name", SERVICE_NAME))
         .andExpect(jsonPath("$.applicationId").value(applicationId.toString()))
         .andExpect(jsonPath("$.priorAuthorityType").value("EXPERT"))
         .andRespond(
@@ -108,7 +117,8 @@ class HttpAccessDataStoreClientTest {
                       "applicationId": "%s",
                       "status": null,
                       "priorAuthorityType": "EXPERT",
-                      "justification": "Required."
+                      "justification": "Required.",
+                      "uploadedDocuments": []
                     }
                     """
                     .formatted(priorAuthorityId, applicationId),
@@ -119,6 +129,7 @@ class HttpAccessDataStoreClientTest {
     assertTrue(result.isPresent());
     assertEquals(priorAuthorityId, result.get().priorAuthorityId());
     assertEquals(PriorAuthorityType.EXPERT, result.get().priorAuthorityType());
+    assertEquals(List.of(), result.get().uploadedDocuments());
     server.verify();
   }
 
@@ -145,7 +156,7 @@ class HttpAccessDataStoreClientTest {
     server
         .expect(requestTo(BASE_URL + "/api/v0/prior-authorities/" + priorAuthorityId + "/submit"))
         .andExpect(method(HttpMethod.POST))
-        .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
+        .andExpect(header("X-Service-Name", SERVICE_NAME))
         .andRespond(
             withSuccess(
                 """
@@ -175,6 +186,7 @@ class HttpAccessDataStoreClientTest {
         .expect(
             requestTo(BASE_URL + "/api/v0/prior-authorities/" + priorAuthorityId + "/documents"))
         .andExpect(method(HttpMethod.POST))
+        .andExpect(header("X-Service-Name", SERVICE_NAME))
         .andRespond(
             withSuccess("{ \"documentId\": \"" + documentId + "\" }", MediaType.APPLICATION_JSON));
 
@@ -186,6 +198,44 @@ class HttpAccessDataStoreClientTest {
   }
 
   @Test
+  void updatePriorAuthorityDocumentTypePatchesAdsWithJsonBody() {
+    UUID priorAuthorityId = UUID.randomUUID();
+    UUID documentId = UUID.randomUUID();
+    OffsetDateTime updatedAt = OffsetDateTime.parse("2026-05-22T10:00:00Z");
+
+    server
+        .expect(
+            requestTo(
+                BASE_URL
+                    + "/api/v0/prior-authorities/"
+                    + priorAuthorityId
+                    + "/documents/"
+                    + documentId))
+        .andExpect(method(HttpMethod.PATCH))
+        .andExpect(header("X-Service-Name", SERVICE_NAME))
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.documentType").value("GATEWAY_EVIDENCE"))
+        .andRespond(
+            withSuccess(
+                """
+                    {
+                      "documentId": "%s",
+                      "updatedAt": "%s"
+                    }
+                    """
+                    .formatted(documentId, updatedAt),
+                MediaType.APPLICATION_JSON));
+
+    DocumentTypeUpdateResponse result =
+        client.updatePriorAuthorityDocumentType(
+            priorAuthorityId, documentId, PriorAuthorityDocumentType.GATEWAY_EVIDENCE);
+
+    assertEquals(documentId, result.documentId());
+    assertEquals(updatedAt, result.updatedAt());
+    server.verify();
+  }
+
+  @Test
   void getApplicationsGetsFromAdsWithServiceNameHeader() {
     server
         .expect(
@@ -193,7 +243,7 @@ class HttpAccessDataStoreClientTest {
                 BASE_URL
                     + "/api/v0/applications?page=1&pageSize=20&status=APPLICATION_GRANTED&matterType=SPECIAL_CHILDREN_ACT&sortBy=SUBMITTED_DATE&orderBy=DESC"))
         .andExpect(method(HttpMethod.GET))
-        .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
+        .andExpect(header("X-Service-Name", SERVICE_NAME))
         .andRespond(
             withSuccess(
                 """
@@ -235,7 +285,7 @@ class HttpAccessDataStoreClientTest {
                 BASE_URL
                     + "/api/v0/applications?page=1&pageSize=20&status=APPLICATION_GRANTED&matterType=SPECIAL_CHILDREN_ACT&sortBy=SUBMITTED_DATE&orderBy=DESC&laaReference=APP-1&clientFirstName=John&clientLastName=Doe"))
         .andExpect(method(HttpMethod.GET))
-        .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
+        .andExpect(header("X-Service-Name", SERVICE_NAME))
         .andRespond(
             withSuccess(
                 """
@@ -277,7 +327,7 @@ class HttpAccessDataStoreClientTest {
     server
         .expect(requestTo(BASE_URL + "/api/v0/applications/" + applicationId))
         .andExpect(method(HttpMethod.GET))
-        .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
+        .andExpect(header("X-Service-Name", SERVICE_NAME))
         .andRespond(
             withSuccess(
                 """
@@ -308,7 +358,7 @@ class HttpAccessDataStoreClientTest {
     server
         .expect(requestTo(BASE_URL + "/api/v0/individuals?applicationId=" + applicationId))
         .andExpect(method(HttpMethod.GET))
-        .andExpect(header("X-Service-Name", "CIVIL_APPLY"))
+        .andExpect(header("X-Service-Name", SERVICE_NAME))
         .andRespond(
             withSuccess(
                 """

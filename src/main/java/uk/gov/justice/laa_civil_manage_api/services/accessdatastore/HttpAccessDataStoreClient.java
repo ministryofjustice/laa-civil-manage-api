@@ -16,8 +16,6 @@ import uk.gov.justice.laa_civil_manage_api.models.*;
 @RequiredArgsConstructor
 public class HttpAccessDataStoreClient implements AccessDataStoreClient {
 
-  private static final String SERVICE_NAME_HEADER = "X-Service-Name";
-  private static final String SERVICE_NAME = "CIVIL_APPLY";
   private static final String PRIOR_AUTHORITIES_PATH = "/api/v0/prior-authorities";
 
   private static final String DEFAULT_MATTER_TYPE = "SPECIAL_CHILDREN_ACT";
@@ -34,7 +32,6 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
     return adsRestClient
         .post()
         .uri(baseUrl + PRIOR_AUTHORITIES_PATH)
-        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .contentType(MediaType.APPLICATION_JSON)
         .body(request)
         .retrieve()
@@ -48,7 +45,6 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
     adsRestClient
         .put()
         .uri(baseUrl + PRIOR_AUTHORITIES_PATH + "/{id}", priorAuthorityId)
-        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .contentType(MediaType.APPLICATION_JSON)
         .body(request)
         .retrieve()
@@ -62,7 +58,6 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
         adsRestClient
             .get()
             .uri(baseUrl + PRIOR_AUTHORITIES_PATH + "/{id}", priorAuthorityId)
-            .header(SERVICE_NAME_HEADER, SERVICE_NAME)
             .retrieve()
             .onStatus(status -> status.value() == 404, (_, _) -> {})
             .body(PriorAuthorityRecordResponse.class));
@@ -74,7 +69,6 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
     return adsRestClient
         .post()
         .uri(baseUrl + PRIOR_AUTHORITIES_PATH + "/{id}/submit", priorAuthorityId)
-        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .retrieve()
         .body(SubmitPriorAuthorityDraftResponse.class);
   }
@@ -88,12 +82,27 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
 
     return adsRestClient
         .post()
-        .uri(baseUrl + PRIOR_AUTHORITIES_PATH + "/{id}/documents", priorAuthorityId)
-        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
+        .uri(baseUrl + PRIOR_AUTHORITIES_PATH + "/{priorAuthorityId}/documents", priorAuthorityId)
         .contentType(MediaType.MULTIPART_FORM_DATA)
         .body(body)
         .retrieve()
         .body(UploadPriorAuthorityDocumentResponse.class);
+  }
+
+  @Override
+  public DocumentTypeUpdateResponse updatePriorAuthorityDocumentType(
+      UUID priorAuthorityId, UUID documentId, PriorAuthorityDocumentType documentType) {
+    String baseUrl = properties.baseUrl();
+    return adsRestClient
+        .patch()
+        .uri(
+            baseUrl + PRIOR_AUTHORITIES_PATH + "/{priorAuthorityId}/documents/{documentId}",
+            priorAuthorityId,
+            documentId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(new DocumentTypeUpdateRequest(documentType))
+        .retrieve()
+        .body(DocumentTypeUpdateResponse.class);
   }
 
   @Override
@@ -127,7 +136,6 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
     return adsRestClient
         .get()
         .uri(uriBuilder.build().toUri())
-        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .retrieve()
         .body(ApplicationSummaryResponse.class);
   }
@@ -139,7 +147,6 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
     return adsRestClient
         .get()
         .uri(baseUrl + "/api/v0/applications/" + applicationId)
-        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .retrieve()
         .body(ApplicationSummary.class);
   }
@@ -151,7 +158,6 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
     return adsRestClient
         .get()
         .uri(baseUrl + "/api/v0/individuals?applicationId={applicationId}", applicationId)
-        .header(SERVICE_NAME_HEADER, SERVICE_NAME)
         .retrieve()
         .body(IndividualsResponse.class);
   }

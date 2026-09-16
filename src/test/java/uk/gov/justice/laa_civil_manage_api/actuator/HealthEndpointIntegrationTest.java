@@ -13,7 +13,8 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest(
     properties = {
       "laa-civil-manage-api.provider-details.base-url=http://localhost:9999",
-      "laa-civil-manage-api.legal-framework.base-url=http://localhost:9999"
+      "laa-civil-manage-api.legal-framework.base-url=http://localhost:9999",
+      "laa-civil-manage-api.access-data-store.base-url=http://localhost:9999"
     })
 @AutoConfigureMockMvc
 class HealthEndpointIntegrationTest {
@@ -27,7 +28,8 @@ class HealthEndpointIntegrationTest {
         .andExpect(status().isServiceUnavailable())
         .andExpect(jsonPath("$.status").value("DOWN"))
         .andExpect(jsonPath("$.components.providerDetails.status").value("DOWN"))
-        .andExpect(jsonPath("$.components.legalFramework.status").value("DOWN"));
+        .andExpect(jsonPath("$.components.legalFramework.status").value("DOWN"))
+        .andExpect(jsonPath("$.components.accessDataStore.status").value("DOWN"));
   }
 
   @Test

@@ -46,10 +46,15 @@ class ExpertTypesIntegrationTest {
   static WireMockExtension providerDetails =
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
+  @RegisterExtension
+  static WireMockExtension accessDataStore =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+
   @DynamicPropertySource
   static void legalFrameworkProperties(DynamicPropertyRegistry registry) {
     registry.add("laa-civil-manage-api.legal-framework.base-url", legalFramework::baseUrl);
     registry.add("laa-civil-manage-api.provider-details.base-url", providerDetails::baseUrl);
+    registry.add("laa-civil-manage-api.access-data-store.base-url", accessDataStore::baseUrl);
   }
 
   @LocalServerPort private int port;
@@ -63,6 +68,9 @@ class ExpertTypesIntegrationTest {
     when(jwtDecoder.decode("test-token")).thenReturn(mockJwt);
 
     providerDetails.stubFor(
+        get(urlEqualTo("/actuator/health")).willReturn(okJson("{\"status\":\"UP\"}")));
+
+    accessDataStore.stubFor(
         get(urlEqualTo("/actuator/health")).willReturn(okJson("{\"status\":\"UP\"}")));
   }
 

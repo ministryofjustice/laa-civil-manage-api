@@ -97,7 +97,10 @@ class PriorAuthorityIntegrationTest {
     when(authorizedClientManager.authorize(any())).thenReturn(authorizedClient);
 
     authenticatedClient =
-        RestClient.builder().defaultHeader("Authorization", "Bearer test-token").build();
+        RestClient.builder()
+            .defaultHeader("Authorization", "Bearer test-token")
+            .defaultHeader("X-Authorization", "test-id-token")
+            .build();
   }
 
   @Test
@@ -108,14 +111,16 @@ class PriorAuthorityIntegrationTest {
     accessDataStore.stubFor(
         post(urlEqualTo("/api/v0/prior-authorities"))
             .withHeader("X-Service-Name", equalTo(SERVICE_NAME))
+            .withHeader("Authorization", equalTo("Bearer downstream-access-token"))
+            .withHeader("X-Authorization", equalTo("test-id-token"))
             .willReturn(
                 aResponse()
                     .withStatus(201)
                     .withHeader("Content-Type", "application/json")
                     .withBody(
                         """
-                            { "priorAuthorityId": "%s" }
-                            """
+                                                { "priorAuthorityId": "%s" }
+                                                """
                             .formatted(priorAuthorityId))));
 
     PriorAuthorityDraft createBody =
@@ -139,6 +144,8 @@ class PriorAuthorityIntegrationTest {
 
     accessDataStore.stubFor(
         put(urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId))
+            .withHeader("Authorization", equalTo("Bearer downstream-access-token"))
+            .withHeader("X-Authorization", equalTo("test-id-token"))
             .willReturn(aResponse().withStatus(204)));
 
     PriorAuthorityDraft updateBody =
@@ -160,20 +167,22 @@ class PriorAuthorityIntegrationTest {
 
     accessDataStore.stubFor(
         get(urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId))
+            .withHeader("Authorization", equalTo("Bearer downstream-access-token"))
+            .withHeader("X-Authorization", equalTo("test-id-token"))
             .willReturn(
                 aResponse()
                     .withStatus(200)
                     .withHeader("Content-Type", "application/json")
                     .withBody(
                         """
-                            {
-                              "priorAuthorityId": "%s",
-                              "applicationId": "%s",
-                              "status": null,
-                              "priorAuthorityType": "EXPERT",
-                              "justification": "Updated justification."
-                            }
-                            """
+                                                {
+                                                  "priorAuthorityId": "%s",
+                                                  "applicationId": "%s",
+                                                  "status": null,
+                                                  "priorAuthorityType": "EXPERT",
+                                                  "justification": "Updated justification."
+                                                }
+                                                """
                             .formatted(priorAuthorityId, applicationId))));
 
     ResponseEntity<PriorAuthorityResponse> getResponse =
@@ -190,33 +199,37 @@ class PriorAuthorityIntegrationTest {
 
     accessDataStore.stubFor(
         post(urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId + "/submit"))
+            .withHeader("Authorization", equalTo("Bearer downstream-access-token"))
+            .withHeader("X-Authorization", equalTo("test-id-token"))
             .willReturn(
                 aResponse()
                     .withStatus(201)
                     .withHeader("Content-Type", "application/json")
                     .withBody(
                         """
-                            {
-                              "priorAuthorityId": "%s",
-                              "submittedAt": "2026-05-22T10:00:00Z"
-                            }
-                            """
+                                                {
+                                                  "priorAuthorityId": "%s",
+                                                  "submittedAt": "2026-05-22T10:00:00Z"
+                                                }
+                                                """
                             .formatted(priorAuthorityId))));
 
     accessDataStore.stubFor(
         get(urlEqualTo("/api/v0/applications/" + applicationId))
+            .withHeader("Authorization", equalTo("Bearer downstream-access-token"))
+            .withHeader("X-Authorization", equalTo("test-id-token"))
             .willReturn(
                 aResponse()
                     .withStatus(200)
                     .withHeader("Content-Type", "application/json")
                     .withBody(
                         """
-                            {
-                              "applicationId": "%s",
-                              "laaReference": "LAA123456",
-                              "status": "APPLICATION_SUBMITTED"
-                            }
-                            """
+                                                {
+                                                  "applicationId": "%s",
+                                                  "laaReference": "LAA123456",
+                                                  "status": "APPLICATION_SUBMITTED"
+                                                }
+                                                """
                             .formatted(applicationId))));
 
     ResponseEntity<PriorAuthorityApplicationResponse> submit =
@@ -289,23 +302,25 @@ class PriorAuthorityIntegrationTest {
     accessDataStore.stubFor(
         post(urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId + "/documents"))
             .withHeader("X-Service-Name", equalTo(SERVICE_NAME))
+            .withHeader("Authorization", equalTo("Bearer downstream-access-token"))
+            .withHeader("X-Authorization", equalTo("test-id-token"))
             .willReturn(
                 aResponse()
                     .withStatus(201)
                     .withHeader("Content-Type", "application/json")
                     .withBody(
                         """
-                            {
-                              "documentId": "%s",
-                              "fileName": "evidence.pdf",
-                              "fileType": "pdf",
-                              "contentType": "application/pdf",
-                              "size": 11,
-                              "uploadedAt": "2026-05-22T10:00:00Z",
-                              "sourceService": "%s",
-                              "checksum": "checksum-value"
-                            }
-                            """
+                                                {
+                                                  "documentId": "%s",
+                                                  "fileName": "evidence.pdf",
+                                                  "fileType": "pdf",
+                                                  "contentType": "application/pdf",
+                                                  "size": 11,
+                                                  "uploadedAt": "2026-05-22T10:00:00Z",
+                                                  "sourceService": "%s",
+                                                  "checksum": "checksum-value"
+                                                }
+                                                """
                             .formatted(documentId, SERVICE_NAME))));
 
     ByteArrayResource fileResource =
@@ -336,17 +351,19 @@ class PriorAuthorityIntegrationTest {
                 urlEqualTo(
                     "/api/v0/prior-authorities/" + priorAuthorityId + "/documents/" + documentId))
             .withHeader("X-Service-Name", equalTo(SERVICE_NAME))
+            .withHeader("Authorization", equalTo("Bearer downstream-access-token"))
+            .withHeader("X-Authorization", equalTo("test-id-token"))
             .willReturn(
                 aResponse()
                     .withStatus(200)
                     .withHeader("Content-Type", "application/json")
                     .withBody(
                         """
-                            {
-                              "documentId": "%s",
-                              "updatedAt": "2026-05-22T10:05:00Z"
-                            }
-                            """
+                                                {
+                                                  "documentId": "%s",
+                                                  "updatedAt": "2026-05-22T10:05:00Z"
+                                                }
+                                                """
                             .formatted(documentId))));
 
     ResponseEntity<PriorAuthorityDocumentTypeUpdateResponse> updateResponse =
@@ -359,8 +376,8 @@ class PriorAuthorityIntegrationTest {
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 """
-                    { "documentType": "GATEWAY_EVIDENCE" }
-                    """)
+                                { "documentType": "GATEWAY_EVIDENCE" }
+                                """)
             .retrieve()
             .toEntity(PriorAuthorityDocumentTypeUpdateResponse.class);
 

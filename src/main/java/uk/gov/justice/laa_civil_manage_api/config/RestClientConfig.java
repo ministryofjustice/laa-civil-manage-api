@@ -26,6 +26,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
 import uk.gov.justice.laa_civil_manage_api.logging.CorrelationIdPropagationInterceptor;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreProperties;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.SecondaryAuthorizationHeaderInterceptor;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.ServiceNameHeaderInterceptor;
 import uk.gov.justice.laa_civil_manage_api.services.legalframework.LegalFrameworkProperties;
 import uk.gov.justice.laa_civil_manage_api.services.providerdetails.ProviderDetailsAuthInterceptor;
 import uk.gov.justice.laa_civil_manage_api.services.providerdetails.ProviderDetailsProperties;
@@ -87,7 +89,6 @@ public class RestClientConfig {
     return authorizedClientManager;
   }
 
-  /** Attaches the On-Behalf-Of token to every outbound request */
   @Bean
   public RestClient adsRestClient(
       AccessDataStoreProperties properties,
@@ -103,11 +104,8 @@ public class RestClientConfig {
     return RestClient.builder()
         .requestFactory(requestFactory(properties.connectTimeout(), properties.readTimeout()))
         .requestInterceptor(interceptor)
-        .requestInterceptor(
-            (request, body, execution) -> {
-              request.getHeaders().add("X-Service-Name", properties.serviceName());
-              return execution.execute(request, body);
-            })
+        .requestInterceptor(new ServiceNameHeaderInterceptor(properties))
+        .requestInterceptor(new SecondaryAuthorizationHeaderInterceptor())
         .requestInterceptor(new CorrelationIdPropagationInterceptor())
         .build();
   }

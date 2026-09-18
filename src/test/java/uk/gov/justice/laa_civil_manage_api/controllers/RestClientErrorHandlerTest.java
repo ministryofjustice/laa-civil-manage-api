@@ -37,6 +37,18 @@ class RestClientErrorHandlerTest {
   }
 
   @Test
+  void forwards409FromAccessDataStoreAs409() {
+    HttpClientErrorException ex =
+        HttpClientErrorException.create(HttpStatus.CONFLICT, "Conflict", null, null, null);
+
+    ResponseEntity<ProblemDetail> response = handler.handleClientError(ex);
+
+    assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertEquals(409, response.getBody().getStatus());
+  }
+
+  @Test
   void translates5xxFromAccessDataStoreInto502BadGateway() {
     HttpServerErrorException ex =
         HttpServerErrorException.create(

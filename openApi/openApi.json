@@ -218,11 +218,20 @@
           "400": {
             "description": "No file supplied or file is empty."
           },
+          "404": {
+            "description": "Prior authority not found in the access data store."
+          },
+          "409": {
+            "description": "The access data store rejected the document as a conflict."
+          },
           "413": {
             "description": "File exceeds the configured maximum size."
           },
           "415": {
             "description": "Unsupported file type."
+          },
+          "502": {
+            "description": "The access data store failed to store the document."
           }
         }
       }

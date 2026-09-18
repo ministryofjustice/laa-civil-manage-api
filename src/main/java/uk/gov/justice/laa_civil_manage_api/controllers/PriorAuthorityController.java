@@ -130,10 +130,22 @@ public class PriorAuthorityController {
         description = "No file supplied or file is empty.",
         content = @Content),
     @ApiResponse(
+        responseCode = "404",
+        description = "Prior authority not found in the access data store.",
+        content = @Content),
+    @ApiResponse(
+        responseCode = "409",
+        description = "The access data store rejected the document as a conflict.",
+        content = @Content),
+    @ApiResponse(
         responseCode = "413",
         description = "File exceeds the configured maximum size.",
         content = @Content),
-    @ApiResponse(responseCode = "415", description = "Unsupported file type.", content = @Content)
+    @ApiResponse(responseCode = "415", description = "Unsupported file type.", content = @Content),
+    @ApiResponse(
+        responseCode = "502",
+        description = "The access data store failed to store the document.",
+        content = @Content)
   })
   @PostMapping(
       value = "/{priorAuthorityId}/documents",

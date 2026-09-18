@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.patch;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -279,6 +280,92 @@ class PriorAuthorityIntegrationTest {
             .getStatusCode();
 
     assertEquals(HttpStatus.CONTENT_TOO_LARGE, status);
+  }
+
+  @Test
+  void uploadDocumentWithContentThatIsNotAPdfReturns415AndIsNotSentToTheAccessDataStore() {
+    UUID priorAuthorityId = UUID.randomUUID();
+
+    HttpStatusCode status =
+        uploadDocument(priorAuthorityId, "not a pdf at all".getBytes(), "corrupt.pdf");
+
+    assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, status);
+    accessDataStore.verify(
+        0,
+        postRequestedFor(
+            urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId + "/documents")));
+  }
+
+  @Test
+  void uploadDocumentWithEmptyContentReturns400AndIsNotSentToTheAccessDataStore() {
+    UUID priorAuthorityId = UUID.randomUUID();
+
+    HttpStatusCode status = uploadDocument(priorAuthorityId, new byte[0], "empty.pdf");
+
+    assertEquals(HttpStatus.BAD_REQUEST, status);
+    accessDataStore.verify(
+        0,
+        postRequestedFor(
+            urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId + "/documents")));
+  }
+
+  @Test
+  void uploadDocumentReturns404WhenTheAccessDataStoreCannotFindThePriorAuthority() {
+    UUID priorAuthorityId = UUID.randomUUID();
+    stubDocumentUploadResponse(priorAuthorityId, 404);
+
+    assertEquals(HttpStatus.NOT_FOUND, uploadValidDocument(priorAuthorityId));
+  }
+
+  @Test
+  void uploadDocumentReturns409WhenTheAccessDataStoreRejectsTheDocument() {
+    UUID priorAuthorityId = UUID.randomUUID();
+    stubDocumentUploadResponse(priorAuthorityId, 409);
+
+    assertEquals(HttpStatus.CONFLICT, uploadValidDocument(priorAuthorityId));
+  }
+
+  @Test
+  void uploadDocumentReturns502WhenTheAccessDataStoreFails() {
+    UUID priorAuthorityId = UUID.randomUUID();
+    stubDocumentUploadResponse(priorAuthorityId, 500);
+
+    assertEquals(HttpStatus.BAD_GATEWAY, uploadValidDocument(priorAuthorityId));
+  }
+
+  private void stubDocumentUploadResponse(UUID priorAuthorityId, int status) {
+    accessDataStore.stubFor(
+        post(urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId + "/documents"))
+            .withHeader("X-Service-Name", equalTo(SERVICE_NAME))
+            .willReturn(aResponse().withStatus(status)));
+  }
+
+  private HttpStatusCode uploadValidDocument(UUID priorAuthorityId) {
+    return uploadDocument(
+        priorAuthorityId, "%PDF-1.4\nmock pdf content for testing".getBytes(), "evidence.pdf");
+  }
+
+  private HttpStatusCode uploadDocument(UUID priorAuthorityId, byte[] content, String filename) {
+    ByteArrayResource fileResource =
+        new ByteArrayResource(content) {
+          @Override
+          public String getFilename() {
+            return filename;
+          }
+        };
+
+    MultiValueMap<String, Object> multipartBody = new LinkedMultiValueMap<>();
+    multipartBody.add("file", fileResource);
+
+    return authenticatedClient
+        .post()
+        .uri("http://localhost:" + port + "/prior-authorities/{id}/documents", priorAuthorityId)
+        .contentType(MediaType.MULTIPART_FORM_DATA)
+        .body(multipartBody)
+        .retrieve()
+        .onStatus(_ -> true, (_, _) -> {})
+        .toBodilessEntity()
+        .getStatusCode();
   }
 
   @Test

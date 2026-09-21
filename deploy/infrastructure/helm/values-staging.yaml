@@ -56,9 +56,11 @@ ingress:
       nginx.ingress.kubernetes.io/modsecurity-snippet: |
         SecRuleEngine On
         SecDefaultAction "phase:2,pass,log,tag:github_team=laa-civil-manage-an-application"
-        SecRule REQUEST_URI "@beginsWith /actuator/health" "id:1002,phase:2,allow,tag:github_team=laa-civil-manage-an-application"
-        SecRule REMOTE_ADDR "!@ipMatch 35.176.93.186/32" "id:1001,deny,status:403,tag:github_team=laa-civil-manage-an-application"
+        SecRule REQUEST_URI "!@beginsWith /actuator/health" "id:1001,phase:2,deny,status:403,chain,tag:github_team=laa-civil-manage-an-application"
+          SecRule REMOTE_ADDR "!@ipMatch 35.176.93.186/32" "t:none"
       # VPN IP ranges from: https://github.com/ministryofjustice/moj-ip-addresses/blob/main/moj-cidr-addresses.yml#L267
+      # Only deny (id:1001) when BOTH the path is outside /actuator/health* AND the caller isn't on
+      # the VPN, so uptime monitors (e.g. Pingdom) can reach the health endpoint from outside the VPN.
   blue:
     enabled: false
 

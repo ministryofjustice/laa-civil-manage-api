@@ -52,6 +52,8 @@ ingress:
     annotations:
       external-dns.alpha.kubernetes.io/set-identifier: "laa-civil-manage-api-laa-civil-manage-api-production-green"
       external-dns.alpha.kubernetes.io/aws-weight: "100"
+      # Dummy "418" overrides global HTML error masking allowing raw 5xx JSON
+      nginx.ingress.kubernetes.io/custom-http-errors: "418"
   blue:
     enabled: false
 

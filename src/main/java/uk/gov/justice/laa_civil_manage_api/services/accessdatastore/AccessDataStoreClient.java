@@ -29,7 +29,7 @@ public interface AccessDataStoreClient {
       String clientFirstName,
       String clientLastName);
 
-  ApplicationSummary getApplicationById(UUID applicationId);
+  AccessDataStoreApplication getApplicationById(UUID applicationId);
 
   IndividualsResponse getIndividuals(UUID applicationId);
 }

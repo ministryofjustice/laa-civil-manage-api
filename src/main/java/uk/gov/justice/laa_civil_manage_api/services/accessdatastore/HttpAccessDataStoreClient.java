@@ -141,14 +141,14 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
   }
 
   @Override
-  public ApplicationSummary getApplicationById(UUID applicationId) {
+  public AccessDataStoreApplication getApplicationById(UUID applicationId) {
     String baseUrl = properties.baseUrl();
 
     return adsRestClient
         .get()
-        .uri(baseUrl + "/api/v0/applications/" + applicationId)
+        .uri(baseUrl + "/api/v0/applications/{id}", applicationId)
         .retrieve()
-        .body(ApplicationSummary.class);
+        .body(AccessDataStoreApplication.class);
   }
 
   @Override

@@ -104,7 +104,6 @@ containerEnvironment:
     LEGAL_FRAMEWORK_API_BASE_URL: "https://main-legal-framework-uat.cloud-platform.service.justice.gov.uk"
     ACCESS_DATA_STORE_BASE_URL: "https://dev-token-enabled-internal-laa-data-access-api-uat.internal-non-prod.cloud-platform.service.justice.gov.uk"
     PROVIDER_DETAILS_API_BASE_URL: "https://laa-provider-details-api-uat.apps.live.cloud-platform.service.justice.gov.uk"
-    GOV_UK_NOTIFY_EMAIL: "lucas.main@justice.gov.uk"
     GOV_UK_NOTIFY_TEMPLATE_ID: "7cdb67f0-09b8-459b-9d46-05f6edb57d3b"
   secrets:
     - name: AZURE_ENTRA_API_CLIENT_SECRET

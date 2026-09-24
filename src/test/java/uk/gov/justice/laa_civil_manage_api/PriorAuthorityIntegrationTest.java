@@ -3,20 +3,27 @@ package uk.gov.justice.laa_civil_manage_api;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.patch;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.after;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -35,10 +42,13 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
+import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
 import uk.gov.justice.laa_civil_manage_api.controllers.PriorAuthorityController.PriorAuthorityIdResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentTypeUpdateResponse;
@@ -52,10 +62,20 @@ import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataSt
 class PriorAuthorityIntegrationTest {
 
   private static final String SERVICE_NAME = "CIVIL_MANAGE";
+  private static final String OFFICE_CODE = "0W839P";
 
   @RegisterExtension
   static WireMockExtension accessDataStore =
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+
+  @RegisterExtension
+  static WireMockExtension providerDetails =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+
+  @DynamicPropertySource
+  static void providerDetailsProperties(DynamicPropertyRegistry registry) {
+    registry.add("laa-civil-manage-api.provider-details.base-url", providerDetails::baseUrl);
+  }
 
   @LocalServerPort private int port;
 
@@ -65,12 +85,15 @@ class PriorAuthorityIntegrationTest {
 
   @MockitoBean private OAuth2AuthorizedClientManager authorizedClientManager;
 
+  @MockitoBean private NotifyEmailSender notifyEmailSender;
+
   private RestClient authenticatedClient;
 
   @BeforeEach
   void setUp() {
     when(accessDataStoreProperties.baseUrl()).thenReturn(accessDataStore.baseUrl());
     when(accessDataStoreProperties.serviceName()).thenReturn(SERVICE_NAME);
+    when(notifyEmailSender.sendEmail(any())).thenReturn(CompletableFuture.completedFuture(null));
 
     Jwt mockJwt =
         Jwt.withTokenValue("test-token").header("alg", "none").claim("sub", "test-user").build();
@@ -228,10 +251,13 @@ class PriorAuthorityIntegrationTest {
                                                 {
                                                   "applicationId": "%s",
                                                   "laaReference": "LAA123456",
-                                                  "status": "APPLICATION_SUBMITTED"
+                                                  "status": "APPLICATION_SUBMITTED",
+                                                  "provider": { "officeCode": "%s" }
                                                 }
                                                 """
-                            .formatted(applicationId))));
+                            .formatted(applicationId, OFFICE_CODE))));
+
+    stubProviderOfficeEmail(OFFICE_CODE, "office@example.com");
 
     ResponseEntity<PriorAuthorityApplicationResponse> submit =
         authenticatedClient
@@ -243,6 +269,108 @@ class PriorAuthorityIntegrationTest {
     assertEquals(HttpStatus.CREATED, submit.getStatusCode());
     assertNotNull(submit.getBody());
     assertEquals(priorAuthorityId, submit.getBody().priorAuthorityId());
+
+    verify(notifyEmailSender, timeout(5000))
+        .sendEmail(argThat(request -> "office@example.com".equals(request.emailAddress())));
+  }
+
+  @Test
+  void submitSucceedsWithoutSendingEmailWhenProviderDetailsFails() {
+    UUID applicationId = UUID.randomUUID();
+    UUID priorAuthorityId = UUID.randomUUID();
+    stubSubmitFlow(priorAuthorityId, applicationId);
+    stubApplication(applicationId, 200);
+    providerDetails.stubFor(
+        get(urlEqualTo("/api/v1/provider-offices/" + OFFICE_CODE))
+            .willReturn(aResponse().withStatus(404)));
+
+    assertEquals(HttpStatus.CREATED, submit(priorAuthorityId));
+
+    verify(notifyEmailSender, after(500).never()).sendEmail(any());
+  }
+
+  @Test
+  void submitSucceedsWithoutSendingEmailWhenApplicationLookupFails() {
+    UUID applicationId = UUID.randomUUID();
+    UUID priorAuthorityId = UUID.randomUUID();
+    stubSubmitFlow(priorAuthorityId, applicationId);
+    stubApplication(applicationId, 500);
+
+    assertEquals(HttpStatus.CREATED, submit(priorAuthorityId));
+
+    verify(notifyEmailSender, after(500).never()).sendEmail(any());
+    providerDetails.verify(0, getRequestedFor(urlPathMatching("/api/v1/provider-offices/.*")));
+  }
+
+  private void stubSubmitFlow(UUID priorAuthorityId, UUID applicationId) {
+    accessDataStore.stubFor(
+        post(urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId + "/submit"))
+            .willReturn(
+                aResponse()
+                    .withStatus(201)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                        { "priorAuthorityId": "%s", "submittedAt": "2026-05-22T10:00:00Z" }
+                        """
+                            .formatted(priorAuthorityId))));
+    accessDataStore.stubFor(
+        get(urlEqualTo("/api/v0/prior-authorities/" + priorAuthorityId))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                        {
+                          "priorAuthorityId": "%s",
+                          "applicationId": "%s",
+                          "priorAuthorityType": "EXPERT"
+                        }
+                        """
+                            .formatted(priorAuthorityId, applicationId))));
+  }
+
+  private void stubApplication(UUID applicationId, int status) {
+    accessDataStore.stubFor(
+        get(urlEqualTo("/api/v0/applications/" + applicationId))
+            .willReturn(
+                aResponse()
+                    .withStatus(status)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                        {
+                          "applicationId": "%s",
+                          "laaReference": "LAA123456",
+                          "provider": { "officeCode": "%s" }
+                        }
+                        """
+                            .formatted(applicationId, OFFICE_CODE))));
+  }
+
+  private void stubProviderOfficeEmail(String officeCode, String email) {
+    providerDetails.stubFor(
+        get(urlEqualTo("/api/v1/provider-offices/" + officeCode))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        """
+                        { "office": { "officeCode": "%s", "emailAddress": "%s" } }
+                        """
+                            .formatted(officeCode, email))));
+  }
+
+  private HttpStatusCode submit(UUID priorAuthorityId) {
+    return authenticatedClient
+        .post()
+        .uri("http://localhost:" + port + "/prior-authorities/{id}/submit", priorAuthorityId)
+        .retrieve()
+        .onStatus(_ -> true, (_, _) -> {})
+        .toBodilessEntity()
+        .getStatusCode();
   }
 
   @Test

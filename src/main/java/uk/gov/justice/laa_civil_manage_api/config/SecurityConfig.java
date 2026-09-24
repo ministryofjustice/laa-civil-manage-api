@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;
@@ -52,19 +51,6 @@ public class SecurityConfig {
   private String allowedOrigins;
 
   @Bean
-  @ConditionalOnProperty(name = "SKIP_AUTH", havingValue = "true")
-  public SecurityFilterChain skipAuthFilterChain(HttpSecurity http) throws Exception {
-    http.csrf(AbstractHttpConfigurer::disable)
-        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(authz -> authz.anyRequest().permitAll());
-
-    return http.build();
-  }
-
-  @Bean
-  @ConditionalOnProperty(name = "SKIP_AUTH", havingValue = "false", matchIfMissing = true)
   public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))

@@ -77,8 +77,9 @@ This API is fully secured using Microsoft Entra ID via OAuth 2.0.
   *On-Behalf-Of (OBO) flow**. The backend exchanges the user's incoming Entra token for a new token scoped specifically
   for the Data Store, ensuring strict, end-to-end user identity propagation.
 
-*(Note: If you need to test endpoints locally without a token, you can temporarily set `SKIP_AUTH=true` in your `.env`
-file).*
+Authentication is always enforced — there is no local bypass. To test locally or in e2e without real Entra
+credentials, set `AZURE_ENTRA_AUTHORITY_BASE_URL` to point at a mock OIDC provider (e.g. a WireMock instance serving
+`/discovery/v2.0/keys` and `/oauth2/v2.0/token`) instead of the default `https://login.microsoftonline.com`.
 
 ## CORS
 
@@ -111,8 +112,8 @@ See `HealthEndpointIntegrationTest` for tests that document this behaviour end-t
 
 ## Example requests
 
-All examples assume a local instance running at `http://localhost:8080`. Unless `SKIP_AUTH=true` is set locally, all
-requests require a valid Entra ID token in the `Authorization` header.
+All examples assume a local instance running at `http://localhost:8080`. All requests require a valid Entra ID token
+in the `Authorization` header.
 
 ### Prior authorities
 

@@ -246,7 +246,7 @@ class HttpAccessDataStoreClientTest {
                 BASE_URL
                     + "/api/v0/prior-authorities/"
                     + priorAuthorityId
-                    + "/document/"
+                    + "/documents/"
                     + documentId))
         .andExpect(method(HttpMethod.DELETE))
         .andExpect(header("X-Service-Name", SERVICE_NAME))

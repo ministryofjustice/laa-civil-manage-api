@@ -482,7 +482,7 @@ class PriorAuthorityIntegrationTest {
     accessDataStore.stubFor(
         delete(
                 urlEqualTo(
-                    "/api/v0/prior-authorities/" + priorAuthorityId + "/document/" + documentId))
+                    "/api/v0/prior-authorities/" + priorAuthorityId + "/documents/" + documentId))
             .withHeader("X-Service-Name", equalTo(SERVICE_NAME))
             .withHeader("Authorization", equalTo("Bearer downstream-access-token"))
             .withHeader("X-Authorization", equalTo("test-id-token"))
@@ -509,7 +509,7 @@ class PriorAuthorityIntegrationTest {
     accessDataStore.stubFor(
         delete(
                 urlEqualTo(
-                    "/api/v0/prior-authorities/" + priorAuthorityId + "/document/" + documentId))
+                    "/api/v0/prior-authorities/" + priorAuthorityId + "/documents/" + documentId))
             .willReturn(aResponse().withStatus(404)));
 
     HttpStatusCode status =

@@ -111,7 +111,7 @@ public class HttpAccessDataStoreClient implements AccessDataStoreClient {
     adsRestClient
         .delete()
         .uri(
-            baseUrl + PRIOR_AUTHORITIES_PATH + "/{priorAuthorityId}/document/{documentId}",
+            baseUrl + PRIOR_AUTHORITIES_PATH + "/{priorAuthorityId}/documents/{documentId}",
             priorAuthorityId,
             documentId)
         .retrieve()

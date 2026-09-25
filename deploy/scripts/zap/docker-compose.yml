@@ -12,6 +12,9 @@ services:
       PROVIDER_DETAILS_API_BASE_URL: zap-scan
       LEGAL_FRAMEWORK_API_BASE_URL: zap-scan
       ACCESS_DATA_STORE_BASE_URL: zap-scan
+      GOV_UK_NOTIFY_API_KEY: zap-scan
+      GOV_UK_NOTIFY_TEMPLATE_ID: zap-scan
+
 
   zap-scan:
     image: zaproxy/zap-stable@sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef

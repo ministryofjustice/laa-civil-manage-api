@@ -931,6 +931,11 @@
             "type": "string",
             "description": "The matter type of the application.",
             "example": "SPECIAL_CHILDREN_ACT"
+          },
+          "officeCode": {
+            "type": "string",
+            "description": "The provider\u0027s office code.",
+            "example": "0W839P"
           }
         }
       },

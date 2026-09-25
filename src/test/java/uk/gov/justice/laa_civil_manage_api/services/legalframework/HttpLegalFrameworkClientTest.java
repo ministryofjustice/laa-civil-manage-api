@@ -123,12 +123,4 @@ class HttpLegalFrameworkClientTest {
     assertFalse(new LegalFrameworkStatus(null).isHealthy());
     assertFalse(new LegalFrameworkStatus(java.util.Map.of()).isHealthy());
   }
-
-  @Test
-  void requireBaseUrlFailsFastWhenUnconfigured() {
-    LegalFrameworkProperties unconfigured =
-        new LegalFrameworkProperties("  ", Duration.ofSeconds(1), Duration.ofSeconds(1));
-
-    assertThrows(IllegalStateException.class, unconfigured::requireBaseUrl);
-  }
 }

@@ -67,16 +67,16 @@ laa-civil-manage-api:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:}
   access-data-store:
-    base-url: ${ACCESS_DATA_STORE_BASE_URL}
+    base-url: ${ACCESS_DATA_STORE_BASE_URL:}
     connect-timeout: 3s
     read-timeout: 5s
     service-name: "CIVIL_MANAGE"
   legal-framework:
-    base-url: ${LEGAL_FRAMEWORK_API_BASE_URL}
+    base-url: ${LEGAL_FRAMEWORK_API_BASE_URL:}
     connect-timeout: 3s
     read-timeout: 5s
   provider-details:
-    base-url: ${PROVIDER_DETAILS_API_BASE_URL}
+    base-url: ${PROVIDER_DETAILS_API_BASE_URL:}
     api-key: ${PROVIDER_DETAILS_API_KEY:}
     connect-timeout: 3s
     read-timeout: 5s
@@ -84,8 +84,6 @@ laa-civil-manage-api:
     initial-backoff-ms: 200
     backoff-multiplier: 2.0
   notify:
-    enabled: ${GOV_UK_NOTIFY_ENABLED:true}
     api-key: ${GOV_UK_NOTIFY_API_KEY:}
     base-url: ${GOV_UK_NOTIFY_BASE_URL:}
     prior-authority-submitted-template-id: ${GOV_UK_NOTIFY_TEMPLATE_ID:}
-    recipient-email: ${GOV_UK_NOTIFY_EMAIL:}

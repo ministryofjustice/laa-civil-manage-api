@@ -25,7 +25,7 @@ public class HttpLegalFrameworkClient implements LegalFrameworkClient {
     List<ExpertType> expertTypes =
         restClient
             .get()
-            .uri(properties.requireBaseUrl() + "/expert_types/{matterType}", matterType)
+            .uri(properties.baseUrl() + "/expert_types/{matterType}", matterType)
             .retrieve()
             .body(EXPERT_TYPE_LIST_TYPE);
     return expertTypes == null ? List.of() : expertTypes;
@@ -35,7 +35,7 @@ public class HttpLegalFrameworkClient implements LegalFrameworkClient {
   public LegalFrameworkStatus getStatus() {
     return restClient
         .get()
-        .uri(properties.requireBaseUrl() + "/status")
+        .uri(properties.baseUrl() + "/status")
         .retrieve()
         .body(LegalFrameworkStatus.class);
   }

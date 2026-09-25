@@ -24,7 +24,9 @@ import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummaryResponse;
 import uk.gov.justice.laa_civil_manage_api.models.Client;
 import uk.gov.justice.laa_civil_manage_api.models.IndividualsResponse;
 import uk.gov.justice.laa_civil_manage_api.models.Paging;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreApplication;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreProvider;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -123,15 +125,28 @@ class ApplicationsIntegrationTest {
   @Test
   void returnsApplicationByIdFromDataStoreForAuthenticatedRequest() throws Exception {
     UUID applicationId = UUID.fromString("11111111-2222-3333-4444-555555555555");
-    ApplicationSummary stored =
+    OffsetDateTime startDate = OffsetDateTime.parse("2026-07-22T10:00:00Z");
+    AccessDataStoreApplication stored =
+        new AccessDataStoreApplication(
+            applicationId,
+            "APP-1",
+            "APPLICATION_SUBMITTED",
+            startDate,
+            null,
+            null,
+            "SPECIAL_CHILDREN_ACT",
+            new AccessDataStoreProvider("0W839P"));
+    ApplicationSummary expected =
         ApplicationSummary.builder()
             .applicationId(applicationId)
             .laaReference("APP-1")
             .status("APPLICATION_SUBMITTED")
-            .startDate(OffsetDateTime.parse("2026-07-22T10:00:00Z"))
+            .startDate(startDate)
+            .clientFirstName("John")
+            .clientLastName("Doe")
+            .matterType("SPECIAL_CHILDREN_ACT")
+            .officeCode("0W839P")
             .build();
-    ApplicationSummary expected =
-        stored.toBuilder().clientFirstName("John").clientLastName("Doe").build();
 
     Client client = Client.builder().firstName("John").lastName("Doe").build();
     IndividualsResponse individualsResponse =

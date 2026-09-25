@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -13,25 +15,25 @@ import static org.mockito.Mockito.when;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.core.task.TaskRejectedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.justice.laa.civil.notify.model.SendEmailRequest;
-import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
-import uk.gov.justice.laa_civil_manage_api.config.NotifyEmailProperties;
-import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentType;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreApplication;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreProvider;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.DocumentTypeUpdateResponse;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.PriorAuthorityIdResponse;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.PriorAuthorityRecordResponse;
@@ -44,23 +46,16 @@ class PriorAuthorityServiceTest {
   private static final UUID PRIOR_AUTHORITY_ID = UUID.randomUUID();
 
   private final AccessDataStoreClient client = mock(AccessDataStoreClient.class);
-  private final NotifyEmailSender notifyEmailSender = mock(NotifyEmailSender.class);
+  private final PriorAuthorityEmailService priorAuthorityEmailService =
+      mock(PriorAuthorityEmailService.class);
   private final DocumentValidationService documentValidationService =
       mock(DocumentValidationService.class);
-  private final NotifyEmailProperties notifyEmailProperties =
-      new NotifyEmailProperties(
-          "api-key",
-          "https://api.notifications.service.gov.uk",
-          "template-id",
-          "ops@example.com",
-          true);
   private final PriorAuthorityService service =
-      new PriorAuthorityService(
-          client, notifyEmailSender, notifyEmailProperties, documentValidationService);
+      new PriorAuthorityService(client, documentValidationService, priorAuthorityEmailService);
 
   @BeforeEach
   void resetMocks() {
-    reset(client, notifyEmailSender, documentValidationService);
+    reset(client, priorAuthorityEmailService, documentValidationService);
   }
 
   @Test
@@ -154,8 +149,99 @@ class PriorAuthorityServiceTest {
   }
 
   @Test
-  void submitDelegatesAndSendsConfirmationEmail() {
+  void submitHandsSubmittedEmailToEmailServiceWithOfficeCodeAndPersonalisation() {
     UUID applicationId = UUID.randomUUID();
+    OffsetDateTime submittedAt = OffsetDateTime.parse("2026-05-22T10:00:00Z");
+    stubSubmittedPriorAuthority(applicationId, submittedAt);
+    when(client.getApplicationById(applicationId))
+        .thenReturn(adsApplication(applicationId, new AccessDataStoreProvider("0W839P")));
+
+    var response = service.submit(PRIOR_AUTHORITY_ID);
+
+    assertEquals(PRIOR_AUTHORITY_ID, response.priorAuthorityId());
+    verify(client).submitPriorAuthority(PRIOR_AUTHORITY_ID);
+
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<Map<String, Object>> personalisation = ArgumentCaptor.forClass(Map.class);
+    verify(priorAuthorityEmailService)
+        .sendSubmittedEmail(eq(PRIOR_AUTHORITY_ID), eq("0W839P"), personalisation.capture());
+    assertEquals(
+        Map.of(
+            "priorAuthorityReference", PRIOR_AUTHORITY_ID,
+            "laaReference", "LAA123456",
+            "priorAuthorityType", "Expert",
+            "submittedAt", "22 May 2026, 10:00 am"),
+        personalisation.getValue());
+  }
+
+  @Test
+  void submitPassesNullOfficeCodeWhenApplicationHasNoProvider() {
+    UUID applicationId = UUID.randomUUID();
+    stubSubmittedPriorAuthority(applicationId, OffsetDateTime.now());
+    when(client.getApplicationById(applicationId)).thenReturn(adsApplication(applicationId, null));
+
+    service.submit(PRIOR_AUTHORITY_ID);
+
+    verify(priorAuthorityEmailService).sendSubmittedEmail(eq(PRIOR_AUTHORITY_ID), isNull(), any());
+  }
+
+  @Test
+  void submitReturnsResponseAndSkipsEmailWhenPriorAuthorityLookupFails() {
+    when(client.submitPriorAuthority(PRIOR_AUTHORITY_ID))
+        .thenReturn(
+            new SubmitPriorAuthorityDraftResponse(PRIOR_AUTHORITY_ID, OffsetDateTime.now()));
+    when(client.getPriorAuthority(PRIOR_AUTHORITY_ID))
+        .thenThrow(new RestClientException("ADS unavailable"));
+
+    var response = service.submit(PRIOR_AUTHORITY_ID);
+
+    assertEquals(PRIOR_AUTHORITY_ID, response.priorAuthorityId());
+    verify(priorAuthorityEmailService, never()).sendSubmittedEmail(any(), any(), any());
+  }
+
+  @Test
+  void submitReturnsResponseAndSkipsEmailWhenApplicationLookupFails() {
+    UUID applicationId = UUID.randomUUID();
+    stubSubmittedPriorAuthority(applicationId, OffsetDateTime.now());
+    when(client.getApplicationById(applicationId))
+        .thenThrow(new RestClientException("ADS unavailable"));
+
+    var response = service.submit(PRIOR_AUTHORITY_ID);
+
+    assertEquals(PRIOR_AUTHORITY_ID, response.priorAuthorityId());
+    verify(priorAuthorityEmailService, never()).sendSubmittedEmail(any(), any(), any());
+  }
+
+  @Test
+  void submitReturnsResponseAndSkipsEmailWhenApplicationIsNotFound() {
+    UUID applicationId = UUID.randomUUID();
+    stubSubmittedPriorAuthority(applicationId, OffsetDateTime.now());
+    when(client.getApplicationById(applicationId)).thenReturn(null);
+
+    var response = service.submit(PRIOR_AUTHORITY_ID);
+
+    assertEquals(PRIOR_AUTHORITY_ID, response.priorAuthorityId());
+    verify(priorAuthorityEmailService, never()).sendSubmittedEmail(any(), any(), any());
+  }
+
+  @Test
+  void submitReturnsResponseWhenEmailServiceCannotBeScheduled() {
+    UUID applicationId = UUID.randomUUID();
+    stubSubmittedPriorAuthority(applicationId, OffsetDateTime.now());
+    when(client.getApplicationById(applicationId))
+        .thenReturn(adsApplication(applicationId, new AccessDataStoreProvider("0W839P")));
+    doThrow(new TaskRejectedException("executor saturated"))
+        .when(priorAuthorityEmailService)
+        .sendSubmittedEmail(any(), any(), any());
+
+    var response = service.submit(PRIOR_AUTHORITY_ID);
+
+    assertEquals(PRIOR_AUTHORITY_ID, response.priorAuthorityId());
+  }
+
+  private void stubSubmittedPriorAuthority(UUID applicationId, OffsetDateTime submittedAt) {
+    when(client.submitPriorAuthority(PRIOR_AUTHORITY_ID))
+        .thenReturn(new SubmitPriorAuthorityDraftResponse(PRIOR_AUTHORITY_ID, submittedAt));
     when(client.getPriorAuthority(PRIOR_AUTHORITY_ID))
         .thenReturn(
             Optional.of(
@@ -165,77 +251,12 @@ class PriorAuthorityServiceTest {
                     .status("PENDING")
                     .priorAuthorityType(PriorAuthorityType.EXPERT)
                     .build()));
-    when(client.getApplicationById(applicationId))
-        .thenReturn(
-            ApplicationSummary.builder()
-                .applicationId(applicationId)
-                .laaReference("LAA123456")
-                .build());
-    when(notifyEmailSender.sendEmail(any(SendEmailRequest.class)))
-        .thenReturn(CompletableFuture.completedFuture(null));
-    when(client.submitPriorAuthority(PRIOR_AUTHORITY_ID))
-        .thenReturn(
-            new SubmitPriorAuthorityDraftResponse(PRIOR_AUTHORITY_ID, OffsetDateTime.now()));
-
-    var response = service.submit(PRIOR_AUTHORITY_ID);
-
-    assertEquals(PRIOR_AUTHORITY_ID, response.priorAuthorityId());
-    verify(client).submitPriorAuthority(PRIOR_AUTHORITY_ID);
-
-    ArgumentCaptor<SendEmailRequest> emailCaptor = ArgumentCaptor.forClass(SendEmailRequest.class);
-    verify(notifyEmailSender).sendEmail(emailCaptor.capture());
-    SendEmailRequest sentEmail = emailCaptor.getValue();
-    assertEquals("template-id", sentEmail.templateId());
-    assertEquals("LAA123456", sentEmail.personalisation().get("laaReference"));
-    assertEquals("Expert", sentEmail.personalisation().get("priorAuthorityType"));
   }
 
-  @Test
-  void submitReturnsResponseEvenWhenEmailFutureFails() {
-    UUID applicationId = UUID.randomUUID();
-    when(client.getPriorAuthority(PRIOR_AUTHORITY_ID))
-        .thenReturn(
-            Optional.of(
-                PriorAuthorityRecordResponse.builder()
-                    .priorAuthorityId(PRIOR_AUTHORITY_ID)
-                    .applicationId(applicationId)
-                    .priorAuthorityType(PriorAuthorityType.EXPERT)
-                    .uploadedDocuments(null)
-                    .build()));
-    when(client.getApplicationById(applicationId))
-        .thenReturn(
-            ApplicationSummary.builder()
-                .applicationId(applicationId)
-                .laaReference("LAA123456")
-                .build());
-    when(notifyEmailSender.sendEmail(any(SendEmailRequest.class)))
-        .thenReturn(CompletableFuture.failedFuture(new RuntimeException("notify down")));
-    when(client.submitPriorAuthority(PRIOR_AUTHORITY_ID))
-        .thenReturn(
-            new SubmitPriorAuthorityDraftResponse(PRIOR_AUTHORITY_ID, OffsetDateTime.now()));
-
-    var response = service.submit(PRIOR_AUTHORITY_ID);
-
-    assertEquals(PRIOR_AUTHORITY_ID, response.priorAuthorityId());
-  }
-
-  @Test
-  void doesNotSendEmailWhenNotifyIsNotConfigured() {
-    PriorAuthorityService unconfiguredService =
-        new PriorAuthorityService(
-            client,
-            notifyEmailSender,
-            new NotifyEmailProperties("", "", "", "", false),
-            documentValidationService);
-    when(client.submitPriorAuthority(PRIOR_AUTHORITY_ID))
-        .thenReturn(
-            new SubmitPriorAuthorityDraftResponse(PRIOR_AUTHORITY_ID, OffsetDateTime.now()));
-
-    var response = unconfiguredService.submit(PRIOR_AUTHORITY_ID);
-
-    assertEquals(PRIOR_AUTHORITY_ID, response.priorAuthorityId());
-    verify(notifyEmailSender, never()).sendEmail(any(SendEmailRequest.class));
-    verify(client, never()).getPriorAuthority(any());
+  private static AccessDataStoreApplication adsApplication(
+      UUID applicationId, AccessDataStoreProvider provider) {
+    return new AccessDataStoreApplication(
+        applicationId, "LAA123456", "APPLICATION_SUBMITTED", null, null, null, null, provider);
   }
 
   @Test

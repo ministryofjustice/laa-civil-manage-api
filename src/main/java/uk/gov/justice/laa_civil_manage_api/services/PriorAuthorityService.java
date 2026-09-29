@@ -11,16 +11,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import uk.gov.justice.laa.civil.notify.model.SendEmailRequest;
-import uk.gov.justice.laa.civil.notify.service.NotifyEmailSender;
-import uk.gov.justice.laa_civil_manage_api.config.NotifyEmailProperties;
-import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityApplicationResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentType;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDocumentTypeUpdateResponse;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityDraft;
 import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityResponse;
 import uk.gov.justice.laa_civil_manage_api.models.UploadedDocument;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreApplication;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.CreatePriorAuthorityDraftRequest;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.DocumentTypeUpdateResponse;
@@ -38,9 +35,8 @@ public class PriorAuthorityService {
       DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a", Locale.UK);
 
   private final AccessDataStoreClient accessDataStoreClient;
-  private final NotifyEmailSender notifyEmailSender;
-  private final NotifyEmailProperties notifyEmailProperties;
   private final DocumentValidationService documentValidationService;
+  private final PriorAuthorityEmailService priorAuthorityEmailService;
 
   public UUID createDraft(PriorAuthorityDraft draft) {
     log.info(
@@ -90,41 +86,50 @@ public class PriorAuthorityService {
             .submittedAt(submitResponse.submittedAt())
             .build();
 
-    if (notifyEmailProperties.enabled()) {
-      accessDataStoreClient
-          .getPriorAuthority(priorAuthorityId)
-          .ifPresent(record -> triggerSubmittedEmail(record, response));
-    }
+    triggerSubmittedEmail(priorAuthorityId, response);
 
     log.info("Prior authority submitted: priorAuthorityId={}", priorAuthorityId);
     return response;
   }
 
   private void triggerSubmittedEmail(
-      PriorAuthorityRecordResponse record, PriorAuthorityApplicationResponse response) {
+      UUID priorAuthorityId, PriorAuthorityApplicationResponse response) {
+    try {
+      Optional<PriorAuthorityRecordResponse> record =
+          accessDataStoreClient.getPriorAuthority(priorAuthorityId);
+      if (record.isEmpty()) {
+        log.warn(
+            "Prior authority not found, skipping submission email: priorAuthorityId={}",
+            priorAuthorityId);
+        return;
+      }
 
-    ApplicationSummary app = accessDataStoreClient.getApplicationById(record.applicationId());
+      AccessDataStoreApplication app =
+          accessDataStoreClient.getApplicationById(record.get().applicationId());
+      if (app == null) {
+        log.warn(
+            "Application not found, skipping submission email: priorAuthorityId={},"
+                + " applicationId={}",
+            priorAuthorityId,
+            record.get().applicationId());
+        return;
+      }
 
-    SendEmailRequest emailRequest =
-        new SendEmailRequest(
-            notifyEmailProperties.priorAuthoritySubmittedTemplateId(),
-            notifyEmailProperties.recipientEmail(),
-            Map.of(
-                "priorAuthorityReference", response.priorAuthorityId(),
-                "laaReference", app.laaReference(),
-                "priorAuthorityType", record.priorAuthorityType().getDisplayName(),
-                "submittedAt", response.submittedAt().format(SUBMITTED_AT_FORMATTER)));
-
-    notifyEmailSender
-        .sendEmail(emailRequest)
-        .exceptionally(
-            throwable -> {
-              log.error(
-                  "Failed to send prior authority submission email: priorAuthorityId={}",
-                  record.priorAuthorityId(),
-                  throwable);
-              return null;
-            });
+      String officeCode = app.provider() == null ? null : app.provider().officeCode();
+      priorAuthorityEmailService.sendSubmittedEmail(
+          priorAuthorityId,
+          officeCode,
+          Map.of(
+              "priorAuthorityReference", response.priorAuthorityId(),
+              "laaReference", app.laaReference(),
+              "priorAuthorityType", record.get().priorAuthorityType().getDisplayName(),
+              "submittedAt", response.submittedAt().format(SUBMITTED_AT_FORMATTER)));
+    } catch (RuntimeException ex) {
+      log.error(
+          "Failed to trigger prior authority submission email: priorAuthorityId={}",
+          priorAuthorityId,
+          ex);
+    }
   }
 
   private PriorAuthorityResponse toSummary(PriorAuthorityRecordResponse record) {

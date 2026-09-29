@@ -1,16 +1,11 @@
 package uk.gov.justice.laa_civil_manage_api.services.legalframework;
 
+import jakarta.validation.constraints.NotBlank;
 import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties(prefix = "laa-civil-manage-api.legal-framework")
+@Validated
 public record LegalFrameworkProperties(
-    String baseUrl, Duration connectTimeout, Duration readTimeout) {
-
-  public String requireBaseUrl() {
-    if (baseUrl == null || baseUrl.isBlank()) {
-      throw new IllegalStateException("No Legal Framework API base URL configured");
-    }
-    return baseUrl;
-  }
-}
+    @NotBlank String baseUrl, Duration connectTimeout, Duration readTimeout) {}

@@ -359,17 +359,21 @@ class HttpAccessDataStoreClientTest {
                                   "status": "APPLICATION_SUBMITTED",
                                   "submittedAt": "2026-07-22T10:00:00Z",
                                   "clientFirstName": "John",
-                                  "clientLastName": "Doe"
+                                  "clientLastName": "Doe",
+                                  "provider": {
+                                    "officeCode": "0W839P"
+                                  }
                                 }
                                 """,
                 MediaType.APPLICATION_JSON));
 
-    ApplicationSummary result = client.getApplicationById(applicationId);
+    AccessDataStoreApplication result = client.getApplicationById(applicationId);
 
     assertNotNull(result);
     assertEquals(applicationId, result.applicationId());
     assertEquals("APP-1", result.laaReference());
     assertEquals("APPLICATION_SUBMITTED", result.status());
+    assertEquals("0W839P", result.provider().officeCode());
     server.verify();
   }
 

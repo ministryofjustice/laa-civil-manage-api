@@ -118,6 +118,10 @@ openApi {
                 "--spring.security.oauth2.client.registration.entra-obo-access-data-store.client-secret=openapi-doc-gen",
                 "--laa-civil-manage-api.provider-details.base-url=http://localhost:8080/openapi-doc-gen",
                 "--laa-civil-manage-api.provider-details.api-key=openapi-doc-gen",
+                "--laa-civil-manage-api.access-data-store.base-url=http://localhost:8080/openapi-doc-gen",
+                "--laa-civil-manage-api.legal-framework.base-url=http://localhost:8080/openapi-doc-gen",
+                "--laa-civil-manage-api.notify.api-key=openapi-doc-gen",
+                "--laa-civil-manage-api.notify.prior-authority-submitted-template-id=openapi-doc-gen",
             ),
         )
     }

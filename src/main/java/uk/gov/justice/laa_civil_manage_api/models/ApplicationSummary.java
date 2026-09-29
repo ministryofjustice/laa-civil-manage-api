@@ -27,4 +27,5 @@ public record ApplicationSummary(
     @Schema(description = "The client first name.", example = "John") String clientFirstName,
     @Schema(description = "The client last name.", example = "Doe") String clientLastName,
     @Schema(description = "The matter type of the application.", example = "SPECIAL_CHILDREN_ACT")
-        String matterType) {}
+        String matterType,
+    @Schema(description = "The provider's office code.", example = "0W839P") String officeCode) {}

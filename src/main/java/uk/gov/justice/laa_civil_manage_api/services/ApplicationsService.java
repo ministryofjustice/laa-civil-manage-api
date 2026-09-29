@@ -2,6 +2,7 @@ package uk.gov.justice.laa_civil_manage_api.services;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummaryResponse;
 import uk.gov.justice.laa_civil_manage_api.models.Client;
 import uk.gov.justice.laa_civil_manage_api.models.IndividualsResponse;
 import uk.gov.justice.laa_civil_manage_api.models.Paging;
+import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreApplication;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
 
 @Service
@@ -43,7 +45,11 @@ public class ApplicationsService {
 
   public ApplicationSummary getApplicationById(String applicationId) {
     UUID id = UUID.fromString(applicationId);
-    ApplicationSummary summary = accessDataStoreClient.getApplicationById(id);
+
+    ApplicationSummary summary =
+        Optional.ofNullable(accessDataStoreClient.getApplicationById(id))
+            .map(AccessDataStoreApplication::toApplicationSummary)
+            .orElse(null);
 
     if (summary == null) {
       return null;

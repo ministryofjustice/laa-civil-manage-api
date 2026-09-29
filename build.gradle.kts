@@ -18,9 +18,9 @@ val bomVersionOverrides =
         // Temporary: fixes SNYK-JAVA-CHQOSLOGBACK-17675439 (Expression Injection, High severity).
         // Remove once Spring Boot ships with logback-core >= 1.5.36.
         "logback.version" to "1.5.36",
-        // Temporary: fixes SNYK-JAVA-ORGAPACHETOMCATEMBED-17732890 and SNYK-JAVA-ORGAPACHETOMCATEMBED-17733746.
-        // Remove once Spring Boot ships with tomcat-embed-core >= 11.0.23.
-        "tomcat.version" to "11.0.23",
+        // Temporary: fixes SNYK-JAVA-ORGAPACHETOMCATEMBED-20302842, -20302843, -20302886, -20302889
+        // and -20304748 (Critical/High). Remove once Spring Boot ships with tomcat-embed-core >= 11.0.25.
+        "tomcat.version" to "11.0.25",
         "commons-lang3.version" to "3.18.0", // Fixes Uncontrolled Recursion (CVE-2025-48924)
         "httpcore5.version" to "5.4.3", // Fixes Header Parsing & HPACK Decoder DoS (CVE-2026-54428)
         "httpclient5.version" to "5.6.4", // Fixes Connection Leak DoS (CVE-2026-64607)

@@ -326,3 +326,73 @@ jobs:
           kube_cluster: ${{ secrets.KUBE_CLUSTER }}
           kube_namespace: "laa-civil-manage-api-staging"
           release_host: ${{ needs.prepare_staging.outputs.release_host }}
+
+  # ==========================================
+  # PRODUCTION DEPLOYMENT
+  # ==========================================
+  prepare_production:
+    name: Prepare Production Environment
+    if: ${{ github.actor != 'renovate[bot]' && !failure() && !cancelled() && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    outputs:
+      release_name: ${{ steps.vars.outputs.release_name }}
+      release_host: ${{ steps.vars.outputs.release_host }}
+      identifier: ${{ steps.vars.outputs.identifier }}
+    steps:
+      - id: vars
+        run: |
+          APP_NAME="laa-civil-manage-api"
+          ENVIRONMENT="production"
+          RELEASE_NAME="${APP_NAME}"
+          RELEASE_HOST="${APP_NAME}.cloud-platform.service.justice.gov.uk"
+          IDENTIFIER="${APP_NAME}-green-${APP_NAME}-${ENVIRONMENT}-green"
+
+          echo "release_name=${RELEASE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "release_host=${RELEASE_HOST}" >> "$GITHUB_OUTPUT"
+          echo "identifier=${IDENTIFIER}" >> "$GITHUB_OUTPUT"
+
+  deploy-production:
+    name: Deploy to Production
+    needs: [prepare_production, deploy-staging, build-docker-image, image-scan, zap-scan]
+    if: ${{ !failure() && !cancelled() && needs.prepare_production.result == 'success' }}
+    # A newer run replaces an older one still waiting for approval; a running deploy is never cancelled.
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+    uses: ./.github/workflows/helm-deploy.yml
+    with:
+      environment: production
+      image_registry: ${{ needs.build-docker-image.outputs.image_registry }}
+      image_repo: ${{ needs.build-docker-image.outputs.image_repo }}
+      image_tag: ${{ needs.build-docker-image.outputs.image_tag }}
+      helm_release_name: ${{ needs.prepare_production.outputs.release_name }}
+      helm_additional_args: >-
+        --set certificate.enabled=false
+        --set-string nameOverride="${{ needs.prepare_production.outputs.release_name }}"
+        --set-string ingress.green.hostname="${{ needs.prepare_production.outputs.release_host }}"
+        --set-string ingress.green.annotations."external-dns\.alpha\.kubernetes\.io/set-identifier"="${{ needs.prepare_production.outputs.identifier }}"
+    secrets: inherit
+
+  notify_slack_production:
+    name: Post Slack Notification (Production)
+    needs: [prepare_production, deploy-production]
+    if: always() && !cancelled() && needs.deploy-production.result != 'skipped' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Send Slack Notification
+        uses: ./.github/actions/slack_deploy_notification
+        with:
+          environment: "production"
+          deploy_outcome: ${{ needs.deploy-production.result }}
+          kube_cert: ${{ secrets.KUBE_CERT }}
+          kube_token: ${{ secrets.KUBE_TOKEN }}
+          kube_cluster: ${{ secrets.KUBE_CLUSTER }}
+          kube_namespace: "laa-civil-manage-api-production"
+          release_host: ${{ needs.prepare_production.outputs.release_host }}
+          secret_name: "slack-webhook-url-alerts"
+          secret_key: "LAA_CIVIL_MANAGE_SLACK_WEBHOOK_URL"

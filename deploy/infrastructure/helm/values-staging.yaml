@@ -6,7 +6,7 @@ environment: staging
 appName: ""
 nameOverride: "laa-civil-manage-api"
 namespace: laa-civil-manage-api-staging
-replicaCount: 1
+replicaCount: 2
 serviceAccountName: cd-serviceaccount
 createServiceAccount: false
 

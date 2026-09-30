@@ -13,7 +13,26 @@ group = "uk.gov.justice"
 version = "0.0.1-SNAPSHOT"
 description = "Demo project for Spring Boot"
 
+val bomVersionOverrides =
+    mapOf(
+        // Temporary: fixes SNYK-JAVA-CHQOSLOGBACK-17675439 (Expression Injection, High severity).
+        // Remove once Spring Boot ships with logback-core >= 1.5.36.
+        "logback.version" to "1.5.36",
+        // Temporary: fixes SNYK-JAVA-ORGAPACHETOMCATEMBED-17732890 and SNYK-JAVA-ORGAPACHETOMCATEMBED-17733746.
+        // Remove once Spring Boot ships with tomcat-embed-core >= 11.0.23.
+        "tomcat.version" to "11.0.23",
+        "commons-lang3.version" to "3.18.0", // Fixes Uncontrolled Recursion (CVE-2025-48924)
+        "httpcore5.version" to "5.4.3", // Fixes Header Parsing & HPACK Decoder DoS (CVE-2026-54428)
+        "httpclient5.version" to "5.6.4", // Fixes Connection Leak DoS (CVE-2026-64607)
+        "log4j2.version" to "2.25.5", // Fixes MapMessage JSON serialization (CVE-2026-49844)
+        "micrometer.version" to "1.17.1", // Fixes Micrometer CRLF Injection (CVE-2026-59296)
+    )
+
+bomVersionOverrides.forEach { (name, value) -> extra[name] = value }
+
 subprojects {
+    bomVersionOverrides.forEach { (name, value) -> extra[name] = value }
+
     apply(plugin = "java")
     apply(plugin = "io.spring.dependency-management")
 
@@ -38,20 +57,6 @@ subprojects {
         useJUnitPlatform()
     }
 }
-
-// Temporary: override Spring Boot BOM's logback version to fix SNYK-JAVA-CHQOSLOGBACK-17675439
-// (Expression Injection, High severity). Remove once Spring Boot ships with logback-core >= 1.5.36.
-extra["logback.version"] = "1.5.36"
-
-// Temporary: override Spring Boot BOM's Tomcat version to fix SNYK-JAVA-ORGAPACHETOMCATEMBED-17732890
-// and SNYK-JAVA-ORGAPACHETOMCATEMBED-17733746. Remove once Spring Boot ships with tomcat-embed-core >= 11.0.23.
-extra["tomcat.version"] = "11.0.23"
-
-extra["commons-lang3.version"] = "3.18.0" // Fixes Uncontrolled Recursion (CVE-2025-48924)
-extra["httpcore5.version"] = "5.4.3" // Fixes Header Parsing & HPACK Decoder DoS (CVE-2026-54428)
-extra["httpclient5.version"] = "5.6.4" // Fixes Connection Leak DoS (CVE-2026-64607)
-extra["log4j2.version"] = "2.25.5" // Fixes MapMessage JSON serialization (CVE-2026-49844)
-extra["micrometer.version"] = "1.17.1" // Fixes Micrometer CRLF Injection (CVE-2026-59296)
 
 java {
     toolchain {

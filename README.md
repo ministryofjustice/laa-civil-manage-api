@@ -40,6 +40,39 @@ cp .env.example .env             # then fill in the values; never commit .env
 ./gradlew spotlessCheck          # verify formatting
 ```
 
+### ADS Pact contract
+
+The consumer pacticipant is `laa-civil-manage-api` and the provider pacticipant is
+`laa-data-access-api`. Generate the contract locally with:
+
+```bash
+./gradlew pactTest
+```
+
+The generated contract is written to `build/pacts/laa-civil-manage-api-laa-data-access-api.json`.
+Pacts are published by CI after successful merges to `main` using these GitHub Actions secrets:
+`PACT_BROKER_URL`, `PACT_BROKER_USERNAME`, and `PACT_BROKER_PASSWORD`.
+
+The first interaction covers `GET /api/v0/applications/{id}`. The provider state is
+`an application exists by id`; this state name must match the ADS provider verification state exactly.
+
+The remaining ADS interactions are scoped for subsequent contract coverage:
+
+| Interaction | Request complexity | Provider state focus |
+| --- | --- | --- |
+| `GET /api/v0/prior-authorities/{id}` | Response with nested draft and documents | Existing prior-authority draft |
+| `GET /api/v0/applications` | Pagination and optional filters | Applications matching query criteria |
+| `GET /api/v0/individuals?applicationId={id}` | Query parameter and client list mapping | Individuals for an application |
+| `POST /api/v0/prior-authorities` | Type-specific JSON request | Application exists and draft can be created |
+| `PUT /api/v0/prior-authorities/{id}` | Type-specific JSON update | Existing editable draft |
+| `POST /api/v0/prior-authorities/{id}/submit` | State-changing POST | Valid complete draft |
+| `POST /api/v0/prior-authorities/{id}/documents` | Multipart upload | Existing draft accepting a PDF |
+| `PATCH /api/v0/prior-authorities/{id}/documents/{documentId}` | JSON mutation | Existing uploaded document |
+| `DELETE /api/v0/prior-authorities/{id}/documents/{documentId}` | Empty response mutation | Existing uploaded document |
+
+Contract tests should assert only fields consumed by this service and use matchers for variable IDs,
+dates, and values. Pact JSON is generated output and must not be edited manually.
+
 > While running locally, you can view the API docs
 > at [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html).
 

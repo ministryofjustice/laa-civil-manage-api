@@ -6,7 +6,7 @@ environmentName: dev
 appName: ""
 nameOverride: "laa-civil-manage-api"
 namespace: laa-civil-manage-api-dev
-replicaCount: 1
+replicaCount: 2
 serviceAccountName: cd-serviceaccount
 createServiceAccount: false
 

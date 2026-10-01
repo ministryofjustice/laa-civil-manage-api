@@ -101,7 +101,7 @@ containerEnvironment:
     LEGAL_FRAMEWORK_API_BASE_URL: "https://legal-framework-api.cloud-platform.service.justice.gov.uk"
     ACCESS_DATA_STORE_BASE_URL: "https://laa-data-access-api-staging.internal-non-prod.cloud-platform.service.justice.gov.uk"
     PROVIDER_DETAILS_API_BASE_URL: "https://laa-provider-details-api-prod.apps.live.cloud-platform.service.justice.gov.uk"
-    GOV_UK_NOTIFY_TEMPLATE_ID: "7cdb67f0-09b8-459b-9d46-05f6edb57d3b"
+    GOV_UK_NOTIFY_TEMPLATE_ID: "adbedc21-9afb-4d85-b436-68d91b9db776"
   secrets:
     - name: AZURE_ENTRA_API_CLIENT_SECRET
       secretName: azure-entra-api-client-secret

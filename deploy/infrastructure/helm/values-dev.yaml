@@ -2,7 +2,7 @@
 # Uses the laa-generic-helm-chart contract.
 # See: https://github.com/ministryofjustice/laa-generic-helm-chart
 
-environment: dev
+environmentName: dev
 appName: ""
 nameOverride: "laa-civil-manage-api"
 namespace: laa-civil-manage-api-dev

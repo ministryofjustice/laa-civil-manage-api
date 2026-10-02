@@ -4,9 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummary;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthoritySummary;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
 
 class AccessDataStoreApplicationTest {
 
@@ -14,7 +17,16 @@ class AccessDataStoreApplicationTest {
   private static final OffsetDateTime SUBMITTED_AT = OffsetDateTime.parse("2026-07-22T10:00:00Z");
 
   @Test
-  void toApplicationSummaryMapsAllFieldsIncludingOfficeCode() {
+  void toApplicationSummaryMapsAllFieldsIncludingOfficeCodeAndPriorAuthorities() {
+    PriorAuthoritySummary priorAuthority =
+        PriorAuthoritySummary.builder()
+            .priorAuthorityId(UUID.randomUUID())
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
+            .status("DECIDED")
+            .decision("GRANTED")
+            .createdAt(OffsetDateTime.parse("2026-09-24T15:00:15.141805Z"))
+            .build();
+
     AccessDataStoreApplication application =
         new AccessDataStoreApplication(
             APPLICATION_ID,
@@ -24,7 +36,8 @@ class AccessDataStoreApplicationTest {
             "John",
             "Doe",
             "SPECIAL_CHILDREN_ACT",
-            new AccessDataStoreProvider("0W839P"));
+            new AccessDataStoreProvider("0W839P"),
+            List.of(priorAuthority));
 
     ApplicationSummary summary = application.toApplicationSummary();
 
@@ -38,6 +51,7 @@ class AccessDataStoreApplicationTest {
             .clientLastName("Doe")
             .matterType("SPECIAL_CHILDREN_ACT")
             .officeCode("0W839P")
+            .priorAuthorities(List.of(priorAuthority))
             .build(),
         summary);
   }
@@ -46,8 +60,33 @@ class AccessDataStoreApplicationTest {
   void toApplicationSummaryLeavesOfficeCodeNullWhenProviderIsMissing() {
     AccessDataStoreApplication application =
         new AccessDataStoreApplication(
-            APPLICATION_ID, "APP-1", "APPLICATION_SUBMITTED", SUBMITTED_AT, null, null, null, null);
+            APPLICATION_ID,
+            "APP-1",
+            "APPLICATION_SUBMITTED",
+            SUBMITTED_AT,
+            null,
+            null,
+            null,
+            null,
+            null);
 
     assertNull(application.toApplicationSummary().officeCode());
+  }
+
+  @Test
+  void toApplicationSummaryDefaultsPriorAuthoritiesToEmptyListWhenMissing() {
+    AccessDataStoreApplication application =
+        new AccessDataStoreApplication(
+            APPLICATION_ID,
+            "APP-1",
+            "APPLICATION_SUBMITTED",
+            SUBMITTED_AT,
+            null,
+            null,
+            null,
+            null,
+            null);
+
+    assertEquals(List.of(), application.toApplicationSummary().priorAuthorities());
   }
 }

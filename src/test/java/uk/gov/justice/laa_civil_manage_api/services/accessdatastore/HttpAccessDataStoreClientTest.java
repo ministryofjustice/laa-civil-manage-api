@@ -378,6 +378,49 @@ class HttpAccessDataStoreClientTest {
   }
 
   @Test
+  void getApplicationByIdDeserialisesAttachedPriorAuthorities() {
+    UUID applicationId = UUID.fromString("11111111-2222-3333-4444-555555555555");
+    UUID priorAuthorityId = UUID.fromString("c3b07e24-d92b-410a-9d95-88f117a12b43");
+
+    server
+        .expect(requestTo(BASE_URL + "/api/v0/applications/" + applicationId))
+        .andExpect(method(HttpMethod.GET))
+        .andRespond(
+            withSuccess(
+                """
+                {
+                  "applicationId": "11111111-2222-3333-4444-555555555555",
+                  "laaReference": "APP-1",
+                  "status": "APPLICATION_SUBMITTED",
+                  "priorAuthorities": [
+                    {
+                      "priorAuthorityId": "c3b07e24-d92b-410a-9d95-88f117a12b43",
+                      "priorAuthorityType": "EXPERT",
+                      "status": "DECIDED",
+                      "decision": "GRANTED",
+                      "createdAt": "2026-09-24T15:00:15.141805Z"
+                    }
+                  ]
+                }
+                """,
+                MediaType.APPLICATION_JSON));
+
+    AccessDataStoreApplication result = client.getApplicationById(applicationId);
+
+    assertEquals(
+        List.of(
+            PriorAuthoritySummary.builder()
+                .priorAuthorityId(priorAuthorityId)
+                .priorAuthorityType(PriorAuthorityType.EXPERT)
+                .status("DECIDED")
+                .decision("GRANTED")
+                .createdAt(OffsetDateTime.parse("2026-09-24T15:00:15.141805Z"))
+                .build()),
+        result.priorAuthorities());
+    server.verify();
+  }
+
+  @Test
   void getIndividualsGetsFromAdsWithServiceNameHeader() {
     UUID applicationId = UUID.fromString("11111111-2222-3333-4444-555555555555");
 

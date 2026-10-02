@@ -256,7 +256,15 @@ class PriorAuthorityServiceTest {
   private static AccessDataStoreApplication adsApplication(
       UUID applicationId, AccessDataStoreProvider provider) {
     return new AccessDataStoreApplication(
-        applicationId, "LAA123456", "APPLICATION_SUBMITTED", null, null, null, null, provider);
+        applicationId,
+        "LAA123456",
+        "APPLICATION_SUBMITTED",
+        null,
+        null,
+        null,
+        null,
+        provider,
+        null);
   }
 
   @Test

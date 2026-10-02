@@ -936,6 +936,13 @@
             "type": "string",
             "description": "The provider\u0027s office code.",
             "example": "0W839P"
+          },
+          "priorAuthorities": {
+            "type": "array",
+            "description": "Prior-authority requests attached to the application.",
+            "items": {
+              "$ref": "#/components/schemas/PriorAuthoritySummary"
+            }
           }
         }
       },
@@ -983,6 +990,56 @@
             "format": "int32",
             "description": "The total number of records available.",
             "example": 100
+          }
+        }
+      },
+      "PriorAuthoritySummary": {
+        "type": "object",
+        "description": "Summary of a prior-authority request attached to an application.",
+        "properties": {
+          "priorAuthorityId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the prior-authority request.",
+            "example": "c3b07e24-d92b-410a-9d95-88f117a12b43"
+          },
+          "priorAuthorityType": {
+            "type": "string",
+            "description": "The category of prior authority requested.",
+            "enum": [
+              "EXPERT",
+              "COUNSEL",
+              "DISBURSEMENT"
+            ],
+            "example": "EXPERT"
+          },
+          "status": {
+            "type": "string",
+            "description": "Lifecycle status of the prior-authority request.",
+            "enum": [
+              "DRAFT",
+              "SUBMITTED",
+              "DECIDED"
+            ],
+            "example": "SUBMITTED"
+          },
+          "decision": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Decision on the request, if decided.",
+            "enum": [
+              "GRANTED",
+              "REFUSED"
+            ],
+            "example": "GRANTED"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time the prior-authority request was created (in UTC).",
+            "example": "2026-09-24T15:00:15.141805Z"
           }
         }
       }

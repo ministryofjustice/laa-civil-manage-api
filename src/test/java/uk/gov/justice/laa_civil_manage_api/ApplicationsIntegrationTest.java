@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +25,8 @@ import uk.gov.justice.laa_civil_manage_api.models.ApplicationSummaryResponse;
 import uk.gov.justice.laa_civil_manage_api.models.Client;
 import uk.gov.justice.laa_civil_manage_api.models.IndividualsResponse;
 import uk.gov.justice.laa_civil_manage_api.models.Paging;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthoritySummary;
+import uk.gov.justice.laa_civil_manage_api.models.PriorAuthorityType;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreApplication;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreClient;
 import uk.gov.justice.laa_civil_manage_api.services.accessdatastore.AccessDataStoreProvider;
@@ -126,6 +129,13 @@ class ApplicationsIntegrationTest {
   void returnsApplicationByIdFromDataStoreForAuthenticatedRequest() throws Exception {
     UUID applicationId = UUID.fromString("11111111-2222-3333-4444-555555555555");
     OffsetDateTime startDate = OffsetDateTime.parse("2026-07-22T10:00:00Z");
+    PriorAuthoritySummary priorAuthority =
+        PriorAuthoritySummary.builder()
+            .priorAuthorityId(UUID.fromString("c3b07e24-d92b-410a-9d95-88f117a12b43"))
+            .priorAuthorityType(PriorAuthorityType.EXPERT)
+            .status("SUBMITTED")
+            .createdAt(OffsetDateTime.parse("2026-09-24T15:00:15.141805Z"))
+            .build();
     AccessDataStoreApplication stored =
         new AccessDataStoreApplication(
             applicationId,
@@ -135,7 +145,8 @@ class ApplicationsIntegrationTest {
             null,
             null,
             "SPECIAL_CHILDREN_ACT",
-            new AccessDataStoreProvider("0W839P"));
+            new AccessDataStoreProvider("0W839P"),
+            List.of(priorAuthority));
     ApplicationSummary expected =
         ApplicationSummary.builder()
             .applicationId(applicationId)
@@ -146,6 +157,7 @@ class ApplicationsIntegrationTest {
             .clientLastName("Doe")
             .matterType("SPECIAL_CHILDREN_ACT")
             .officeCode("0W839P")
+            .priorAuthorities(List.of(priorAuthority))
             .build();
 
     Client client = Client.builder().firstName("John").lastName("Doe").build();
@@ -159,6 +171,14 @@ class ApplicationsIntegrationTest {
         mockMvc
             .perform(get("/applications/{id}", applicationId).with(jwt()))
             .andExpect(status().isOk())
+            .andExpect(jsonPath("$.priorAuthorities.length()").value(1))
+            .andExpect(
+                jsonPath("$.priorAuthorities[0].priorAuthorityId")
+                    .value("c3b07e24-d92b-410a-9d95-88f117a12b43"))
+            .andExpect(jsonPath("$.priorAuthorities[0].priorAuthorityType").value("EXPERT"))
+            .andExpect(jsonPath("$.priorAuthorities[0].status").value("SUBMITTED"))
+            .andExpect(
+                jsonPath("$.priorAuthorities[0].createdAt").value("2026-09-24T15:00:15.141805Z"))
             .andReturn()
             .getResponse()
             .getContentAsString();
@@ -166,6 +186,30 @@ class ApplicationsIntegrationTest {
     ApplicationSummary result = objectMapper.readValue(body, ApplicationSummary.class);
 
     assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  void returnsEmptyPriorAuthoritiesForApplicationByIdWhenNoneAttached() throws Exception {
+    UUID applicationId = UUID.fromString("11111111-2222-3333-4444-555555555555");
+    AccessDataStoreApplication stored =
+        new AccessDataStoreApplication(
+            applicationId,
+            "APP-1",
+            "APPLICATION_SUBMITTED",
+            OffsetDateTime.parse("2026-07-22T10:00:00Z"),
+            null,
+            null,
+            "SPECIAL_CHILDREN_ACT",
+            null,
+            null);
+
+    when(accessDataStoreClient.getApplicationById(applicationId)).thenReturn(stored);
+
+    mockMvc
+        .perform(get("/applications/{id}", applicationId).with(jwt()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.priorAuthorities").isArray())
+        .andExpect(jsonPath("$.priorAuthorities").isEmpty());
   }
 
   @Test

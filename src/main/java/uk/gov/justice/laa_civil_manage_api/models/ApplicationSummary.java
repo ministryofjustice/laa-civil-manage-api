@@ -3,6 +3,7 @@ package uk.gov.justice.laa_civil_manage_api.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 import lombok.Builder;
 
@@ -28,4 +29,6 @@ public record ApplicationSummary(
     @Schema(description = "The client last name.", example = "Doe") String clientLastName,
     @Schema(description = "The matter type of the application.", example = "SPECIAL_CHILDREN_ACT")
         String matterType,
-    @Schema(description = "The provider's office code.", example = "0W839P") String officeCode) {}
+    @Schema(description = "The provider's office code.", example = "0W839P") String officeCode,
+    @Schema(description = "Prior-authority requests attached to the application.")
+        List<PriorAuthoritySummary> priorAuthorities) {}

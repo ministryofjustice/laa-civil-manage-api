@@ -8,4 +8,26 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "laa-civil-manage-api.legal-framework")
 @Validated
 public record LegalFrameworkProperties(
-    @NotBlank String baseUrl, Duration connectTimeout, Duration readTimeout) {}
+    @NotBlank String baseUrl,
+    Duration connectTimeout,
+    Duration readTimeout,
+    int maxRetries,
+    long initialBackoffMs,
+    double backoffMultiplier) {
+
+  private static final int DEFAULT_MAX_RETRIES = 3;
+  private static final long DEFAULT_INITIAL_BACKOFF_MS = 200;
+  private static final double DEFAULT_BACKOFF_MULTIPLIER = 2.0;
+
+  public LegalFrameworkProperties {
+    if (maxRetries <= 0) {
+      maxRetries = DEFAULT_MAX_RETRIES;
+    }
+    if (initialBackoffMs <= 0) {
+      initialBackoffMs = DEFAULT_INITIAL_BACKOFF_MS;
+    }
+    if (backoffMultiplier <= 0) {
+      backoffMultiplier = DEFAULT_BACKOFF_MULTIPLIER;
+    }
+  }
+}

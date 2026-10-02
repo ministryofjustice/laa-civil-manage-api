@@ -1,6 +1,7 @@
 plugins {
     java
     jacoco
+    id("au.com.dius.pact") version "4.7.5"
     id("org.springframework.boot") version "4.1.1"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
@@ -74,6 +75,19 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    create("pactTest") {
+        java.srcDir("src/pactTest/java")
+        compileClasspath += sourceSets["main"].output + sourceSets["test"].output
+        runtimeClasspath += compileClasspath
+    }
+}
+
+configurations {
+    getByName("pactTestImplementation").extendsFrom(getByName("testImplementation"))
+    getByName("pactTestRuntimeOnly").extendsFrom(getByName("testRuntimeOnly"))
+}
+
 dependencyManagement {
     imports {
         mavenBom("com.fasterxml.jackson:jackson-bom:2.22.3")
@@ -106,9 +120,66 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
 
+    add("pactTestImplementation", "au.com.dius.pact.consumer:junit5:4.7.5")
+    add("pactTestImplementation", "org.springframework.boot:spring-boot-starter-test")
+
     implementation("org.springframework.boot:spring-boot-starter-web")
 }
 
+tasks.register<Test>("pactTest") {
+    useJUnitPlatform()
+    testClassesDirs = sourceSets["pactTest"].output.classesDirs
+    classpath = sourceSets["pactTest"].runtimeClasspath
+    systemProperty("pact.content.type.override.application/json", "application/json;charset=utf-8")
+    systemProperty(
+        "pact.rootDir",
+        layout.buildDirectory
+            .dir("pacts")
+            .get()
+            .asFile.path,
+    )
+    outputs.upToDateWhen { false }
+    doFirst {
+        delete(fileTree(layout.buildDirectory.dir("pacts")))
+    }
+}
+
+val pactBrokerUrl =
+    System.getenv("PACT_BROKER_URL")
+        ?: "https://laa-data-pact-broker.apps.live.cloud-platform.service.justice.gov.uk/"
+val pactBrokerUsername = System.getenv("PACT_BROKER_USERNAME")
+val pactBrokerPassword = System.getenv("PACT_BROKER_PASSWORD")
+val pactConsumerVersion = System.getenv("GIT_SHA") ?: project.version.toString()
+val pactConsumerBranch = System.getenv("GIT_BRANCH") ?: "main"
+
+pact {
+    publish {
+        pactDirectory =
+            layout.buildDirectory
+                .dir("pacts")
+                .get()
+                .asFile.path
+        pactBrokerUrl = pactBrokerUrl
+        pactBrokerUsername = pactBrokerUsername
+        pactBrokerPassword = pactBrokerPassword
+        consumerVersion = pactConsumerVersion
+        consumerBranch = pactConsumerBranch
+        tags = listOf(pactConsumerBranch)
+    }
+}
+
+tasks.named<au.com.dius.pact.provider.gradle.PactCanIDeployTask>("canIDeploy") {
+    broker.set(
+        au.com.dius.pact.provider.gradle.Broker().apply {
+            this.pactBrokerUrl = pactBrokerUrl
+            this.pactBrokerUsername = pactBrokerUsername
+            this.pactBrokerPassword = pactBrokerPassword
+        },
+    )
+    pacticipant.set("laa-civil-manage-api")
+    pacticipantVersion.set(pactConsumerVersion)
+    toEnvironment.set(System.getenv("PACT_TARGET_ENVIRONMENT") ?: "staging")
+}
 openApi {
     outputDir.set(layout.projectDirectory.dir("openApi"))
     groupedApiMappings.set(

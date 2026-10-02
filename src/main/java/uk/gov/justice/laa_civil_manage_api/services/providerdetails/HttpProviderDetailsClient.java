@@ -3,9 +3,11 @@ package uk.gov.justice.laa_civil_manage_api.services.providerdetails;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.retry.RetryContext;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
@@ -73,22 +75,18 @@ public class HttpProviderDetailsClient implements ProviderDetailsClient {
   }
 
   @Recover
-  public String recoverFromApiError(RestClientResponseException ex, String officeCode) {
-    log.error(
-        "Provider Details API returned status {} for office {}", ex.getStatusCode(), officeCode);
-    throw new ProviderApiException(
-        "Provider Details API request failed for office " + officeCode, ex);
-  }
-
-  @Recover
-  public String recoverFromNetworkError(ResourceAccessException ex, String officeCode) {
-    log.error("Provider Details API network failure for office {}", officeCode, ex);
-    throw new ProviderApiException(
-        "Provider Details API network failure for office " + officeCode, ex);
-  }
-
-  @Recover
   public String recover(RuntimeException ex, String officeCode) {
+    if (ex instanceof RestClientResponseException || ex instanceof ResourceAccessException) {
+      RetryContext context = RetrySynchronizationManager.getContext();
+      int attempts = context == null ? 1 : context.getRetryCount();
+      log.error(
+          "Provider Details API call getProviderEmail failed after {} attempts for office {}: {}",
+          attempts,
+          officeCode,
+          ex.toString());
+      throw new ProviderApiException(
+          "Provider Details API request failed for office " + officeCode, ex);
+    }
     throw ex;
   }
 }

@@ -1,8 +1,10 @@
 package uk.gov.justice.laa_civil_manage_api.services.providerdetails;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -14,10 +16,14 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,10 +34,13 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
+@ExtendWith(OutputCaptureExtension.class)
 class HttpProviderDetailsClientTest {
 
   private static final String BASE_URL = "http://provider-details.test";
   private static final String OFFICE_CODE = "1A234B";
+  private static final String EXHAUSTED_LOG =
+      "Provider Details API call getProviderEmail failed after 3 attempts for office 1A234B";
 
   private static AnnotationConfigApplicationContext context;
   private static MockRestServiceServer server;
@@ -126,16 +135,17 @@ class HttpProviderDetailsClientTest {
   }
 
   @Test
-  void getProviderEmailThrowsProviderApiExceptionOn404NotFound() {
+  void getProviderEmailThrowsProviderApiExceptionOn404NotFound(CapturedOutput output) {
     server
         .expect(requestTo(BASE_URL + "/api/v1/provider-offices/" + OFFICE_CODE))
         .andRespond(withStatus(HttpStatus.NOT_FOUND));
 
     assertThrows(ProviderApiException.class, () -> client.getProviderEmail(OFFICE_CODE));
+    assertFalse(output.getOut().contains("failed after"), "a 404 is not retried");
   }
 
   @Test
-  void getProviderEmailRetriesOn409ConflictAndEventuallySucceeds() {
+  void getProviderEmailRetriesOn409ConflictAndEventuallySucceeds(CapturedOutput output) {
     server
         .expect(requestTo(BASE_URL + "/api/v1/provider-offices/" + OFFICE_CODE))
         .andRespond(withStatus(HttpStatus.CONFLICT));
@@ -155,10 +165,12 @@ class HttpProviderDetailsClientTest {
 
     server.verify();
     assertEquals("office@example.com", email);
+    assertFalse(output.getOut().contains("failed after"));
   }
 
   @Test
-  void getProviderEmailThrowsProviderApiExceptionAfterExhaustingRetriesOn409Conflict() {
+  void getProviderEmailThrowsProviderApiExceptionAfterExhaustingRetriesOn409Conflict(
+      CapturedOutput output) {
     for (int i = 0; i < 3; i++) {
       server
           .expect(requestTo(BASE_URL + "/api/v1/provider-offices/" + OFFICE_CODE))
@@ -167,10 +179,12 @@ class HttpProviderDetailsClientTest {
 
     assertThrows(ProviderApiException.class, () -> client.getProviderEmail(OFFICE_CODE));
     server.verify();
+    assertLoggedOnceAtError(output);
   }
 
   @Test
-  void getProviderEmailThrowsProviderApiExceptionAfterExhaustingRetriesOn5xxServerError() {
+  void getProviderEmailThrowsProviderApiExceptionAfterExhaustingRetriesOn5xxServerError(
+      CapturedOutput output) {
     for (int i = 0; i < 3; i++) {
       server
           .expect(requestTo(BASE_URL + "/api/v1/provider-offices/" + OFFICE_CODE))
@@ -179,10 +193,11 @@ class HttpProviderDetailsClientTest {
 
     assertThrows(ProviderApiException.class, () -> client.getProviderEmail(OFFICE_CODE));
     server.verify();
+    assertLoggedOnceAtError(output);
   }
 
   @Test
-  void getProviderEmailRetriesAndThrowsProviderApiExceptionOnNetworkError() {
+  void getProviderEmailRetriesAndThrowsProviderApiExceptionOnNetworkError(CapturedOutput output) {
     for (int i = 0; i < 3; i++) {
       server
           .expect(requestTo(BASE_URL + "/api/v1/provider-offices/" + OFFICE_CODE))
@@ -194,6 +209,14 @@ class HttpProviderDetailsClientTest {
 
     assertThrows(ProviderApiException.class, () -> client.getProviderEmail(OFFICE_CODE));
     server.verify();
+    assertLoggedOnceAtError(output);
+  }
+
+  private static void assertLoggedOnceAtError(CapturedOutput output) {
+    List<String> lines =
+        output.getOut().lines().filter(line -> line.contains(EXHAUSTED_LOG)).toList();
+    assertEquals(1, lines.size(), () -> "expected exactly one exhausted-retries log, got " + lines);
+    assertTrue(lines.getFirst().contains("ERROR"), () -> "not logged at ERROR: " + lines);
   }
 
   @Configuration

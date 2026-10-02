@@ -281,6 +281,35 @@ curl -i http://localhost:8080/applications/11111111-2222-3333-4444-555555555555 
   -H "Authorization: Bearer <token>"
 ```
 
+Returns `200` with the application summary (enriched with the client's name) and any prior authorities attached to
+it, as returned by the Access Data Store:
+
+```json
+{
+  "applicationId": "11111111-2222-3333-4444-555555555555",
+  "laaReference": "LAA-123456",
+  "status": "APPLICATION_SUBMITTED",
+  "submittedAt": "2026-07-22T10:00:00Z",
+  "clientFirstName": "John",
+  "clientLastName": "Doe",
+  "matterType": "SPECIAL_CHILDREN_ACT",
+  "officeCode": "0W839P",
+  "priorAuthorities": [
+    {
+      "priorAuthorityId": "c3b07e24-d92b-410a-9d95-88f117a12b43",
+      "priorAuthorityType": "EXPERT",
+      "status": "SUBMITTED",
+      "decision": null,
+      "createdAt": "2026-09-24T15:00:15.141805Z"
+    }
+  ]
+}
+```
+
+`priorAuthorities` is always an array (empty when none are attached). `status` is one of `DRAFT`, `SUBMITTED`,
+`DECIDED`; `decision` is `GRANTED`/`REFUSED` once decided, otherwise `null`. Timestamps are UTC (ISO-8601) and
+passed through from the Access Data Store unchanged, including microsecond precision.
+
 ### Expert types
 
 Sourced from the Legal Framework API. Returns an empty list when the matter type has no associated expert types,
